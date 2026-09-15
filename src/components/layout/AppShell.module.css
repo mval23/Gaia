@@ -1,5 +1,12 @@
+.shell {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
 .main {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   max-width: var(--content-max);
   margin: 0 auto;
   padding: 20px var(--gutter) 40px;
@@ -28,6 +35,10 @@
 }
 
 @media (max-width: 767px) {
+  .shell {
+    display: block;
+  }
+
   .main {
     padding-top: 14px;
     padding-bottom: 28px;

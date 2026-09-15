@@ -52,7 +52,10 @@
   --font-sans: var(--font-body);
 
   /* Layout */
-  --nav-h: 64px;
+  /* Desktop navigation lives in the sidebar, so there is no top bar to subtract */
+  --nav-h: 0px;
+  --sidebar-w: 272px;
+  --sidebar-rail: 80px;
   --gutter: 32px;
   --content-max: 1440px;
 
