@@ -1,0 +1,308 @@
+.page {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header: title, filter, day arrows and summary on one line ---------- */
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding: 16px 4px 0;
+}
+
+.titleBlock {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(30px, 2.7vw, 46px);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.groupFilter {
+  margin-right: 6px;
+}
+
+.dayNav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.arrowPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  color: var(--text);
+  transition: background-color 0.15s var(--ease), color 0.15s var(--ease), transform 0.15s var(--ease);
+}
+
+.arrow:hover {
+  background: var(--hover);
+}
+
+.arrow:active {
+  transform: scale(0.95);
+}
+
+.arrow[data-drop-hover='true'] {
+  background: var(--navy);
+  color: var(--text-inverse);
+}
+
+.calendarButton {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+.todayButton {
+  height: 44px;
+}
+
+.summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.summary strong {
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.bullet {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.mobileSwitch {
+  margin-top: 16px;
+}
+
+/* ---------- Two-column planner ---------- */
+.workspace {
+  --split: 42;
+  display: grid;
+  /* Tasks | resize handle | Day; --split is the tasks share in percent, set by the handle. */
+  grid-template-columns: calc(var(--split) * 1% - 12px) 24px minmax(0, 1fr);
+  margin-top: 24px;
+  /* Fills the viewport below the header so each panel scrolls on its own. */
+  height: clamp(520px, calc(100vh - 272px), 1080px);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px 12px;
+}
+
+.panelMeta {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.panelScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 16px 20px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(43, 52, 69, 0.18) transparent;
+}
+
+/* The Tasks panel has no surface of its own; its category cards carry the fill. */
+.panelPlain {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* The timeline sits directly on the panel colour, without an inset surface. */
+.timelineSurface {
+  flex: 1;
+  min-height: 0;
+  margin: 0 8px 8px 4px;
+}
+
+.emptyGroup {
+  padding: 12px 6px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.emptyState {
+  display: flex;
+  justify-content: center;
+  padding: 28px 12px 8px;
+}
+
+.listAccent {
+  margin: 28px 0 8px 8px;
+  opacity: 0.95;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1439px) {
+  .controls {
+    gap: 8px;
+  }
+
+  .dayNav {
+    gap: 8px;
+  }
+
+  .groupFilter {
+    margin-right: 2px;
+  }
+
+  .groupFilter button {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 13.5px;
+  }
+
+  .summary {
+    padding: 0 14px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .controls {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .workspace {
+    height: clamp(520px, calc(100vh - 372px), 1080px);
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    padding-top: 8px;
+    gap: 14px;
+  }
+
+  .title {
+    font-size: 32px;
+    white-space: normal;
+  }
+
+  .groupFilter {
+    margin-right: 0;
+    width: 100%;
+  }
+
+  .summary {
+    height: 40px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  .arrowPill,
+  .calendarButton {
+    height: 40px !important;
+  }
+
+  .calendarButton {
+    width: 40px !important;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    margin-top: 12px;
+  }
+
+  .panel {
+    height: calc(100vh - var(--nav-h) - 60px);
+    min-height: 460px;
+  }
+
+  .panelHeader {
+    padding: 14px 16px 10px;
+  }
+
+  .panelScroll {
+    padding: 2px 8px 16px;
+  }
+
+  .listAccent {
+    display: none;
+  }
+}

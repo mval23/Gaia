@@ -1,0 +1,35 @@
+.main {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 20px var(--gutter) 40px;
+}
+
+.main:focus {
+  outline: none;
+}
+
+.skipLink {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 400;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  background: var(--navy);
+  color: #fff;
+  transform: translateY(-150%);
+  transition: transform 0.15s var(--ease);
+}
+
+.skipLink:focus-visible {
+  transform: none;
+  outline-color: var(--navy);
+}
+
+@media (max-width: 767px) {
+  .main {
+    padding-top: 14px;
+    padding-bottom: 28px;
+  }
+}

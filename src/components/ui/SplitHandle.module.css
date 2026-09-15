@@ -1,0 +1,34 @@
+.handle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  border-radius: var(--radius-pill);
+}
+
+.handle:focus-visible {
+  outline: none;
+}
+
+.grip {
+  width: 4px;
+  height: 44px;
+  border-radius: 2px;
+  background: rgba(43, 52, 69, 0.14);
+  transition: background-color 0.15s var(--ease), height 0.2s var(--ease), width 0.15s var(--ease);
+}
+
+.handle:hover .grip,
+.handle:active .grip {
+  height: 72px;
+  background: rgba(43, 52, 69, 0.32);
+}
+
+.handle:focus-visible .grip {
+  width: 5px;
+  height: 72px;
+  background: var(--navy);
+}

@@ -1,0 +1,275 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 4px 0;
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 42px;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav [data-muted] {
+  color: var(--text-secondary);
+}
+
+.accent {
+  margin-left: 12px;
+}
+
+/* ---------- Month ---------- */
+.monthPanel {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 20px;
+  border-radius: 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  height: clamp(560px, calc(100vh - var(--nav-h) - 170px), 1000px);
+}
+
+.monthHead {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  padding: 4px 0 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.month {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--border);
+  gap: 1px;
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 10px 8px;
+  background: var(--panel);
+  text-align: left;
+  transition: background-color 0.15s var(--ease);
+  overflow: hidden;
+}
+
+.cell:hover {
+  background: #f2efea;
+}
+
+.cell:focus-visible {
+  outline-offset: -2px;
+  border-radius: 0;
+  z-index: 1;
+}
+
+.cellOut .cellNum {
+  color: var(--text-tertiary);
+}
+
+.cellNum {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.cellToday .cellNum {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  margin: -4px 0 0 -6px;
+  border-radius: 13px;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 600;
+}
+
+.cellSelected:not(.cellToday) .cellNum {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.dots {
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.dotItem {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.more {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.cellTasks {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+}
+
+.cellTask {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cellTaskDone {
+  text-decoration: line-through;
+}
+
+/* ---------- Day / Week ---------- */
+.timePanel {
+  height: clamp(560px, calc(100vh - var(--nav-h) - 170px), 1100px);
+  padding: 8px 0 0;
+  border-radius: 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.weekDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.weekDay strong {
+  margin-top: 2px;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text);
+}
+
+.weekDay:hover {
+  background: var(--hover);
+}
+
+.weekDayToday strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  background: var(--navy);
+  color: #fff;
+}
+
+@media (max-width: 1279px) {
+  .accent {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .title {
+    font-size: 38px;
+  }
+
+  .cellTasks {
+    display: none;
+  }
+
+  .dots {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    padding-top: 8px;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .monthPanel {
+    padding: 10px;
+    height: auto;
+  }
+
+  .month {
+    grid-template-rows: none !important;
+    grid-auto-rows: 64px;
+  }
+
+  .cell {
+    padding: 6px;
+    align-items: center;
+  }
+
+  .cellToday .cellNum {
+    margin: -2px 0 0;
+  }
+
+  .timePanel {
+    height: calc(100vh - var(--nav-h) - 150px);
+    min-height: 460px;
+  }
+}

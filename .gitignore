@@ -1,0 +1,13 @@
+node_modules
+dist
+*.tsbuildinfo
+
+# Local data — never commit
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*backup*.json
+*export*.json
+.env
+.env.*

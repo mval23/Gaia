@@ -1,0 +1,324 @@
+/* ---------- Group ---------- */
+.group + .group {
+  margin-top: 14px;
+}
+
+.groupHeading {
+  margin: 0 0 6px;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.groupToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 4px 10px 4px 6px;
+  margin-left: -6px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+
+.groupToggle:hover {
+  background: var(--hover);
+}
+
+.groupName {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.groupCount {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.groupBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: reveal 0.22s var(--ease);
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+.chevron {
+  color: var(--text-secondary);
+  transition: transform 0.2s var(--ease);
+  flex-shrink: 0;
+}
+
+.chevronClosed {
+  transform: rotate(-90deg);
+}
+
+/* ---------- Category card ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid rgba(43, 52, 69, 0.04);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(43, 52, 69, 0.04), 0 4px 14px rgba(43, 52, 69, 0.05);
+  padding: 6px 8px 6px 10px;
+  container-type: inline-size;
+}
+
+@container (max-width: 320px) {
+  .due {
+    display: none;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 42px;
+}
+
+.cardToggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 2px 8px 2px 6px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+}
+
+button.cardToggle:hover {
+  background: var(--hover);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(43, 52, 69, 0.06);
+}
+
+.cardName {
+  font-size: 15.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.renameInput {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--navy);
+  background: var(--surface-strong);
+  font-size: 15px;
+}
+
+.cardBody {
+  padding: 0 0 2px;
+  animation: reveal 0.2s var(--ease);
+}
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Task row ---------- */
+.taskRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 4px 2px 4px 6px;
+  border-radius: var(--radius);
+  transition: background-color 0.15s var(--ease), opacity 0.2s var(--ease);
+}
+
+.taskRow[data-draggable] {
+  cursor: grab;
+}
+
+.taskRow:hover {
+  background: var(--hover);
+}
+
+.taskTitle {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  text-align: left;
+  font-size: 15px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 4px;
+  cursor: inherit;
+  text-decoration: line-through;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  transition: color 0.25s var(--ease), text-decoration-color 0.35s var(--ease);
+}
+
+.taskDone .taskTitle {
+  color: var(--text-secondary);
+  text-decoration-color: currentColor;
+}
+
+.titleInput {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  margin: 0 0 0 -9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--navy);
+  background: var(--surface-strong);
+  font-size: 15px;
+  color: var(--text);
+  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.1);
+}
+
+.titleInput:focus-visible {
+  outline: none;
+}
+
+.scheduleChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(43, 52, 69, 0.05);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.scheduleChipToday {
+  background: rgba(169, 195, 224, 0.35);
+  color: #3f4c61;
+}
+
+.taskDragging {
+  opacity: 0.4;
+}
+
+.due {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.priority {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin: 0 4px;
+  background: var(--priority-medium);
+}
+
+.priority[data-priority='high'] {
+  background: var(--priority-high);
+}
+
+.priority[data-priority='low'] {
+  background: var(--priority-low);
+}
+
+.rowMenu {
+  opacity: 0;
+  transition: opacity 0.15s var(--ease);
+}
+
+.taskRow:hover .rowMenu,
+.taskRow:focus-within .rowMenu,
+.rowMenu[aria-expanded='true'] {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .rowMenu {
+    opacity: 1;
+  }
+}
+
+/* ---------- Inline add ---------- */
+.addTask {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 4px 10px 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: var(--text-secondary);
+  transition: color 0.15s var(--ease), background-color 0.15s var(--ease);
+}
+
+.addTask:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+.addRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 4px 8px 4px 6px;
+}
+
+.addCircle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(43, 52, 69, 0.28);
+  flex-shrink: 0;
+}
+
+.addInput {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-strong);
+  font-size: 15px;
+}
+
+.addInput:focus-visible {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.1);
+}
+
+.addHint {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}

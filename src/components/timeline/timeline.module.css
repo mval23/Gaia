@@ -1,0 +1,300 @@
+.gridWrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.scroller {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(43, 52, 69, 0.18) transparent;
+}
+
+.canvas {
+  position: relative;
+  display: flex;
+  margin: 14px 0 18px;
+}
+
+/* ---------- Hour gutter ---------- */
+.gutter {
+  position: relative;
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.gutterSpacer {
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.hourLabel {
+  position: absolute;
+  right: 12px;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.hourLabelQuiet {
+  color: var(--text-tertiary);
+}
+
+.nowLabel {
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: var(--now);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  z-index: 2;
+}
+
+/* ---------- Grid ---------- */
+.columns {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  margin-right: 12px;
+}
+
+.lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hourLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--grid-hour);
+}
+
+.hourLine::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px dashed var(--grid-half);
+}
+
+.dayColumn {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.dayColumn + .dayColumn {
+  border-left: 1px solid var(--grid-hour);
+}
+
+/* ---------- Now indicator ---------- */
+.nowLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px solid var(--now);
+  z-index: 6;
+  pointer-events: none;
+}
+
+.nowDot {
+  position: absolute;
+  left: -5px;
+  top: -5.5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--now);
+}
+
+/* ---------- Blocks ---------- */
+.block {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cat) 38%, #fbfaf7);
+  border: 1px solid color-mix(in srgb, var(--cat) 70%, #fbfaf7);
+  color: var(--text);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: box-shadow 0.18s var(--ease), opacity 0.18s var(--ease), transform 0.18s var(--spring);
+}
+
+.block:hover {
+  box-shadow: 0 2px 10px rgba(43, 52, 69, 0.08);
+  z-index: 4;
+}
+
+.block:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  z-index: 5;
+  border-radius: 10px;
+}
+
+.blockText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.blockTitle {
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blockMeta {
+  font-size: 12px;
+  color: #4c5669;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.block {
+  container-type: inline-size;
+}
+
+@container (max-width: 200px) {
+  .blockCompact .blockMeta {
+    display: none;
+  }
+
+  .blockTitle {
+    font-size: 12.5px;
+  }
+}
+
+.blockCompact {
+  align-items: center;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.blockCompact .blockText {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.blockCompact .blockTitle {
+  font-size: 13px;
+}
+
+.blockDone {
+  background: color-mix(in srgb, var(--cat) 18%, #fbfaf7);
+}
+
+.blockDone .blockTitle {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.blockDimmed {
+  opacity: 0.3;
+}
+
+.blockPreview {
+  z-index: 7;
+  pointer-events: none;
+  border: 1.5px dashed color-mix(in srgb, var(--cat) 100%, #2b3445 25%);
+  background: color-mix(in srgb, var(--cat) 48%, #fbfaf7);
+  box-shadow: 0 8px 24px rgba(43, 52, 69, 0.14);
+  transition: top 0.12s var(--ease), height 0.12s var(--ease);
+}
+
+.handle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  z-index: 1;
+}
+
+.handleTop {
+  top: 0;
+}
+
+.handleBottom {
+  bottom: 0;
+}
+
+.handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 24px;
+  height: 3px;
+  margin-left: -12px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--cat) 100%, #2b3445 30%);
+  opacity: 0;
+  transition: opacity 0.15s var(--ease);
+}
+
+.handleTop::after {
+  top: 2px;
+}
+
+.handleBottom::after {
+  bottom: 2px;
+}
+
+.block:hover .handle::after {
+  opacity: 0.6;
+}
+
+@media (pointer: coarse) {
+  .handle {
+    height: 14px;
+  }
+
+  .handle::after {
+    opacity: 0.5;
+  }
+}
+
+/* ---------- Week header ---------- */
+.weekHeader {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  padding-right: 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.weekHeaderCell {
+  flex: 1;
+  min-width: 0;
+}

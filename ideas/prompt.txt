@@ -1,0 +1,803 @@
+# GAIA — MONET-INSPIRED TASK MANAGER & DAILY PLANNER
+
+Design a high-fidelity, desktop-first task manager and daily planning web application called **Gaia**.
+
+Gaia combines:
+
+* The calm atmosphere and colors of Claude Monet’s *Water Lilies*
+* The precision and simplicity of Apple interface design
+* Modern Liquid Glass surfaces
+* A highly practical task manager
+* A drag-and-drop 24-hour time-blocking calendar
+
+Gaia should feel like a quiet digital environment for organizing time: beautiful and personal enough to enjoy opening every day, but structured and efficient enough to function as a serious productivity tool.
+
+The overall feeling should be:
+
+**Calm · Dreamy · Organized · Premium · Soft · Modern · Focused · Personal**
+
+---
+
+# 1. CRITICAL INFORMATION HIERARCHY
+
+The organizational hierarchy must be understood exactly as follows:
+
+**GROUP → CATEGORY → TASK**
+
+There are three top-level groups:
+
+1. **Work**
+2. **Personal**
+3. **Other**
+
+These are the highest organizational level in Gaia.
+
+## GROUP EXAMPLES
+
+### Work
+
+Contains work-related categories such as:
+
+* Client A
+* Client B
+* Client C
+* Internal
+* Other clients/projects
+
+### Personal
+
+Contains personal categories such as:
+
+* University
+* Health
+* Home
+* Projects
+* Finance
+
+### Other
+
+Contains categories that do not naturally belong under Work or Personal.
+
+---
+
+## CATEGORY EXAMPLES
+
+Categories exist **inside groups**.
+
+For example:
+
+WORK
+→ Client A
+→ Client B
+→ Client C
+
+PERSONAL
+→ University
+→ Health
+→ Personal Projects
+
+OTHER
+→ Miscellaneous
+
+Categories should generally represent a **client, project, area, or meaningful responsibility**.
+
+---
+
+## TASKS
+
+Tasks exist **inside categories**.
+
+Example:
+
+WORK
+→ Client A
+→ Prepare presentation
+→ Review monthly report
+→ Send documentation
+
+→ Client B
+→ Update Power BI dashboard
+→ Client follow-up
+
+PERSONAL
+→ University
+→ Algorithms assignment
+→ Study statistics
+
+The interface must never confuse groups and categories.
+
+**Work, Personal, and Other are groups.**
+
+**Client A, Client B, Client C, University, Health, etc. are categories.**
+
+**Individual actions are tasks.**
+
+---
+
+# 2. VISUAL DIRECTION
+
+Use Monet’s *Water Lilies / Nymphéas* series as inspiration for the visual identity.
+
+Suggested palette:
+
+* Misty powder blue
+* Pale sky blue
+* Soft sage
+* Muted eucalyptus green
+* Water-lily pink
+* Dusty lavender
+* Warm ivory
+* Pearl white
+* Very subtle blue-grey
+
+The interface itself should be strongly inspired by Apple:
+
+* Generous whitespace
+* Large rounded corners
+* Precise spacing
+* Minimal visual clutter
+* SF Pro / system-style typography
+* Thin, elegant icons
+* Soft depth
+* Smooth transitions
+* Clear information hierarchy
+
+Use Liquid Glass selectively for:
+
+* Navigation
+* Floating controls
+* Popovers
+* Selected controls
+* Side sheets
+* Small overlays
+* Calendar blocks where appropriate
+
+Liquid Glass surfaces can include:
+
+* Translucency
+* Background blur
+* Subtle refraction
+* Soft highlights
+* Thin semi-transparent borders
+* Restrained shadows
+* Layered depth
+
+Do not turn every card into glass.
+
+Content-heavy areas should remain exceptionally readable.
+
+---
+
+# 3. BACKGROUND — IMPORTANT
+
+**The application's main background must be a solid or subtly tonal color, NOT a Monet painting or photographic image.**
+
+Do not place a large painting behind the application.
+
+Do not make the UI float over a full-screen Monet artwork.
+
+Use a calm background color such as:
+
+* Warm ivory
+* Very pale blue-grey
+* Soft mist blue
+* Extremely subtle sage
+* Pearl white
+
+A very subtle gradient between related colors is acceptable, but the background should still visually read as a **color**, not an image.
+
+This is important for keeping Gaia calm, clean, readable, and modern.
+
+---
+
+# 4. MONET ARTWORK AS SCATTERED DECORATIVE MOMENTS
+
+Monet should still be visibly present in the product, but through **small, intentional decorative moments rather than the page background**.
+
+Use small cropped fragments of public-domain Claude Monet paintings, especially the *Water Lilies / Nymphéas* series.
+
+These decorative artwork fragments should be **scattered organically throughout the application**.
+
+They may appear as:
+
+* Small floating rectangular painting crops
+* Soft rounded artwork tiles
+* Narrow panoramic fragments
+* Tiny visual accents beside page titles
+* Decorative artwork near empty areas
+* Small painting fragments around the edges of the workspace
+* Occasional partially cropped artwork disappearing beyond a container edge
+
+Do not arrange them in a rigid gallery.
+
+They should feel almost like beautiful pieces of Monet have been casually placed throughout a personal planner.
+
+Keep them away from dense functional areas so they never interfere with tasks, calendar events, controls, or text.
+
+The artwork should remain clearly recognizable as Monet. Preserve visible:
+
+* Brush strokes
+* Water lilies
+* Reflections
+* Pond colors
+* Willow trees
+* Soft skies
+* Blues
+* Greens
+* Lavenders
+* Pinks
+
+---
+
+# 5. MONET DECORATIONS + PHRASES
+
+Some scattered Monet artwork decorations should be paired with short, quiet phrases.
+
+The phrases should feel reflective and calming rather than motivational or corporate.
+
+Examples of the desired tone:
+
+“one thing at a time”
+
+“make room for what matters”
+
+“a quiet day is still a full day”
+
+“leave space”
+
+“begin gently”
+
+“there is time”
+
+“slow is still moving”
+
+“today, with intention”
+
+“let the day unfold”
+
+“focus on what is here”
+
+These phrases may appear:
+
+* Beside a small Monet crop
+* Underneath an artwork fragment
+* In an empty area between functional sections
+* As subtle editorial text near the page title
+* As occasional decorative text in the sidebar
+
+Use them sparingly.
+
+They should feel like handwritten notes or quiet editorial details, not productivity slogans.
+
+A refined serif or subtle italic typeface may be used for these phrases, while all functional UI should remain in the system sans-serif.
+
+---
+
+# 6. ART DIRECTION BALANCE
+
+The application must NOT look like:
+
+* A museum website
+* An art gallery
+* A literal painting
+* A scrapbook
+* A generic productivity SaaS dashboard
+
+The desired balance is approximately:
+
+**75% Apple-inspired productivity application**
+**15% Liquid Glass**
+**10% Monet artwork and artistic details**
+
+Monet provides emotion, atmosphere, color, and personality.
+
+Apple-inspired design provides structure, clarity, and interaction.
+
+Liquid Glass creates visual depth and connects the two.
+
+---
+
+# 7. PRIMARY APPLICATION STRUCTURE
+
+Create three primary sections:
+
+1. **Plan**
+2. **Calendar**
+3. **Manage**
+
+Use a compact Apple-inspired navigation sidebar or navigation bar.
+
+The navigation itself may use a subtle Liquid Glass treatment.
+
+Also provide a quick way to switch or filter between:
+
+**Work | Personal | Other | All**
+
+This control does NOT represent categories.
+
+It filters the application by the three top-level groups.
+
+Use an Apple-style segmented control or compact selector.
+
+---
+
+# 8. PLAN VIEW
+
+Plan is Gaia's primary workspace.
+
+Its central purpose is:
+
+**See what needs to be done → decide when to do it.**
+
+Create a two-panel desktop layout:
+
+**LEFT: Unscheduled tasks**
+
+**RIGHT: 24-hour daily timeline**
+
+The relationship between these two panels is the most important interaction in Gaia.
+
+---
+
+# 9. PLAN — LEFT TASK PANEL
+
+Organize tasks according to the real Gaia hierarchy:
+
+**Group → Category → Task**
+
+Example:
+
+WORK
+
+▾ Client A · 3
+○ Prepare presentation
+○ Review monthly report
+○ Send documentation
+
+* Add task
+
+▾ Client B · 2
+○ Update dashboard
+○ Client follow-up
+
+* Add task
+
+PERSONAL
+
+▾ University · 2
+○ Algorithms assignment
+○ Study statistics
+
+* Add task
+
+Categories should appear as refined rounded sections or cards.
+
+Each category includes:
+
+* Expand/collapse chevron
+* Category name
+* Active task count
+* Category color
+* More-options menu
+* Task list
+* Inline “+ Add task”
+
+The user should be able to collapse an entire group such as **Work** or **Personal**.
+
+Individual categories can also be collapsed.
+
+Completed tasks should become subtly desaturated and receive a refined strikethrough.
+
+---
+
+# 10. QUICK TASK CREATION
+
+Task creation should be extremely fast.
+
+Clicking:
+
+**+ Add task**
+
+inside Client A should create the task **inside the Client A category within Work automatically**.
+
+An inline text input should immediately appear.
+
+The user can type:
+
+“Prepare Client A presentation”
+
+and press Enter.
+
+The task is created immediately.
+
+Do not require a modal for basic task creation.
+
+Advanced properties can be edited afterward.
+
+---
+
+# 11. TASK DETAILS
+
+The expanded task editor can contain:
+
+* Task name
+* Group
+* Category
+* Due date
+* Start time
+* Duration
+* Priority
+* Notes
+* Status
+
+Use a compact Liquid Glass popover or side sheet instead of a large traditional modal.
+
+Moving the task to another category should automatically update its group based on the destination category.
+
+---
+
+# 12. PLAN — 24-HOUR DAY PLANNER
+
+The right side should contain a vertical 24-hour calendar.
+
+Display:
+
+00:00
+01:00
+02:00
+...
+23:00
+
+Include:
+
+* Current-time indicator
+* Hour grid
+* Half-hour subdivisions
+* Existing calendar events
+* Scheduled tasks
+* Empty time slots
+
+Visually emphasize normal waking hours while keeping all 24 hours accessible.
+
+---
+
+# 13. DRAG TASKS INTO THE DAY
+
+Tasks from the left task panel can be dragged directly onto the calendar.
+
+When dropped, they become scheduled time blocks.
+
+The underlying task still belongs to:
+
+**Group → Category → Task**
+
+Scheduling it does not change its organizational hierarchy.
+
+The calendar simply adds a time allocation to that task.
+
+Time blocks should inherit their category color using soft, translucent backgrounds.
+
+Users can:
+
+* Drag a task onto the calendar
+* Move it vertically to change its time
+* Resize the top or bottom edge to change duration
+* Move it between days
+* Click it to edit
+* Mark it complete
+* Remove it from the schedule without deleting the task
+
+During dragging or resizing, show:
+
+**10:30 – 11:45**
+**1h 15m**
+
+Snap interactions to 15-minute increments.
+
+The experience should feel close to manipulating events in Apple Calendar.
+
+---
+
+# 14. PLAN HEADER
+
+At the top show:
+
+**Today**
+Sunday, September 13
+
+Include:
+
+* Previous day
+* Next day
+* Date picker
+* Today shortcut when viewing another date
+
+Show a lightweight summary such as:
+
+**5 tasks · 4h 30m planned · 3h 15m free**
+
+Keep this subtle.
+
+Gaia is not an analytics dashboard.
+
+A small Monet fragment and quiet phrase can appear near this header where there is enough whitespace.
+
+---
+
+# 15. CALENDAR VIEW
+
+Create a dedicated calendar workspace with:
+
+**Day | Week | Month**
+
+using an Apple-style segmented control.
+
+## DAY
+
+Show the detailed 24-hour timeline.
+
+## WEEK
+
+Show seven vertical day columns with hourly rows.
+
+Tasks and calendar events appear as elegant translucent blocks.
+
+Allow users to:
+
+* Drag between times
+* Drag between days
+* Resize duration
+* Complete scheduled tasks
+
+## MONTH
+
+Use a clean month grid.
+
+Show restrained colored task/event indicators.
+
+Do not overcrowd cells.
+
+Clicking a date should transition into its Day view.
+
+---
+
+# 16. MANAGE VIEW
+
+Manage is the organizational workspace.
+
+Provide three sections:
+
+**Tasks | Categories | Groups**
+
+---
+
+# 17. TASK MANAGEMENT
+
+Allow users to:
+
+* Search tasks
+* Filter by group
+* Filter by category
+* Filter by status
+* Sort tasks
+* Edit tasks
+* Complete tasks
+* Archive/delete tasks
+* Move tasks between categories
+
+Useful filters include:
+
+**All Groups | Work | Personal | Other**
+
+and then a category filter based on the selected group.
+
+---
+
+# 18. CATEGORY MANAGEMENT
+
+Remember:
+
+**Categories belong to Groups.**
+
+Example:
+
+Work
+→ Client A
+→ Client B
+→ Client C
+
+Personal
+→ University
+→ Health
+
+Each category contains:
+
+* Name
+* Color
+* Parent group
+* Number of tasks
+* Edit
+* Reorder
+* Archive/delete
+
+Allow drag-and-drop reordering.
+
+Allow categories to be moved between groups.
+
+---
+
+# 19. GROUP MANAGEMENT
+
+Groups are the highest level of organization.
+
+The default groups are:
+
+**Work**
+**Personal**
+**Other**
+
+Show each group with:
+
+* Name
+* Categories inside it
+* Total active tasks
+* Reorder controls where appropriate
+* Collapse/expand
+
+Do not introduce another organizational layer beneath categories.
+
+The hierarchy remains:
+
+**GROUP → CATEGORY → TASK**
+
+---
+
+# 20. INTERACTION QUALITY
+
+Interactions should feel exceptionally polished.
+
+Use:
+
+* Smooth expand/collapse
+* Spring-like drag interactions
+* Gentle hover states
+* Subtle scale changes
+* Soft glass transitions
+* Animated task completion
+* Fluid calendar resizing
+* Clear drop zones
+* Smooth 15-minute snapping
+
+Avoid excessive animation.
+
+The experience should feel responsive, tactile, and physical in the spirit of Apple interfaces.
+
+---
+
+# 21. DESIGN DETAILS
+
+## Cards
+
+Use:
+
+* Large rounded corners
+* Ivory or pearl surfaces
+* Very subtle borders
+* Soft shadows
+* Controlled translucency
+
+## Typography
+
+Use a clean system sans-serif similar to SF Pro for functional UI.
+
+A refined serif may be used sparingly for:
+
+* “Today”
+* Page titles
+* Decorative phrases accompanying Monet artwork
+
+Never use decorative typography for task content.
+
+## Icons
+
+Icons should be:
+
+* Thin
+* Rounded
+* Minimal
+* Consistent in stroke weight
+* Inspired by SF Symbols
+
+---
+
+# 22. CATEGORY COLORS
+
+Category colors should come from the Monet palette.
+
+For example:
+
+**Client A — dusty lavender**
+**Client B — powder blue**
+**Client C — muted sage**
+**University — water-lily pink**
+**Health — pale eucalyptus**
+
+These colors identify information without dominating the interface.
+
+Group colors should not replace category colors.
+
+Categories are the primary source of color-coding for tasks and calendar blocks.
+
+---
+
+# 23. CORE UX PRINCIPLE
+
+Gaia should optimize for one central workflow:
+
+**Capture → Organize → Plan → Execute → Complete**
+
+The user should be able to:
+
+1. Capture a task quickly.
+2. Place it inside a category.
+3. The category determines whether it belongs to Work, Personal, or Other.
+4. Open Plan.
+5. See unscheduled tasks beside the day's timeline.
+6. Drag important tasks onto available time.
+7. Resize them to determine how much time to dedicate.
+8. Move them as plans change.
+9. Complete them from either the task list or calendar.
+
+The interface should minimize planning friction.
+
+---
+
+# 24. AVOID
+
+Do not use:
+
+* Full-screen Monet backgrounds
+* Painting images as the main page background
+* Incorrect Group → Category → Group → Task hierarchies
+* Additional organizational layers between categories and tasks
+* Dense productivity dashboards
+* Excessive statistics
+* Gamification
+* Bright saturated colors
+* Heavy borders
+* Too many floating cards
+* Excessive glass blur
+* Generic SaaS aesthetics
+* Kanban-first layouts
+* Large traditional modals
+* Artwork behind important text
+* Decorative elements that interfere with drag-and-drop
+* Museum/gallery aesthetics
+
+---
+
+# 25. FINAL DESIGN TARGET
+
+The final product should feel like:
+
+**“Apple Calendar and a beautifully designed personal task manager, reimagined with the quiet colors, softness, and artistic atmosphere of Monet’s Water Lilies.”**
+
+The background is a calm **color**, not a painting.
+
+Monet appears through **small scattered artwork fragments, painterly decorative details, the color palette, and occasional quiet phrases**.
+
+The functional hierarchy is always:
+
+**WORK / PERSONAL / OTHER**
+↓
+**CATEGORIES such as Client A, Client B, Client C, University**
+↓
+**TASKS**
+
+Prioritize the **Plan view** above all others.
+
+The most important visual and functional relationship to demonstrate is:
+
+**Unscheduled tasks on the left → drag → scheduled time blocks on the 24-hour calendar on the right.**
+
+Create a cohesive, high-fidelity interface with realistic tasks, category colors, calendar blocks, subtle Monet decorations, and polished Apple-inspired interactions.

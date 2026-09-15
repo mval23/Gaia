@@ -1,0 +1,271 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  padding: 12px var(--gutter) 8px;
+}
+
+.bar {
+  max-width: calc(var(--content-max) - 2 * var(--gutter));
+  margin: 0 auto;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 16px;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(43, 52, 69, 0.03), 0 6px 20px rgba(43, 52, 69, 0.05);
+}
+
+/* ---------- Brand ---------- */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 4px 0;
+  margin-right: 20px;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+.logoMark {
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #ab9dce;
+  box-shadow: 0 1px 2px rgba(43, 52, 69, 0.12);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 25px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--text);
+}
+
+/* ---------- Primary navigation ---------- */
+.navList {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-size: 15px;
+  color: var(--text-secondary);
+  transition: background-color 0.15s var(--ease), color 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.navLink:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+.navLinkActive,
+.navLinkActive:hover {
+  color: var(--text);
+  font-weight: 500;
+  background: var(--surface-strong);
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(43, 52, 69, 0.06);
+}
+
+.spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+/* ---------- Global controls ---------- */
+.globals {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 8px 0 12px;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.search:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.kbd {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  background: var(--surface-strong);
+}
+
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.iconBtn:hover,
+.iconBtn[aria-expanded='true'] {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.avatar {
+  width: 36px !important;
+  height: 36px !important;
+  margin-left: 6px;
+  border-radius: 50% !important;
+  background: #b9c2d4 !important;
+  color: #fff !important;
+}
+
+.avatar:hover {
+  background: #a9b3c7 !important;
+}
+
+.desktopOnly {
+  display: inline-flex;
+}
+
+.mobileOnly,
+.mobileCurrent {
+  display: none;
+}
+
+/* ---------- Mobile panel ---------- */
+.mobilePanel {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: var(--gutter);
+  right: var(--gutter);
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  animation: drop 0.18s var(--ease);
+  max-height: calc(100vh - var(--nav-h) - 40px);
+  overflow-y: auto;
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.mobileLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.mobileSettings {
+  margin-top: 8px;
+  padding: 14px 14px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.mobileSettings > p {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 1023px) {
+  .searchLabel,
+  .kbd {
+    display: none;
+  }
+
+  .search {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .brand {
+    margin-right: 8px;
+  }
+
+  .navLink {
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    padding-top: 8px;
+    padding-bottom: 6px;
+  }
+
+  .bar {
+    padding: 0 6px 0 12px;
+  }
+
+  .nav,
+  .desktopOnly {
+    display: none;
+  }
+
+  .mobileOnly {
+    display: grid;
+  }
+
+  .mobileCurrent {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .wordmark {
+    font-size: 22px;
+  }
+
+  .logoMark {
+    width: 30px;
+    height: 30px;
+  }
+}
