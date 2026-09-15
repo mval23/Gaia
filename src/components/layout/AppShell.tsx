@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { TopNav } from './TopNav';
+import { Sidebar } from './Sidebar';
 import { TaskEditorSheet } from '../sheet/TaskEditorSheet';
 import { DragProvider } from '../../dnd/DragProvider';
 import { BlockHelp } from '../timeline/TimeBlock';
@@ -11,10 +11,12 @@ export function AppShell() {
       <a href="#main" className={styles.skipLink}>
         Skip to content
       </a>
-      <TopNav />
-      <main id="main" className={styles.main} tabIndex={-1}>
-        <Outlet />
-      </main>
+      <div className={styles.shell}>
+        <Sidebar />
+        <main id="main" className={styles.main} tabIndex={-1}>
+          <Outlet />
+        </main>
+      </div>
       <TaskEditorSheet />
       <BlockHelp />
     </DragProvider>

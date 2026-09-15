@@ -140,7 +140,7 @@
   grid-template-columns: calc(var(--split) * 1% - 12px) 24px minmax(0, 1fr);
   margin-top: 24px;
   /* Fills the viewport below the header so each panel scrolls on its own. */
-  height: clamp(520px, calc(100vh - 272px), 1080px);
+  height: clamp(520px, calc(100vh - 188px), 1080px);
 }
 
 .panel {
@@ -248,7 +248,7 @@
   }
 
   .workspace {
-    height: clamp(520px, calc(100vh - 372px), 1080px);
+    height: clamp(520px, calc(100vh - 288px), 1080px);
   }
 }
 
