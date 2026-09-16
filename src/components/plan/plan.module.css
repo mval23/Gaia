@@ -2,6 +2,8 @@
 
 .section {
   display: grid;
+  /* minmax(0, ...) so a long row truncates instead of widening the panel. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin-bottom: 18px;
 }
@@ -58,6 +60,7 @@
 
 .laterBody {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 

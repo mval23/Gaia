@@ -204,7 +204,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
       {!editing && showContext && category && (
         <span className={styles.rowContext}>
           <span className={styles.contextDot} style={{ background: category.color }} aria-hidden="true" />
-          <span>{group ? `${group.name} · ${category.name}` : category.name}</span>
+          <span className={styles.contextName}>{group ? `${group.name} · ${category.name}` : category.name}</span>
         </span>
       )}
       {!editing && keepsMoving && (
