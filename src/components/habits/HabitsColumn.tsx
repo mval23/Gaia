@@ -4,14 +4,17 @@ import { useHabitEditor } from '../../hooks/useSheetParam';
 import {
   categoryById,
   checkInIndex,
+  firstLoggedDate,
   goalById,
   groupById,
   isHabitResting,
+  isQuiet,
   totalCount,
   weekCount,
 } from '../../store/selectors';
 import { rhythmLabel, weeklyTarget } from '../../lib/rhythm';
-import { addDays, todayISO } from '../../lib/dates';
+import { addDays, fromISODate, todayISO } from '../../lib/dates';
+import { COPY } from '../../lib/copy';
 import { MANY_NEW_HABITS, MANY_NEW_HABITS_NOTE } from '../../lib/sensitive';
 import { DotHistory } from './DotHistory';
 import { Icon } from '../ui/Icon';
@@ -52,7 +55,7 @@ export function HabitsColumn() {
           onAdd={(title, categoryId) => {
             const id = uid('h');
             dispatch({ type: 'habit/add', id, categoryId, title });
-            announce(`Added “${title}”`);
+            announce(`Added “${title}”. Habits take a while to feel natural, so be patient with it.`);
             openHabit(id);
           }}
         />
@@ -61,7 +64,7 @@ export function HabitsColumn() {
       {habits.length === 0 ? (
         <div className={styles.empty}>
           <MonetAccent art="irisTile" variant="card" phrase="small things, often." />
-          <p>A habit is something small you would like to return to. Start with one that takes two minutes.</p>
+          <p>{COPY.rhythmsEmpty}</p>
         </div>
       ) : (
         <ul className={styles.habitList}>
@@ -70,6 +73,9 @@ export function HabitsColumn() {
             const group = cat ? groupById(state, cat.groupId) : undefined;
             const goal = goalById(state, habit.goalId);
             const resting = isHabitResting(state, habit);
+            const total = totalCount(state, habit.id);
+            const since = firstLoggedDate(state, habit.id);
+            const flexible = habit.rhythm.type === 'timesPerWeek';
             return (
               <li
                 key={habit.id}
@@ -110,11 +116,13 @@ export function HabitsColumn() {
                   <span className={styles.habitMeta}>
                     {rhythmLabel(habit.rhythm)}
                     {resting ? (habit.status === 'archived' ? ' · archived' : ' · resting') : ''}
+                    {!resting && isQuiet(state, habit, today) ? ' · hasn’t found its place lately, and that happens' : ''}
                   </span>
                   {!state.settings.hideNumbers && (
                     <span className={styles.habitTally}>
-                      {totalCount(state, habit.id)} times · {weekCount(state, habit.id, today)} of{' '}
+                      {weekCount(state, habit.id, today)} of {flexible ? 'about ' : ''}
                       {weeklyTarget(habit.rhythm)} this week
+                      {total > 0 && ` · ${total} ${total === 1 ? 'time' : 'times'} since ${sinceLabel(since, today)}`}
                     </span>
                   )}
                   <span className={styles.habitWhere}>
@@ -130,6 +138,13 @@ export function HabitsColumn() {
       {startedThisWeek > MANY_NEW_HABITS && <p className={styles.softNote}>{MANY_NEW_HABITS_NOTE}</p>}
     </section>
   );
+}
+
+/** "June", or "June 2025" once it is from another year. */
+function sinceLabel(date: string | undefined, today: string): string {
+  if (!date) return 'the start';
+  const sameYear = date.slice(0, 4) === today.slice(0, 4);
+  return fromISODate(date).toLocaleDateString('en-US', sameYear ? { month: 'long' } : { month: 'long', year: 'numeric' });
 }
 
 /** Adds a habit with a forgiving default rhythm; the rest is editable after. */

@@ -25,6 +25,29 @@
   border-radius: 8px;
 }
 
+/* Fill: stretched by the header, while the absolutely placed image adds no height of its own. */
+.fill {
+  align-self: stretch;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.frame {
+  position: relative;
+  height: 100%;
+  width: 25cqi;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.fill.strip img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
 .card {
   flex-direction: column;
   gap: 10px;
@@ -44,6 +67,15 @@
   line-height: 1.3;
   color: var(--text-secondary);
   white-space: nowrap;
+}
+
+/* Beside a filled strip the phrase wraps rather than pushing the title. */
+.fill .phrase {
+  white-space: normal;
+  text-wrap: balance;
+  min-width: 80px;
+  /* Roughly half a phrase per line, so it reads as a short two-line caption. */
+  max-width: 14ch;
 }
 
 .card .phrase {

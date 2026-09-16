@@ -31,8 +31,28 @@
   font-size: 15px;
 }
 
+/* This header wraps, so the accent starts from its smallest size (painting plus a wrapped phrase)
+   and grows into the free space, instead of dropping to its own line. */
+.header > .accent {
+  flex: 1 1 0;
+  min-width: calc(25cqi + 12px + 90px);
+  justify-content: flex-end;
+}
+
+/* The painting sits to the right of the title only when there is room for it (a quarter of
+   the header, plus its phrase, which wraps). It never drops below the title. */
+.header {
+  container-type: inline-size;
+}
+
 .accent {
-  margin-left: auto;
+  display: none;
+}
+
+@container (min-width: 820px) {
+  .accent {
+    display: flex;
+  }
 }
 
 .panel {
@@ -336,12 +356,6 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1279px) {
-  .accent {
-    display: none;
-  }
-}
-
 @media (max-width: 1023px) {
   .title {
     font-size: 40px;

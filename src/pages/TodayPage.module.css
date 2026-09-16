@@ -3,6 +3,16 @@
   flex-direction: column;
 }
 
+/* On wider screens the page fills the viewport, so the panels end level with the sidebar
+   (main's 20px top padding above, the sidebar's 12px inset below) whatever the header's height. */
+@media (min-width: 768px) {
+  .page {
+    height: calc(100dvh - 32px);
+    min-height: 640px;
+    margin-bottom: -28px;
+  }
+}
+
 /* ---------- Header: title, filter, day arrows and summary on one line ---------- */
 .header {
   display: flex;
@@ -143,8 +153,9 @@
   /* Tasks | resize handle | Day; --split is the tasks share in percent, set by the handle. */
   grid-template-columns: calc(var(--split) * 1% - 12px) 24px minmax(0, 1fr);
   margin-top: 34px;
-  /* Fills the viewport below the header so each panel scrolls on its own. */
-  height: clamp(520px, calc(100vh - 258px), 1080px);
+  /* Takes whatever height the header leaves, so each panel scrolls on its own. */
+  flex: 1;
+  min-height: 520px;
 }
 
 .panel {
@@ -252,9 +263,6 @@
     justify-content: flex-start;
   }
 
-  .workspace {
-    height: clamp(520px, calc(100vh - 348px), 1080px);
-  }
 }
 
 @media (max-width: 767px) {
@@ -294,7 +302,7 @@
 
   .workspace {
     grid-template-columns: minmax(0, 1fr);
-    height: auto;
+    flex: none;
     margin-top: 12px;
   }
 
