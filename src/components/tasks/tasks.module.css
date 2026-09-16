@@ -329,13 +329,21 @@ button.cardToggle:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
+  /* Shrinks and truncates so it never widens the list past its panel. */
+  min-width: 0;
+  max-width: 40%;
   font-size: 12px;
   color: var(--text-tertiary);
   white-space: nowrap;
 }
 
+.contextName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .contextDot {
+  flex-shrink: 0;
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -361,6 +369,27 @@ button.cardToggle:hover {
 
 @container (max-width: 400px) {
   .rowContext {
+    display: none;
+  }
+}
+
+/* Which goal a task is for, when the row has room to say so. */
+.goalChip {
+  min-width: 0;
+  max-width: 34%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--panel-inset);
+  color: var(--text-secondary);
+}
+
+@container (max-width: 340px) {
+  .goalChip {
     display: none;
   }
 }

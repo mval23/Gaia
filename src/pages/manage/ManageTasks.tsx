@@ -1,24 +1,23 @@
-import { useMemo, useState } from 'react';
-import { uid, useFeedback, useGaia } from '../../store/GaiaProvider';
+import { useMemo } from 'react';
+import { useGaia } from '../../store/GaiaProvider';
 import { categoriesInGroup, categoryById, groupById, sortedGroups } from '../../store/selectors';
 import { useParam, useSetParams } from '../../hooks/useDateParam';
-import { useTaskEditor } from '../../hooks/useTaskEditor';
-import { formatShortDate } from '../../lib/dates';
 import { Icon } from '../../components/ui/Icon';
 import { Select } from '../../components/ui/Select';
-import { CompleteToggle } from '../../components/ui/CompleteToggle';
 import { MonetAccent } from '../../components/art/MonetAccent';
-import { InlineTitle } from '../../components/tasks/InlineTitle';
-import ui from '../../components/ui/ui.module.css';
+import { GroupSection } from '../../components/tasks/GroupSection';
+import { CategoryCard } from '../../components/tasks/CategoryCard';
 import styles from './manage.module.css';
 
 const PRIORITY_RANK = { high: 0, medium: 1, low: 2 } as const;
-const PRIORITY_LABEL = { low: 'Low priority', medium: 'Medium priority', high: 'High priority' } as const;
 
+/**
+ * The same tree the Plan page shows — Group → Category → Task, with the inline
+ * add inside each category — narrowed by the filters above it. Anything the
+ * filters exclude is hidden, so what is left is only what you asked for.
+ */
 export function ManageTasks() {
-  const { state, dispatch } = useGaia();
-  const { notify, announce } = useFeedback();
-  const { openTask } = useTaskEditor();
+  const { state } = useGaia();
   const [q, setQ] = useParam('q');
   const [groupId] = useParam('group');
   const setParams = useSetParams();
@@ -28,50 +27,51 @@ export function ManageTasks() {
 
   const groups = sortedGroups(state);
   const validGroup = groupId && groupById(state, groupId) ? groupId : null;
-  const categoryOptions = validGroup
-    ? categoriesInGroup(state, validGroup)
-    : groups.flatMap((g) => categoriesInGroup(state, g.id));
+  const categoryOptions = validGroup ? categoriesInGroup(state, validGroup) : state.categories;
   const validCategory = categoryId && categoryOptions.some((c) => c.id === categoryId) ? categoryId : null;
+  const query = (q ?? '').trim().toLowerCase();
+  const narrowed = !!(query || status || validCategory || validGroup);
 
-  const rows = useMemo(() => {
-    const query = (q ?? '').trim().toLowerCase();
-    return state.tasks
-      .map((task) => {
-        const cat = categoryById(state, task.categoryId);
-        const group = cat ? groupById(state, cat.groupId) : undefined;
-        return { task, cat, group };
-      })
-      .filter(({ task, cat, group }) => {
-        if (query && !task.title.toLowerCase().includes(query) && !task.notes.toLowerCase().includes(query)) return false;
-        if (validGroup && group?.id !== validGroup) return false;
-        if (validCategory && cat?.id !== validCategory) return false;
-        if (status === 'open' && task.status !== 'open') return false;
-        if (status === 'done' && task.status !== 'done') return false;
-        if (status === 'scheduled' && task.blocks.length === 0) return false;
-        if (status === 'let-go' && task.status !== 'let-go') return false;
-        if (status !== 'let-go' && task.status === 'let-go') return false;
-        if (status === 'unscheduled' && (task.blocks.length > 0 || task.status !== 'open')) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        const done = Number(a.task.status === 'done') - Number(b.task.status === 'done');
-        if (done) return done;
-        switch (sort) {
-          case 'title':
-            return a.task.title.localeCompare(b.task.title);
-          case 'category':
-            return (
-              (a.group?.order ?? 0) - (b.group?.order ?? 0) ||
-              (a.cat?.order ?? 0) - (b.cat?.order ?? 0) ||
-              a.task.title.localeCompare(b.task.title)
-            );
-          case 'priority':
-            return PRIORITY_RANK[a.task.priority] - PRIORITY_RANK[b.task.priority];
-          default:
-            return (a.task.due ?? '9999').localeCompare(b.task.due ?? '9999') || a.task.createdAt.localeCompare(b.task.createdAt);
-        }
-      });
-  }, [state, q, validGroup, validCategory, status, sort]);
+  const matching = useMemo(() => {
+    const rows = state.tasks.filter((task) => {
+      const cat = categoryById(state, task.categoryId);
+      const group = cat ? groupById(state, cat.groupId) : undefined;
+      if (query && !task.title.toLowerCase().includes(query) && !task.notes.toLowerCase().includes(query)) return false;
+      if (validGroup && group?.id !== validGroup) return false;
+      if (validCategory && cat?.id !== validCategory) return false;
+      if (status === 'open' && task.status !== 'open') return false;
+      if (status === 'done' && task.status !== 'done') return false;
+      if (status === 'scheduled' && task.blocks.length === 0) return false;
+      if (status === 'let-go' && task.status !== 'let-go') return false;
+      if (status !== 'let-go' && task.status === 'let-go') return false;
+      if (status === 'unscheduled' && (task.blocks.length > 0 || task.status !== 'open')) return false;
+      return true;
+    });
+
+    return [...rows].sort((a, b) => {
+      // Finished ones settle at the bottom of their category, as on the Plan page.
+      const done = Number(a.status === 'done') - Number(b.status === 'done');
+      if (done) return done;
+      if (sort === 'title') return a.title.localeCompare(b.title);
+      if (sort === 'priority') return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
+      const dueA = a.due ?? '9999-99-99';
+      const dueB = b.due ?? '9999-99-99';
+      return dueA.localeCompare(dueB) || a.createdAt.localeCompare(b.createdAt);
+    });
+  }, [state, query, validGroup, validCategory, status, sort]);
+
+  const inCategory = (id: string) => matching.filter((t) => t.categoryId === id);
+
+  const visibleGroups = groups
+    .filter((g) => !validGroup || g.id === validGroup)
+    .map((group) => {
+      const cats = categoriesInGroup(state, group.id)
+        .filter((c) => !validCategory || c.id === validCategory)
+        // With filters on, an empty category is noise; with none, it is a place to add.
+        .filter((c) => !narrowed || inCategory(c.id).length > 0);
+      return { group, cats };
+    })
+    .filter(({ cats }) => cats.length > 0);
 
   return (
     <section className={styles.panel} aria-label="Tasks">
@@ -99,7 +99,11 @@ export function ManageTasks() {
             </option>
           ))}
         </Select>
-        <Select aria-label="Filter by category" value={validCategory ?? ''} onChange={(e) => setCategoryId(e.target.value || null)}>
+        <Select
+          aria-label="Filter by category"
+          value={validCategory ?? ''}
+          onChange={(e) => setCategoryId(e.target.value || null)}
+        >
           <option value="">All Categories</option>
           {categoryOptions.map((c) => (
             <option key={c.id} value={c.id}>
@@ -118,143 +122,34 @@ export function ManageTasks() {
         <Select aria-label="Sort tasks" value={sort ?? ''} onChange={(e) => setSort(e.target.value || null)}>
           <option value="">Sort: Due date</option>
           <option value="title">Sort: Title</option>
-          <option value="category">Sort: Category</option>
           <option value="priority">Sort: Priority</option>
         </Select>
         <span className={styles.count} aria-live="polite">
-          {rows.length} {rows.length === 1 ? 'task' : 'tasks'}
+          {matching.length} {matching.length === 1 ? 'task' : 'tasks'}
         </span>
       </div>
 
-      {rows.length === 0 ? (
+      {visibleGroups.length === 0 ? (
         <div className={styles.empty}>
-          <MonetAccent art="gardenCard" variant="card" phrase="nothing here. there is time." />
+          <MonetAccent art="gardenCard" variant="card" phrase="nothing waiting." />
         </div>
       ) : (
-        <ul className={styles.list}>
-          {rows.map(({ task, cat, group }) => (
-            <li key={task.id} className={`${styles.taskRow} ${task.status === 'done' ? styles.taskRowDone : ''}`}>
-              <CompleteToggle
-                done={task.status === 'done'}
-                title={task.title}
-                onToggle={() => dispatch({ type: 'task/toggle', id: task.id })}
-              />
-              <span className={styles.dot} style={{ background: cat?.color }} aria-hidden="true" />
-              <InlineTitle task={task} className={styles.taskTitle} inputClassName={styles.titleInput} />
-              <span className={styles.meta}>
-                {group?.name} · {cat?.name}
-              </span>
-              <span className={styles.due}>{task.due ? formatShortDate(task.due) : ''}</span>
-              <span
-                className={styles.priority}
-                data-priority={task.priority}
-                role="img"
-                aria-label={PRIORITY_LABEL[task.priority]}
-                title={PRIORITY_LABEL[task.priority]}
-              />
-              <button type="button" className={`${ui.iconButton} ${ui.iconButtonSm}`} aria-label={`Edit ${task.title}`} onClick={() => openTask(task.id)}>
-                <Icon name="pencil" size={17} />
-              </button>
-              <button
-                type="button"
-                className={`${ui.iconButton} ${ui.iconButtonSm} ${styles.danger}`}
-                aria-label={`Delete ${task.title}`}
-                onClick={() => {
-                  const previous = state;
-                  dispatch({ type: 'task/delete', id: task.id });
-                  notify(`“${task.title}” deleted`, previous);
-                }}
-              >
-                <Icon name="trash" size={17} />
-              </button>
-            </li>
+        <div className={styles.tree}>
+          {visibleGroups.map(({ group, cats }) => (
+            <GroupSection
+              key={group.id}
+              group={group}
+              activeCount={cats.reduce((n, c) => n + inCategory(c.id).filter((t) => t.status === 'open').length, 0)}
+              showHeader
+              collapseKey="manage-tasks"
+            >
+              {cats.map((cat) => (
+                <CategoryCard key={cat.id} category={cat} group={group} tasks={inCategory(cat.id)} />
+              ))}
+            </GroupSection>
           ))}
-        </ul>
+        </div>
       )}
-
-      <AddTask
-        categories={categoryOptions}
-        preferred={validCategory}
-        onAdd={(title, categoryId) => {
-          dispatch({ type: 'task/add', id: uid('t'), categoryId, title });
-          announce(`Added “${title}”`);
-        }}
-      />
     </section>
-  );
-}
-
-/** The same quick capture as the Plan page: type, press Enter, keep going. */
-function AddTask({
-  categories,
-  preferred,
-  onAdd,
-}: {
-  categories: { id: string; name: string }[];
-  preferred: string | null;
-  onAdd: (title: string, categoryId: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState('');
-  const [target, setTarget] = useState('');
-  const categoryId = target || preferred || categories[0]?.id;
-
-  if (!categoryId) return null;
-
-  const commit = () => {
-    const title = value.trim();
-    if (!title) return false;
-    onAdd(title, categoryId);
-    setValue('');
-    return true;
-  };
-
-  if (!editing) {
-    return (
-      <button type="button" className={`${ui.textButton} ${styles.addButton}`} onClick={() => setEditing(true)}>
-        <Icon name="plus" size={16} />
-        Add a task
-      </button>
-    );
-  }
-
-  return (
-    <div className={styles.addInline}>
-      <input
-        className="field"
-        autoFocus
-        placeholder="What needs doing?"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            // Keep focus so several can be added in a row.
-            commit();
-          } else if (e.key === 'Escape') {
-            e.preventDefault();
-            setValue('');
-            setEditing(false);
-          }
-        }}
-        onBlur={() => {
-          commit();
-          setEditing(false);
-        }}
-      />
-      <Select
-        aria-label="Category for the new task"
-        value={categoryId}
-        // Choosing a category must not blur the field into a commit.
-        onMouseDown={(e) => e.preventDefault()}
-        onChange={(e) => setTarget(e.target.value)}
-      >
-        {categories.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </Select>
-    </div>
   );
 }

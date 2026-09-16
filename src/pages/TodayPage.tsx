@@ -19,8 +19,7 @@ import { MonetAccent } from '../components/art/MonetAccent';
 import { RhythmsSection } from '../components/plan/RhythmsSection';
 import { TodaySection } from '../components/plan/TodaySection';
 import { LaterSection } from '../components/plan/LaterSection';
-import { CloseDayCard } from '../components/plan/CloseDayCard';
-import { WeekStrip } from '../components/plan/WeekStrip';
+import { CalendarLinks } from '../components/plan/CalendarLinks';
 import { WeeklyReflection } from '../components/plan/WeeklyReflection';
 import { TimeGrid, type Suggestion } from '../components/timeline/TimeGrid';
 import { SplitHandle } from '../components/ui/SplitHandle';
@@ -142,7 +141,7 @@ export function TodayPage() {
           <h1 className={styles.title}>
             <time dateTime={date}>{formatLongDate(date)}</time>
           </h1>
-          <WeekStrip date={date} today={today} onPick={setDate} />
+          <CalendarLinks date={date} />
         </div>
 
         <div className={styles.controls}>
@@ -248,8 +247,6 @@ export function TodayPage() {
               onScheduleNext={scheduleNext}
             />
 
-            {isToday && <CloseDayCard tasks={todayTasks} date={date} />}
-
             <LaterSection
               tasks={laterTasks}
               date={date}
@@ -260,10 +257,10 @@ export function TodayPage() {
 
             {todayTasks.length === 0 && laterTasks.length === 0 ? (
               <div className={styles.emptyState}>
-                <MonetAccent art="gardenCard" variant="card" phrase="everything has a place. leave space." />
+                <MonetAccent art="gardenCard" variant="card" phrase="room to begin." />
               </div>
             ) : (
-              <MonetAccent art="liliesTile" phrase="begin gently" className={styles.listAccent} />
+              <MonetAccent art="irisTile" phrase="begin gently" className={styles.listAccent} />
             )}
           </div>
         </section>

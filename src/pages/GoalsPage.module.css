@@ -443,3 +443,21 @@
     flex-wrap: wrap;
   }
 }
+
+.addStep {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--text-tertiary);
+}
+
+.addStep:hover {
+  color: var(--text);
+}
+
+.addStepField {
+  margin-top: 6px;
+  width: 100%;
+}

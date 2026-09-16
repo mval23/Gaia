@@ -102,6 +102,10 @@
   height: 44px;
 }
 
+.gentleToggle {
+  height: 44px;
+}
+
 .summary {
   display: inline-flex;
   align-items: center;
@@ -278,6 +282,10 @@
   .arrowPill,
   .calendarButton {
     height: 40px !important;
+  }
+
+  .gentleToggle {
+    height: 40px;
   }
 
   .calendarButton {

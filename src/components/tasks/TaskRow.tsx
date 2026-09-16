@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import type { Task } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
-import { blocksOnDate, categoriesInGroup, categoryById, groupById, nextBlock, sortedGroups } from '../../store/selectors';
+import {
+  blocksOnDate,
+  categoriesInGroup,
+  categoryById,
+  goalById,
+  groupById,
+  nextBlock,
+  sortedGroups,
+} from '../../store/selectors';
 import { useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
 import { formatShortDate } from '../../lib/dates';
@@ -40,6 +48,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
   const group = category ? groupById(state, category.groupId) : undefined;
   // After a few moves, the task itself hints that it may need a different shape.
   const keepsMoving = (task.plannedMoves ?? 0) >= 3;
+  const goal = goalById(state, task.goalId);
 
   const toggle = () => {
     const previous = state;
@@ -191,10 +200,11 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
         </span>
       )}
       {!editing && !chip && task.due && !done && <span className={styles.due}>{formatDue(task.due)}</span>}
+      {!editing && goal && <span className={styles.goalChip}>{goal.title}</span>}
       {!editing && showContext && category && (
         <span className={styles.rowContext}>
           <span className={styles.contextDot} style={{ background: category.color }} aria-hidden="true" />
-          <span>{group ? `${group.name} · ${category.name}` : category.name}</span>
+          <span className={styles.contextName}>{group ? `${group.name} · ${category.name}` : category.name}</span>
         </span>
       )}
       {!editing && keepsMoving && (

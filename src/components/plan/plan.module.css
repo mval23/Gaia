@@ -2,6 +2,8 @@
 
 .section {
   display: grid;
+  /* minmax(0, ...) so a long row truncates instead of widening the panel. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin-bottom: 18px;
 }
@@ -58,94 +60,19 @@
 
 .laterBody {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
-/* ---------- Closing the day ---------- */
+/* ---------- Weekly reflection ---------- */
 
-.closeCard {
-  display: grid;
-  gap: 12px;
-  margin: 4px 0 18px;
-  padding: 16px;
-  border-radius: var(--radius-lg);
-  background: var(--panel-inset);
-  border: 1px solid var(--border);
-}
-
-.closeHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.closeTitle {
+.reflectionTitle {
   margin: 0;
   font-family: var(--font-heading);
   font-weight: 400;
   font-size: 19px;
   color: var(--text);
 }
-
-.closeIntro {
-  margin: 0;
-  font-size: 13.5px;
-  color: var(--text-secondary);
-}
-
-.closeList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.closeItem {
-  display: grid;
-  gap: 6px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-.closeItemTitle {
-  margin: 0;
-  font-size: 14.5px;
-  color: var(--text);
-}
-
-.closeItemMeta {
-  font-size: 12.5px;
-  color: var(--text-tertiary);
-}
-
-.closeActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.closeButton {
-  appearance: none;
-  border: 1px solid var(--border-strong);
-  background: transparent;
-  color: var(--text-secondary);
-  font: inherit;
-  font-size: 12.5px;
-  padding: 5px 10px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-}
-
-.closeButton:hover {
-  background: var(--hover);
-  color: var(--text);
-}
-
-/* ---------- Weekly reflection ---------- */
 
 .reflection {
   display: grid;
