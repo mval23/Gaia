@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react';
+import { todayISO } from '../../lib/dates';
+import { MiniMonth } from '../plan/MiniMonth';
 import { Icon } from './Icon';
 import { Popover } from './Popover';
 import ui from './ui.module.css';
@@ -10,6 +12,7 @@ interface DatePickerButtonProps {
 }
 
 export function DatePickerButton({ value, onChange, className }: DatePickerButtonProps) {
+  const today = todayISO();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
   return (
@@ -34,26 +37,17 @@ export function DatePickerButton({ value, onChange, className }: DatePickerButto
         }}
         label="Choose a date"
         align="end"
-        width={236}
+        width={252}
       >
-        <label style={{ display: 'grid', gap: 8, padding: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
-          Go to date
-          <input
-            type="date"
-            className="field"
-            value={value}
-            autoFocus
-            onChange={(e) => {
-              if (e.target.value) onChange(e.target.value);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                setOpen(false);
-                ref.current?.focus();
-              }
-            }}
-          />
-        </label>
+        <MiniMonth
+          value={value}
+          today={today}
+          onPick={(picked) => {
+            onChange(picked);
+            setOpen(false);
+            ref.current?.focus();
+          }}
+        />
       </Popover>
     </>
   );

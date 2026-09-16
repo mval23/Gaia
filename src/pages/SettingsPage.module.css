@@ -1,0 +1,209 @@
+.page {
+  max-width: 720px;
+  padding: 28px var(--gutter) 64px;
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.title {
+  margin: 4px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.group {
+  display: grid;
+  gap: 10px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.groupTitle {
+  margin: 0 0 4px;
+  font-size: 11.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+}
+
+.label {
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.hint {
+  margin: 0;
+  max-width: 58ch;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-tertiary);
+}
+
+/* ---------- Palettes ---------- */
+
+.paletteGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.palette {
+  appearance: none;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.palette:hover {
+  border-color: var(--text-tertiary);
+}
+
+.palette[aria-checked='true'] {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.swatches {
+  display: flex;
+  gap: 4px;
+}
+
+.swatches span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+}
+
+.paletteName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.paletteNote {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+
+/* ---------- Data ---------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--border-strong));
+}
+
+.footNote {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 767px) {
+  .header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+/* ---------- Narrower screens ---------- */
+
+@media (max-width: 1023px) {
+  .page {
+    padding-block: 20px 56px;
+    gap: 20px;
+  }
+
+  .group {
+    padding: 18px;
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 767px) {
+  .title {
+    font-size: clamp(26px, 8vw, 34px);
+  }
+
+  /* Label above, control below, and the control takes the width it needs. */
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .row > :last-child {
+    justify-self: stretch;
+  }
+
+  .paletteGrid {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+  }
+
+  .palette {
+    padding: 10px 12px;
+  }
+
+  .actions {
+    display: grid;
+    gap: 8px;
+  }
+
+  .hint {
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 400px) {
+  .paletteGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

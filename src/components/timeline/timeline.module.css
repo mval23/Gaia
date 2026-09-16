@@ -12,7 +12,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(43, 52, 69, 0.18) transparent;
+  scrollbar-color: var(--tint-strong) transparent;
 }
 
 .canvas {
@@ -172,7 +172,7 @@
 
 .blockMeta {
   font-size: 12px;
-  color: #4c5669;
+  color: var(--block-ink);
   font-variant-numeric: tabular-nums;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -227,7 +227,7 @@
   pointer-events: none;
   border: 1.5px dashed color-mix(in srgb, var(--cat) 100%, #2b3445 25%);
   background: color-mix(in srgb, var(--cat) 48%, #fbfaf7);
-  box-shadow: 0 8px 24px rgba(43, 52, 69, 0.14);
+  box-shadow: 0 8px 24px var(--scrim);
   transition: top 0.12s var(--ease), height 0.12s var(--ease);
 }
 
@@ -297,4 +297,29 @@
 .weekHeaderCell {
   flex: 1;
   min-width: 0;
+}
+
+/* A suggested habit time: present, but asking nothing. */
+.blockSuggested {
+  background: transparent;
+  border: 1px dashed color-mix(in srgb, var(--cat) 70%, var(--border-strong));
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.blockSuggested .blockTitle {
+  color: var(--text-secondary);
+}
+
+.blockSuggested .blockMeta {
+  color: var(--text-tertiary);
+}
+
+.blockSuggested[data-logged] {
+  border-style: solid;
+  background: color-mix(in srgb, var(--cat) 12%, transparent);
+}
+
+.blockSuggested:hover {
+  background: color-mix(in srgb, var(--cat) 10%, transparent);
 }

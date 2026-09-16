@@ -1,6 +1,8 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { TaskEditorSheet } from '../sheet/TaskEditorSheet';
+import { GoalEditorSheet } from '../sheet/GoalEditorSheet';
+import { HabitEditorSheet } from '../sheet/HabitEditorSheet';
 import { DragProvider } from '../../dnd/DragProvider';
 import { BlockHelp } from '../timeline/TimeBlock';
 import styles from './AppShell.module.css';
@@ -18,6 +20,8 @@ export function AppShell() {
         </main>
       </div>
       <TaskEditorSheet />
+      <GoalEditorSheet />
+      <HabitEditorSheet />
       <BlockHelp />
     </DragProvider>
   );

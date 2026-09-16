@@ -7,7 +7,7 @@
 .scrim {
   position: absolute;
   inset: 0;
-  background: rgba(43, 52, 69, 0.12);
+  background: var(--scrim);
   animation: fade 0.2s var(--ease);
 }
 
@@ -22,11 +22,11 @@
   top: 12px;
   right: 12px;
   bottom: 12px;
-  width: min(460px, calc(100vw - 24px));
+  width: min(720px, calc(100vw - 24px));
   display: flex;
   flex-direction: column;
   border-radius: 22px;
-  background: rgba(251, 250, 247, 0.93);
+  background: var(--glass-strong);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-strong);
@@ -109,7 +109,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 124px minmax(0, 1fr);
+  grid-template-columns: 148px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   padding: 10px 0;
@@ -204,7 +204,7 @@ select.sessionField {
   gap: 10px;
   padding: 16px 20px 18px 28px;
   border-top: 1px solid var(--border);
-  background: rgba(251, 250, 247, 0.7);
+  background: var(--glass);
 }
 
 .delete {

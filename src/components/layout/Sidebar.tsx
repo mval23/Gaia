@@ -2,10 +2,8 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Icon, type IconName } from '../ui/Icon';
-import { Popover } from '../ui/Popover';
 import { Menu } from '../ui/Menu';
 import { SearchPalette } from './SearchPalette';
-import { SettingsPanel } from './SettingsPanel';
 import { MOBILE_QUERY, useMediaQuery } from '../../hooks/useMediaQuery';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import logoMark from '../../assets/brand/gaia-logo.webp';
@@ -15,6 +13,7 @@ import styles from './Sidebar.module.css';
 const NAV: { to: string; label: string; icon: IconName; match: (path: string) => boolean }[] = [
   { to: '/', label: 'Plan', icon: 'plan', match: (p) => p === '/' },
   { to: '/calendar', label: 'Calendar', icon: 'calendar', match: (p) => p.startsWith('/calendar') },
+  { to: '/goals', label: 'Goals & habits', icon: 'goal', match: (p) => p.startsWith('/goals') },
   { to: '/manage/tasks', label: 'Manage', icon: 'manage', match: (p) => p.startsWith('/manage') },
 ];
 
@@ -54,10 +53,8 @@ export function Sidebar() {
   const [collapsedPref, setCollapsedPref] = useState(readCollapsed);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [tip, setTip] = useState<Tip | null>(null);
   const asideRef = useRef<HTMLElement>(null);
-  const settingsRef = useRef<HTMLButtonElement>(null);
   const drawerId = useId();
 
   const collapsed = !isMobile && collapsedPref;
@@ -89,7 +86,6 @@ export function Sidebar() {
   }, [isMobile, toggleCollapsed]);
 
   useEffect(() => setDrawerOpen(false), [location.pathname, isMobile]);
-  useEffect(() => setSettingsOpen(false), [drawerOpen, isMobile]);
   useEffect(() => setTip(null), [collapsed, location.pathname]);
 
   useFocusTrap(asideRef, isMobile && drawerOpen);
@@ -172,7 +168,16 @@ export function Sidebar() {
         role={isMobile && drawerOpen ? 'dialog' : undefined}
         aria-modal={isMobile && drawerOpen ? true : undefined}
       >
-        <div className={styles.panel}>
+        <div
+          className={styles.panel}
+          // Clicking the panel itself — not a link, button or field — folds it away.
+          onClick={(e) => {
+            if (isMobile) return;
+            const el = e.target as HTMLElement;
+            if (el.closest('a, button, input, select, textarea, [role="menu"], [role="dialog"]')) return;
+            toggleCollapsed();
+          }}
+        >
           <div className={styles.head}>
             {collapsed ? (
               <button
@@ -263,25 +268,15 @@ export function Sidebar() {
           </div>
 
           <div className={styles.foot}>
-            <button
-              ref={settingsRef}
-              type="button"
-              className={styles.item}
-              aria-haspopup={isMobile ? undefined : 'dialog'}
-              aria-expanded={settingsOpen}
-              onClick={() => setSettingsOpen((o) => !o)}
+            <Link
+              to="/settings"
+              className={`${styles.item} ${location.pathname.startsWith('/settings') ? styles.itemActive : ''}`}
+              aria-current={location.pathname.startsWith('/settings') ? 'page' : undefined}
               {...tipFor('Settings')}
             >
               <Icon name="settings" size={18} />
               <span className={styles.label}>Settings</span>
-              {isMobile && <Icon name="chevronDown" size={16} className={styles.chevron} />}
-            </button>
-            {isMobile && settingsOpen && (
-              <div className={styles.inlineSettings}>
-                <SettingsPanel />
-              </div>
-            )}
-
+            </Link>
             <Menu
               label="Profile"
               align="start"
@@ -301,25 +296,13 @@ export function Sidebar() {
               items={[
                 { kind: 'heading', label: 'Your planner · saved on this device' },
                 { label: 'Groups & categories', icon: 'folder', onSelect: () => navigate('/manage/groups') },
+                { label: 'Support', icon: 'heart', onSelect: () => navigate('/support') },
               ]}
             />
           </div>
         </div>
       </aside>
 
-      <Popover
-        anchorRef={settingsRef}
-        open={settingsOpen && !isMobile}
-        onClose={(reason) => {
-          setSettingsOpen(false);
-          if (reason === 'escape') settingsRef.current?.focus();
-        }}
-        label="Settings"
-        align="start"
-        width={300}
-      >
-        <SettingsPanel />
-      </Popover>
 
       {tip &&
         createPortal(

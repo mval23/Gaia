@@ -1,12 +1,11 @@
 import type { SVGProps } from 'react';
 
 const paths = {
+  // The day itself, not a dashboard.
   plan: (
     <>
-      <rect x="4" y="4" width="6.5" height="6.5" rx="1.6" />
-      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6" />
-      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6" />
-      <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6" />
+      <circle cx="12" cy="12" r="4.1" />
+      <path d="M12 3.2v2.3M12 18.5v2.3M3.2 12h2.3M18.5 12h2.3M5.9 5.9l1.6 1.6M16.5 16.5l1.6 1.6M18.1 5.9l-1.6 1.6M7.5 16.5l-1.6 1.6" />
     </>
   ),
   calendar: (
@@ -69,6 +68,23 @@ const paths = {
     </>
   ),
   flag: <path d="M5.5 21V4.5M5.5 4.5h11l-2 4 2 4h-11" />,
+  // A quiet ring rather than a target: a goal is a direction, not a bullseye.
+  heart: <path d="M12 20.25S3.75 15.5 3.75 9.6A4.35 4.35 0 0 1 12 7.4a4.35 4.35 0 0 1 8.25 2.2c0 5.9-8.25 10.65-8.25 10.65z" />,
+  goal: (
+    <>
+      <circle cx="12" cy="12" r="8.25" />
+      <circle cx="12" cy="12" r="3.25" />
+    </>
+  ),
+  // An open loop: a rhythm returns without closing into a chain.
+  rhythm: (
+    <>
+      <path d="M4.75 12a7.25 7.25 0 0 1 12.4-5.1" />
+      <path d="M19.25 12a7.25 7.25 0 0 1-12.4 5.1" />
+      <path d="M14.5 3.75l2.9 3-3 2.9" />
+      <path d="M9.5 20.25l-2.9-3 3-2.9" />
+    </>
+  ),
   note: (
     <>
       <path d="M6 3.75h8.5l3.5 3.5V19a1.25 1.25 0 0 1-1.25 1.25H6A1.25 1.25 0 0 1 4.75 19V5A1.25 1.25 0 0 1 6 3.75z" />

@@ -39,6 +39,14 @@ export function GaiaProvider({ children }: { children: ReactNode }) {
   const [liveMessage, setLiveMessage] = useState('');
   const toastSeq = useRef(0);
 
+  // The theme and palette live on <html>, where tokens.css can see them.
+  useEffect(() => {
+    const root = document.documentElement;
+    const { theme, palette } = state.settings;
+    if (theme === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', theme);
+    root.setAttribute('data-palette', palette ?? 'lilies');
+  }, [state.settings.theme, state.settings.palette]);
   useEffect(() => {
     const handle = window.setTimeout(() => saveState(state), 150);
     return () => window.clearTimeout(handle);

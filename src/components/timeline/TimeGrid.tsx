@@ -1,17 +1,28 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useGaia } from '../../store/GaiaProvider';
+import type { Habit } from '../../types';
+import { useFeedback, useGaia } from '../../store/GaiaProvider';
+import { checkInFor } from '../../store/selectors';
 import type { ScheduledBlock } from '../../store/selectors';
 import { HOUR_PX, useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { layoutLanes } from '../../lib/layout';
 import { formatClock, nowMinutes } from '../../lib/time';
 import { todayISO } from '../../lib/dates';
-import { TimeBlock, PreviewBlock } from './TimeBlock';
+import { TimeBlock, PreviewBlock, SuggestedBlock } from './TimeBlock';
 import styles from './timeline.module.css';
+
+/** A habit's preferred time, drawn as a suggestion rather than a commitment. */
+export interface Suggestion {
+  habit: Habit;
+  startMin: number;
+  durationMin: number;
+}
 
 interface TimeGridProps {
   dates: string[];
   blocksByDate: Map<string, ScheduledBlock[]>;
+  suggestionsByDate?: Map<string, Suggestion[]>;
   onOpenTask: (id: string) => void;
+  onOpenHabit?: (id: string) => void;
   onMoveDay?: (taskId: string, blockId: string, delta: number) => void;
   header?: (date: string) => ReactNode;
   label: string;
@@ -29,7 +40,17 @@ function useNow() {
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 
-export function TimeGrid({ dates, blocksByDate, onOpenTask, onMoveDay, header, label, className }: TimeGridProps) {
+export function TimeGrid({
+  dates,
+  blocksByDate,
+  suggestionsByDate,
+  onOpenTask,
+  onOpenHabit,
+  onMoveDay,
+  header,
+  label,
+  className,
+}: TimeGridProps) {
   const { state } = useGaia();
   const { settings } = state;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -99,7 +120,9 @@ export function TimeGrid({ dates, blocksByDate, onOpenTask, onMoveDay, header, l
                 key={date}
                 date={date}
                 items={blocksByDate.get(date) ?? []}
+                suggestions={suggestionsByDate?.get(date) ?? []}
                 onOpenTask={onOpenTask}
+                onOpenHabit={onOpenHabit}
                 onMoveDay={onMoveDay}
                 nowMin={date === now.date ? now.min : null}
               />
@@ -114,17 +137,20 @@ export function TimeGrid({ dates, blocksByDate, onOpenTask, onMoveDay, header, l
 interface DayColumnProps {
   date: string;
   items: ScheduledBlock[];
+  suggestions: Suggestion[];
   onOpenTask: (id: string) => void;
+  onOpenHabit?: (id: string) => void;
   onMoveDay?: (taskId: string, blockId: string, delta: number) => void;
   nowMin: number | null;
 }
 
-function DayColumn({ date, items, onOpenTask, onMoveDay, nowMin }: DayColumnProps) {
+function DayColumn({ date, items, suggestions, onOpenTask, onOpenHabit, onMoveDay, nowMin }: DayColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
   const { registerColumn } = useDragActions();
   const session = useDragSession();
-  const { state } = useGaia();
+  const { state, dispatch } = useGaia();
+  const { announce } = useFeedback();
 
   useEffect(() => {
     if (!ref.current) return;
@@ -133,10 +159,12 @@ function DayColumn({ date, items, onOpenTask, onMoveDay, nowMin }: DayColumnProp
 
   const placements = useMemo(
     () =>
-      layoutLanes(
-        items.map(({ block }) => ({ id: block.id, startMin: block.startMin, durationMin: block.durationMin })),
-      ),
-    [items],
+      layoutLanes([
+        ...items.map(({ block }) => ({ id: block.id, startMin: block.startMin, durationMin: block.durationMin })),
+        // Suggestions share the lane maths so they never sit on top of real time.
+        ...suggestions.map((s) => ({ id: `sug-${s.habit.id}`, startMin: s.startMin, durationMin: s.durationMin })),
+      ]),
+    [items, suggestions],
   );
 
   const preview = session?.preview?.date === date ? session.preview : null;
@@ -159,6 +187,24 @@ function DayColumn({ date, items, onOpenTask, onMoveDay, nowMin }: DayColumnProp
           onMoveDay={onMoveDay}
         />
       ))}
+      {suggestions.map(({ habit, startMin, durationMin }) => {
+        const logged = checkInFor(state, habit.id, date) !== undefined;
+        return (
+          <SuggestedBlock
+            key={habit.id}
+            habit={habit}
+            startMin={startMin}
+            durationMin={durationMin}
+            placement={placements.get(`sug-${habit.id}`) ?? { lane: 0, lanes: 1 }}
+            logged={logged}
+            onOpen={() => onOpenHabit?.(habit.id)}
+            onLog={() => {
+              dispatch({ type: 'checkin/set', habitId: habit.id, date, kind: 'done' });
+              announce(`${habit.title}: logged`);
+            }}
+          />
+        );
+      })}
       {preview && previewTask && <PreviewBlock task={previewTask} schedule={preview} />}
       {nowMin !== null && (
         <div className={styles.nowLine} style={{ top: (nowMin / 60) * HOUR_PX }} aria-hidden="true">

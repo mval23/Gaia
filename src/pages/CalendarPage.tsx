@@ -14,6 +14,7 @@ import {
   fromISODate,
   monthGrid,
   weekDates,
+  weekdayOrder,
   weekdayName,
 } from '../lib/dates';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
@@ -55,7 +56,7 @@ export function CalendarPage() {
     return () => cleanups.forEach((c) => c());
   }, [view, date, setDate, registerShiftTarget, shiftId]);
 
-  const dates = view === 'week' ? weekDates(date) : [date];
+  const dates = view === 'week' ? weekDates(date, state.settings.weekStart) : [date];
   const byDate = useMemo(() => blocksByDate(state), [state]);
   const moveDay = useMoveBlockDay();
 
@@ -148,12 +149,13 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function MonthGrid({ date, today, blocksByDate, onPick }: MonthGridProps) {
   const { state } = useGaia();
-  const cells = monthGrid(date);
+  const weekStart = state.settings.weekStart;
+  const cells = monthGrid(date, weekStart);
 
   return (
     <section className={styles.monthPanel} aria-label={formatMonthYear(date)}>
       <div className={styles.monthHead} aria-hidden="true">
-        {WEEKDAYS.map((d) => (
+        {weekdayOrder(weekStart).map((i) => WEEKDAYS[i]).map((d) => (
           <span key={d}>{d}</span>
         ))}
       </div>

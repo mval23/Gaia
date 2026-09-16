@@ -63,9 +63,9 @@
 /* ---------- Category card ---------- */
 .card {
   background: var(--surface);
-  border: 1px solid rgba(43, 52, 69, 0.04);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 1px 2px rgba(43, 52, 69, 0.04), 0 4px 14px rgba(43, 52, 69, 0.05);
+  box-shadow: 0 1px 2px var(--border), 0 4px 14px var(--tint-weak);
   padding: 6px 8px 6px 10px;
   container-type: inline-size;
 }
@@ -104,7 +104,7 @@ button.cardToggle:hover {
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: inset 0 0 0 1px rgba(43, 52, 69, 0.06);
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .cardName {
@@ -195,7 +195,7 @@ button.cardToggle:hover {
   background: var(--surface-strong);
   font-size: 15px;
   color: var(--text);
-  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.1);
+  box-shadow: 0 0 0 3px var(--tint);
 }
 
 .titleInput:focus-visible {
@@ -209,7 +209,7 @@ button.cardToggle:hover {
   height: 22px;
   padding: 0 8px;
   border-radius: var(--radius-pill);
-  background: rgba(43, 52, 69, 0.05);
+  background: var(--tint-weak);
   font-size: 12px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -219,8 +219,8 @@ button.cardToggle:hover {
 }
 
 .scheduleChipToday {
-  background: rgba(169, 195, 224, 0.35);
-  color: #3f4c61;
+  background: var(--chip-today-bg);
+  color: var(--chip-today-ink);
 }
 
 .taskDragging {
@@ -297,7 +297,7 @@ button.cardToggle:hover {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 1.5px dashed rgba(43, 52, 69, 0.28);
+  border: 1.5px dashed var(--border-strong);
   flex-shrink: 0;
 }
 
@@ -315,10 +315,52 @@ button.cardToggle:hover {
 .addInput:focus-visible {
   outline: none;
   border-color: var(--navy);
-  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.1);
+  box-shadow: 0 0 0 3px var(--tint);
 }
 
 .addHint {
   font-size: 13px;
   color: var(--text-tertiary);
+}
+
+/* ---------- Context and gentle hints on a flat list ---------- */
+
+.rowContext {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.contextDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+/* A hint, never a reprimand: it says what is happening, not what went wrong. */
+.movesChip {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--panel-inset);
+  color: var(--text-tertiary);
+  cursor: help;
+}
+
+@media (max-width: 767px) {
+  .rowContext {
+    display: none;
+  }
+}
+
+@container (max-width: 400px) {
+  .rowContext {
+    display: none;
+  }
 }

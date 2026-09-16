@@ -1,0 +1,262 @@
+/* ---------- Rhythms: today's habits ---------- */
+
+.section {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.sectionMeta {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+/*
+ * Small and quiet: no coloured rim, no shadow. Until it is logged the card
+ * carries its detail; once logged it drops the chrome and reads as a finished
+ * line, the same way a completed task does.
+ */
+.card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cat);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease), padding 0.15s var(--ease);
+}
+
+.card:hover {
+  background: var(--surface-strong);
+}
+
+.card[data-kind] {
+  padding: 4px 10px;
+  background: transparent;
+  border-color: transparent;
+  /* Logged: the chrome goes, the colour stays to say which part of life it is. */
+  border-left-color: color-mix(in srgb, var(--cat) 55%, transparent);
+}
+
+.card[data-kind]:hover {
+  background: var(--hover);
+}
+
+.body {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.card[data-kind] .title {
+  color: var(--text-secondary);
+}
+
+.detail {
+  margin: 1px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tally {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cardMenu {
+  opacity: 0;
+  transition: opacity 0.15s var(--ease);
+}
+
+.card:hover .cardMenu,
+.card:focus-within .cardMenu,
+.cardMenu[aria-expanded='true'] {
+  opacity: 1;
+}
+
+/* ---------- The circle: done, tiny, rest, blank ---------- */
+
+.toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface-strong);
+  color: transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.25s var(--spring);
+}
+
+.toggle:hover {
+  border-color: var(--text-tertiary);
+}
+
+.toggle[data-kind='done'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-inverse);
+  animation: tick 0.3s var(--spring);
+}
+
+/* Tiny keeps the ring and marks the middle: a smaller thing, still a thing. */
+.toggle[data-kind='tiny'] {
+  border-color: var(--primary);
+}
+
+.glyphTiny {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* Rest is a deliberate pause, drawn as one. */
+.toggle[data-kind='rest'] {
+  border-style: dashed;
+  border-color: var(--text-tertiary);
+}
+
+.glyphRest {
+  width: 9px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--text-tertiary);
+}
+
+@keyframes tick {
+  from {
+    transform: scale(0.8);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle {
+    animation: none !important;
+    transition: none;
+  }
+}
+
+/* ---------- Three weeks at a glance (on the habits list) ---------- */
+
+.dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.25px solid color-mix(in srgb, var(--cat) 45%, var(--border-strong));
+  box-sizing: border-box;
+}
+
+.dot[data-kind='done'] {
+  background: var(--cat);
+  border-color: var(--cat);
+}
+
+.dot[data-kind='tiny'] {
+  background: linear-gradient(90deg, var(--cat) 50%, transparent 50%);
+  border-color: var(--cat);
+}
+
+.dot[data-kind='rest'] {
+  border-style: dashed;
+  border-color: var(--text-tertiary);
+}
+
+.dot[data-today] {
+  box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 2.5px color-mix(in srgb, var(--cat) 65%, transparent);
+}
+
+/* ---------- The gentle prompt after a quiet stretch ---------- */
+
+.quiet {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  padding: 8px 0 2px;
+  border-top: 1px solid var(--border);
+}
+
+.quiet p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.quietActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quietButton {
+  appearance: none;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.quietButton:hover {
+  background: var(--hover);
+}
+
+.empty {
+  margin: 0;
+  padding: 8px 2px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 767px) {
+  .cardMenu {
+    opacity: 1;
+  }
+}

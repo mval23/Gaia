@@ -72,6 +72,10 @@
 }
 
 .addInline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
   max-width: 420px;
   margin: 10px 0 0;
 }
@@ -105,7 +109,7 @@
 
 .search:focus-within {
   border-color: var(--navy);
-  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.12);
+  box-shadow: 0 0 0 3px var(--scrim);
 }
 
 .searchInput {
@@ -184,7 +188,7 @@
   background: var(--surface-strong);
   font-size: 15.5px;
   color: var(--text);
-  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.1);
+  box-shadow: 0 0 0 3px var(--tint);
 }
 
 .titleInput:focus-visible {
@@ -345,7 +349,7 @@
   outline: none;
   border-color: var(--navy);
   background: var(--surface-strong);
-  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.1);
+  box-shadow: 0 0 0 3px var(--tint);
 }
 
 .groupSelect {
@@ -523,4 +527,18 @@
   .chips {
     margin-left: 0;
   }
+}
+
+/* ---------- Habits ---------- */
+
+/* An observation offered once, with nothing prevented and nothing to dismiss. */
+.softNote {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--panel-inset);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 62ch;
 }

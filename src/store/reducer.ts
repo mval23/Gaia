@@ -1,5 +1,23 @@
-import type { Category, GaiaState, Group, Priority, Schedule, Settings, Task, TimeBlock } from '../types';
+import type {
+  Category,
+  CheckInKind,
+  GaiaState,
+  Goal,
+  GoalKind,
+  GoalStatus,
+  Group,
+  Habit,
+  Priority,
+  Reflection,
+  Rhythm,
+  Schedule,
+  Settings,
+  Task,
+  TimeBlock,
+} from '../types';
 import { MIN_DURATION, DAY_MIN, clamp } from '../lib/time';
+import { isValidISODate } from '../lib/dates';
+import { DEFAULT_RHYTHM, normalizeRhythm } from '../lib/rhythm';
 
 export type Action =
   | { type: 'task/add'; id: string; categoryId: string; title: string }
@@ -13,6 +31,8 @@ export type Action =
   | { type: 'block/remove'; taskId: string; blockId: string }
   /** Removes a task's sessions, either all of them or only those on `date`. */
   | { type: 'task/unschedule'; id: string; date?: string }
+  /** Chooses the day a task is for; `date: undefined` sends it back to Later. */
+  | { type: 'task/plan'; id: string; date?: string }
   | { type: 'category/add'; id: string; groupId: string; name: string; color: string }
   | { type: 'category/update'; id: string; patch: Partial<Pick<Category, 'name' | 'color'>> }
   | { type: 'category/move'; id: string; groupId: string; index: number }
@@ -21,10 +41,33 @@ export type Action =
   | { type: 'group/update'; id: string; patch: Partial<Pick<Group, 'name' | 'color'>> }
   | { type: 'group/move'; id: string; index: number }
   | { type: 'group/delete'; id: string; moveCategoriesTo: string }
+  | { type: 'goal/add'; id: string; title: string; kind: GoalKind; categoryId?: string }
+  | { type: 'goal/update'; id: string; patch: Partial<Omit<Goal, 'id' | 'createdAt' | 'status' | 'closedAt'>> }
+  /** Pause, resume, complete or let go. One verb, because they are equal choices. */
+  | { type: 'goal/setStatus'; id: string; status: GoalStatus; closingNote?: string; archiveHabits?: boolean }
+  | { type: 'goal/delete'; id: string }
+  | { type: 'habit/add'; id: string; categoryId: string; title: string; goalId?: string; rhythm?: Rhythm }
+  | { type: 'habit/update'; id: string; patch: Partial<Omit<Habit, 'id' | 'createdAt'>> }
+  | { type: 'habit/delete'; id: string }
+  /** Upserts the single entry for (habitId, date). */
+  | { type: 'checkin/set'; habitId: string; date: string; kind: CheckInKind }
+  | { type: 'checkin/clear'; habitId: string; date: string }
+  /** Upserts by `weekStart`; an entirely empty reflection is never stored. */
+  | {
+      type: 'reflection/save';
+      id: string;
+      weekStart: string;
+      patch: Partial<Pick<Reflection, 'wentWell' | 'wasHard' | 'oneThing'>>;
+    }
   | { type: 'settings/update'; patch: Partial<Settings> }
   | { type: 'state/replace'; state: GaiaState };
 
 const nowStamp = () => new Date().toISOString();
+
+const trimmed = (value?: string) => {
+  const t = value?.trim();
+  return t ? t : undefined;
+};
 
 export function normalizeSchedule(s: Schedule): Schedule {
   const durationMin = clamp(Math.round(s.durationMin), MIN_DURATION, DAY_MIN);
@@ -46,6 +89,14 @@ function reindex<T extends { order: number }>(items: T[]): T[] {
 
 function mapTask(state: GaiaState, id: string, fn: (t: Task) => Task): GaiaState {
   return { ...state, tasks: state.tasks.map((t) => (t.id === id ? fn(t) : t)) };
+}
+
+function mapGoal(state: GaiaState, id: string, fn: (g: Goal) => Goal): GaiaState {
+  return { ...state, goals: state.goals.map((g) => (g.id === id ? fn(g) : g)) };
+}
+
+function mapHabit(state: GaiaState, id: string, fn: (h: Habit) => Habit): GaiaState {
+  return { ...state, habits: state.habits.map((h) => (h.id === id ? fn(h) : h)) };
 }
 
 export function reducer(state: GaiaState, action: Action): GaiaState {
@@ -71,16 +122,21 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         if (action.patch.categoryId && !state.categories.some((c) => c.id === action.patch.categoryId)) {
           next.categoryId = t.categoryId;
         }
+        // Never store a dangling goal reference.
+        if (action.patch.goalId && !state.goals.some((g) => g.id === action.patch.goalId)) {
+          next.goalId = t.goalId;
+        }
         if (action.patch.status && action.patch.status !== t.status) {
-          next.completedAt = action.patch.status === 'done' ? nowStamp() : undefined;
+          next.completedAt = action.patch.status === 'open' ? undefined : nowStamp();
         }
         return next;
       });
     case 'task/toggle':
+      // Anything not open comes back as open, so a let-go task is never stranded.
       return mapTask(state, action.id, (t) =>
-        t.status === 'done'
-          ? { ...t, status: 'open', completedAt: undefined }
-          : { ...t, status: 'done', completedAt: nowStamp() },
+        t.status === 'open'
+          ? { ...t, status: 'done', completedAt: nowStamp() }
+          : { ...t, status: 'open', completedAt: undefined },
       );
     case 'task/delete':
       return { ...state, tasks: state.tasks.filter((t) => t.id !== action.id) };
@@ -107,6 +163,18 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         ...t,
         blocks: action.date ? t.blocks.filter((b) => b.date !== action.date) : [],
       }));
+    case 'task/plan':
+      return mapTask(state, action.id, (t) => {
+        if (t.plannedFor === action.date) return t;
+        if (action.date !== undefined && !isValidISODate(action.date)) return t;
+        // Only a move from one chosen day to another counts; going back to Later does not.
+        const moved = t.plannedFor !== undefined && action.date !== undefined;
+        return {
+          ...t,
+          plannedFor: action.date,
+          plannedMoves: moved ? (t.plannedMoves ?? 0) + 1 : t.plannedMoves,
+        };
+      });
 
     case 'category/add': {
       const name = action.name.trim();
@@ -142,10 +210,15 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
       if (!cat) return state;
       const remaining = state.categories.filter((c) => c.id !== action.id);
       const siblings = reindex(remaining.filter((c) => c.groupId === cat.groupId).sort((a, b) => a.order - b.order));
+      const goneHabits = new Set(state.habits.filter((h) => h.categoryId === action.id).map((h) => h.id));
       return {
         ...state,
         categories: [...remaining.filter((c) => c.groupId !== cat.groupId), ...siblings],
         tasks: state.tasks.filter((t) => t.categoryId !== action.id),
+        habits: state.habits.filter((h) => !goneHabits.has(h.id)),
+        checkIns: state.checkIns.filter((c) => !goneHabits.has(c.habitId)),
+        // A goal only borrows a category's colour, so it survives losing it.
+        goals: state.goals.map((g) => (g.categoryId === action.id ? { ...g, categoryId: undefined } : g)),
       };
     }
 
@@ -175,11 +248,139 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         .filter((c) => c.groupId === action.id)
         .sort((a, b) => a.order - b.order)
         .map((c, i) => ({ ...c, groupId: action.moveCategoriesTo, order: base + i }));
+      // Categories are re-homed rather than deleted, so tasks, habits and goals
+      // follow their category and need no changes here.
       return {
         ...state,
         groups: reindex(state.groups.filter((g) => g.id !== action.id).sort((a, b) => a.order - b.order)),
         categories: [...state.categories.filter((c) => c.groupId !== action.id), ...moved],
       };
+    }
+
+    case 'goal/add': {
+      const title = action.title.trim();
+      if (!title) return state;
+      const categoryId =
+        action.categoryId && state.categories.some((c) => c.id === action.categoryId) ? action.categoryId : undefined;
+      const goal: Goal = {
+        id: action.id,
+        title,
+        kind: action.kind,
+        categoryId,
+        status: 'active',
+        createdAt: nowStamp(),
+      };
+      return { ...state, goals: [...state.goals, goal] };
+    }
+    case 'goal/update':
+      return mapGoal(state, action.id, (g) => {
+        const next = { ...g, ...action.patch };
+        if (action.patch.title !== undefined) next.title = action.patch.title.trim() || g.title;
+        if (action.patch.categoryId && !state.categories.some((c) => c.id === action.patch.categoryId)) {
+          next.categoryId = g.categoryId;
+        }
+        return next;
+      });
+    case 'goal/setStatus': {
+      const goal = state.goals.find((g) => g.id === action.id);
+      if (!goal) return state;
+      const closed = action.status === 'completed' || action.status === 'released';
+      const next: Goal = {
+        ...goal,
+        status: action.status,
+        closingNote: closed ? trimmed(action.closingNote) ?? goal.closingNote : undefined,
+        closedAt: closed ? nowStamp() : undefined,
+      };
+      // Check-ins are never touched: the history is the point.
+      const habits =
+        closed && action.archiveHabits
+          ? state.habits.map((h) =>
+              h.goalId === goal.id && h.status !== 'archived' ? { ...h, status: 'archived' as const } : h,
+            )
+          : state.habits;
+      return { ...state, goals: state.goals.map((g) => (g.id === goal.id ? next : g)), habits };
+    }
+    case 'goal/delete': {
+      if (!state.goals.some((g) => g.id === action.id)) return state;
+      // A goal is a lens, not a parent: its tasks and habits are unlinked, never deleted.
+      return {
+        ...state,
+        goals: state.goals.filter((g) => g.id !== action.id),
+        tasks: state.tasks.map((t) => (t.goalId === action.id ? { ...t, goalId: undefined } : t)),
+        habits: state.habits.map((h) => (h.goalId === action.id ? { ...h, goalId: undefined } : h)),
+      };
+    }
+
+    case 'habit/add': {
+      const title = action.title.trim();
+      if (!title || !state.categories.some((c) => c.id === action.categoryId)) return state;
+      const habit: Habit = {
+        id: action.id,
+        title,
+        categoryId: action.categoryId,
+        goalId: action.goalId && state.goals.some((g) => g.id === action.goalId) ? action.goalId : undefined,
+        rhythm: action.rhythm ? normalizeRhythm(action.rhythm) : DEFAULT_RHYTHM,
+        status: 'active',
+        createdAt: nowStamp(),
+      };
+      return { ...state, habits: [...state.habits, habit] };
+    }
+    case 'habit/update':
+      return mapHabit(state, action.id, (h) => {
+        const next = { ...h, ...action.patch };
+        if (action.patch.title !== undefined) next.title = action.patch.title.trim() || h.title;
+        if (action.patch.categoryId && !state.categories.some((c) => c.id === action.patch.categoryId)) {
+          next.categoryId = h.categoryId;
+        }
+        if (action.patch.goalId && !state.goals.some((g) => g.id === action.patch.goalId)) {
+          next.goalId = h.goalId;
+        }
+        if (action.patch.rhythm) next.rhythm = normalizeRhythm(action.patch.rhythm);
+        if (action.patch.preferredStartMin !== undefined) {
+          next.preferredStartMin = clamp(Math.round(action.patch.preferredStartMin), 0, DAY_MIN - 1);
+        }
+        return next;
+      });
+    case 'habit/delete': {
+      if (!state.habits.some((h) => h.id === action.id)) return state;
+      return {
+        ...state,
+        habits: state.habits.filter((h) => h.id !== action.id),
+        checkIns: state.checkIns.filter((c) => c.habitId !== action.id),
+      };
+    }
+
+    case 'checkin/set': {
+      if (!isValidISODate(action.date) || !state.habits.some((h) => h.id === action.habitId)) return state;
+      const others = state.checkIns.filter((c) => !(c.habitId === action.habitId && c.date === action.date));
+      return {
+        ...state,
+        checkIns: [...others, { habitId: action.habitId, date: action.date, kind: action.kind }],
+      };
+    }
+    case 'checkin/clear':
+      return {
+        ...state,
+        checkIns: state.checkIns.filter((c) => !(c.habitId === action.habitId && c.date === action.date)),
+      };
+
+    case 'reflection/save': {
+      if (!isValidISODate(action.weekStart)) return state;
+      const existing = state.reflections.find((r) => r.weekStart === action.weekStart);
+      const merged = { ...existing, ...action.patch };
+      const entry: Reflection = {
+        id: existing?.id ?? action.id,
+        weekStart: action.weekStart,
+        wentWell: trimmed(merged.wentWell),
+        wasHard: trimmed(merged.wasHard),
+        oneThing: trimmed(merged.oneThing),
+        createdAt: existing?.createdAt ?? nowStamp(),
+        updatedAt: existing ? nowStamp() : undefined,
+      };
+      const others = state.reflections.filter((r) => r.weekStart !== action.weekStart);
+      // Nothing written means nothing stored: skipping a week leaves no trace.
+      const empty = !entry.wentWell && !entry.wasHard && !entry.oneThing;
+      return { ...state, reflections: empty ? others : [...others, entry] };
     }
 
     case 'settings/update':

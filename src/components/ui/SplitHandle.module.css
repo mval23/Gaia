@@ -17,7 +17,7 @@
   width: 4px;
   height: 44px;
   border-radius: 2px;
-  background: rgba(43, 52, 69, 0.14);
+  background: var(--scrim);
   transition: background-color 0.15s var(--ease), height 0.2s var(--ease), width 0.15s var(--ease);
 }
 

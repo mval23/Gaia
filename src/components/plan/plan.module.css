@@ -1,0 +1,183 @@
+/* ---------- Sections in the Plan panel: Rhythms · Today · Later ---------- */
+
+.section {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.sectionMeta {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  margin: 0;
+  padding: 10px 2px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.laterHead {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.laterToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 6px 2px;
+  color: var(--text-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.laterToggle:hover {
+  color: var(--text);
+}
+
+.chevronClosed {
+  transform: rotate(-90deg);
+}
+
+.laterBody {
+  display: grid;
+  gap: 10px;
+}
+
+/* ---------- Closing the day ---------- */
+
+.closeCard {
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 18px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--panel-inset);
+  border: 1px solid var(--border);
+}
+
+.closeHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.closeTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 19px;
+  color: var(--text);
+}
+
+.closeIntro {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.closeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.closeItem {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.closeItemTitle {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.closeItemMeta {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+.closeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.closeButton {
+  appearance: none;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* ---------- Weekly reflection ---------- */
+
+.reflection {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 18px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.reflectionPrompt {
+  display: grid;
+  gap: 4px;
+}
+
+.reflectionPrompt label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.reflectionInput {
+  width: 100%;
+  min-height: 44px;
+  resize: vertical;
+}
+
+.reflectionFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}

@@ -138,9 +138,9 @@
   display: grid;
   /* Tasks | resize handle | Day; --split is the tasks share in percent, set by the handle. */
   grid-template-columns: calc(var(--split) * 1% - 12px) 24px minmax(0, 1fr);
-  margin-top: 24px;
+  margin-top: 34px;
   /* Fills the viewport below the header so each panel scrolls on its own. */
-  height: clamp(520px, calc(100vh - 188px), 1080px);
+  height: clamp(520px, calc(100vh - 258px), 1080px);
 }
 
 .panel {
@@ -170,13 +170,14 @@
 }
 
 .panelScroll {
+  container-type: inline-size;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding: 2px 16px 20px;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(43, 52, 69, 0.18) transparent;
+  scrollbar-color: var(--tint-strong) transparent;
 }
 
 /* The Tasks panel has no surface of its own; its category cards carry the fill. */
@@ -248,7 +249,7 @@
   }
 
   .workspace {
-    height: clamp(520px, calc(100vh - 288px), 1080px);
+    height: clamp(520px, calc(100vh - 348px), 1080px);
   }
 }
 
@@ -305,4 +306,21 @@
   .listAccent {
     display: none;
   }
+}
+
+/* A gentle day: tiny versions only, and no figures. */
+.gentleToggle[aria-pressed='true'] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--text-inverse);
+}
+
+/* Said once, quietly, and never as a warning. */
+.fullNote {
+  flex-basis: 100%;
+  margin: 6px 0 0;
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--text-secondary);
 }

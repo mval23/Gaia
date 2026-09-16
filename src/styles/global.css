@@ -128,13 +128,13 @@ ol {
 }
 
 .field:hover {
-  border-color: rgba(43, 52, 69, 0.22);
+  border-color: var(--border-strong);
 }
 
 .field:focus-visible {
   outline: none;
   border-color: var(--navy);
-  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.12);
+  box-shadow: 0 0 0 3px var(--scrim);
 }
 
 select.field {
@@ -189,5 +189,20 @@ body.is-resizing * {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Native controls and scrollbars follow the chosen theme. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
   }
 }
