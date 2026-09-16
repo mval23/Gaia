@@ -1,23 +1,21 @@
-/* Sits in the corner of the day view on wide screens only. */
+/* Sits inside the date-picker popover, so the surface is already there. */
 .mini {
   display: grid;
   gap: 6px;
-  width: 218px;
-  padding: 12px 14px 14px;
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  padding: 2px;
 }
 
 .head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
+  min-height: 28px;
 }
 
 .month {
+  flex: 1;
+  text-align: center;
   font-family: var(--font-heading);
   font-size: 15px;
   color: var(--text);
@@ -25,10 +23,28 @@
   border-radius: var(--radius-sm);
 }
 
-.month:hover {
+a.month:hover {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+}
+
+.step {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.step:hover {
+  background: var(--hover);
+  color: var(--text);
 }
 
 .grid {
@@ -44,23 +60,28 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-tertiary);
-  padding-bottom: 3px;
+  padding-bottom: 4px;
 }
 
 .day {
+  appearance: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
   position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 1;
-  font-size: 11.5px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
+  background: transparent;
   text-decoration: none;
-  border-radius: 7px;
+  border-radius: 8px;
 }
 
 .day:hover {
-  background: var(--panel);
+  background: var(--hover);
   color: var(--text);
 }
 
@@ -69,15 +90,20 @@
   opacity: 0.45;
 }
 
-/* The week you are looking at, as a band. */
+/* The week being looked at, as a band. */
 .day[data-week] {
   background: var(--panel-inset);
 }
 
 .day[data-today] {
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+}
+
+.day[data-selected] {
   background: var(--navy);
   color: var(--text-inverse);
   font-weight: 600;
+  box-shadow: none;
 }
 
 /* A day with time already on it. */
@@ -91,7 +117,7 @@
   background: var(--avatar);
 }
 
-.day[data-today][data-has]::after {
+.day[data-selected][data-has]::after {
   background: var(--text-inverse);
   opacity: 0.8;
 }

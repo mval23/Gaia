@@ -30,9 +30,11 @@ export function CloseDayCard({ tasks, date }: Props) {
 
   if (dismissed || unfinished.length === 0) return null;
 
-  const move = (task: Task, to: string | undefined, said: string) => {
-    dispatch({ type: 'task/plan', id: task.id, date: to });
-    if (to === undefined) dispatch({ type: 'task/unschedule', id: task.id, date });
+  const move = (task: Task, target: string | undefined, said: string) => {
+    dispatch({ type: 'task/plan', id: task.id, date: target });
+    // Later only unpicks it: whatever time it had on the day stays put.
+    // Moving it to another day does take it off this one.
+    if (target !== undefined && target !== date) dispatch({ type: 'task/unschedule', id: task.id, date });
     announce(`${task.title}: ${said}`);
   };
 
@@ -70,7 +72,7 @@ export function CloseDayCard({ tasks, date }: Props) {
                 >
                   Tomorrow
                 </button>
-                <button type="button" className={styles.closeButton} onClick={() => move(task, undefined, 'moved to Later')}>
+                <button type="button" className={styles.closeButton} onClick={() => move(task, undefined, 'waiting under Later')}>
                   Later
                 </button>
                 <DatePickerButton

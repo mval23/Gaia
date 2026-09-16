@@ -15,6 +15,7 @@ import { formatShortDate, todayISO } from '../lib/dates';
 import { rhythmLabel } from '../lib/rhythm';
 import { Icon } from '../components/ui/Icon';
 import { MonetAccent } from '../components/art/MonetAccent';
+import { HabitsColumn } from '../components/habits/HabitsColumn';
 import ui from '../components/ui/ui.module.css';
 import styles from './GoalsPage.module.css';
 
@@ -48,11 +49,19 @@ export function GoalsPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
-          <p className="eyebrow">Goals</p>
+          <p className="eyebrow">Goals &amp; habits</p>
           <h1 className={styles.title}>What matters to you</h1>
         </div>
         <MonetAccent art="seineStrip" variant="strip" phrase="make room for what matters" />
       </header>
+
+      <div className={styles.columns}>
+        <section className={styles.column} aria-labelledby="goals-title">
+          <div className={styles.columnHead}>
+            <h2 id="goals-title" className={styles.columnTitle}>
+              Goals
+            </h2>
+          </div>
 
       {adding ? (
         <div className={styles.addInline}>
@@ -126,6 +135,11 @@ export function GoalsPage() {
           )}
         </>
       )}
+
+        </section>
+
+        <HabitsColumn />
+      </div>
 
       {state.reflections.length > 0 && (
         <section className={styles.group} aria-labelledby="reflections-title">

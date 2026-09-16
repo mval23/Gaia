@@ -13,7 +13,7 @@ import styles from './Sidebar.module.css';
 const NAV: { to: string; label: string; icon: IconName; match: (path: string) => boolean }[] = [
   { to: '/', label: 'Plan', icon: 'plan', match: (p) => p === '/' },
   { to: '/calendar', label: 'Calendar', icon: 'calendar', match: (p) => p.startsWith('/calendar') },
-  { to: '/goals', label: 'Goals', icon: 'goal', match: (p) => p.startsWith('/goals') },
+  { to: '/goals', label: 'Goals & habits', icon: 'goal', match: (p) => p.startsWith('/goals') },
   { to: '/manage/tasks', label: 'Manage', icon: 'manage', match: (p) => p.startsWith('/manage') },
 ];
 

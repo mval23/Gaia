@@ -151,3 +151,59 @@
     gap: 6px;
   }
 }
+
+/* ---------- Narrower screens ---------- */
+
+@media (max-width: 1023px) {
+  .page {
+    padding-block: 20px 56px;
+    gap: 20px;
+  }
+
+  .group {
+    padding: 18px;
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 767px) {
+  .title {
+    font-size: clamp(26px, 8vw, 34px);
+  }
+
+  /* Label above, control below, and the control takes the width it needs. */
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .row > :last-child {
+    justify-self: stretch;
+  }
+
+  .paletteGrid {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+  }
+
+  .palette {
+    padding: 10px 12px;
+  }
+
+  .actions {
+    display: grid;
+    gap: 8px;
+  }
+
+  .hint {
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 400px) {
+  .paletteGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

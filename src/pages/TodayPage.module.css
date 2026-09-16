@@ -138,9 +138,9 @@
   display: grid;
   /* Tasks | resize handle | Day; --split is the tasks share in percent, set by the handle. */
   grid-template-columns: calc(var(--split) * 1% - 12px) 24px minmax(0, 1fr);
-  margin-top: 24px;
+  margin-top: 34px;
   /* Fills the viewport below the header so each panel scrolls on its own. */
-  height: clamp(520px, calc(100vh - 188px), 1080px);
+  height: clamp(520px, calc(100vh - 258px), 1080px);
 }
 
 .panel {
@@ -249,7 +249,7 @@
   }
 
   .workspace {
-    height: clamp(520px, calc(100vh - 288px), 1080px);
+    height: clamp(520px, calc(100vh - 348px), 1080px);
   }
 }
 
@@ -323,16 +323,4 @@
   font-style: italic;
   font-size: 15px;
   color: var(--text-secondary);
-}
-
-/* The month sits in the corner, and only when there is room for it. */
-.miniSlot {
-  margin-left: auto;
-  align-self: flex-start;
-}
-
-@media (max-width: 1199px) {
-  .miniSlot {
-    display: none;
-  }
 }

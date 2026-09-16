@@ -1,9 +1,9 @@
-/* ---------- Rhythms: today's habits, one card each ---------- */
+/* ---------- Rhythms: today's habits ---------- */
 
 .section {
   display: grid;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
 .sectionHead {
@@ -22,69 +22,78 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 4px;
 }
 
 /*
- * The card's top edge carries the category colour and curves with the corners.
- * Everything else stays ivory, so colour marks identity without shouting.
+ * Small and quiet: no coloured rim, no shadow. Until it is logged the card
+ * carries its detail; once logged it drops the chrome and reads as a finished
+ * line, the same way a completed task does.
  */
 .card {
   display: grid;
-  gap: 8px;
-  padding: 12px 14px 12px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 7px 10px;
   border: 1px solid var(--border);
-  border-top: 2.5px solid var(--cat);
-  border-radius: var(--radius-lg);
+  border-left: 3px solid var(--cat);
+  border-radius: var(--radius-md);
   background: var(--surface);
-  transition: box-shadow 0.15s var(--ease), background 0.15s var(--ease);
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease), padding 0.15s var(--ease);
 }
 
 .card:hover {
   background: var(--surface-strong);
-  box-shadow: var(--shadow-sm);
 }
 
-/* A logged day is acknowledged with a whisper: a tinted ground, nothing more. */
-.card[data-logged='done'],
-.card[data-logged='tiny'] {
-  background: color-mix(in srgb, var(--cat) 7%, var(--surface));
+.card[data-kind] {
+  padding: 4px 10px;
+  background: transparent;
+  border-color: transparent;
+  /* Logged: the chrome goes, the colour stays to say which part of life it is. */
+  border-left-color: color-mix(in srgb, var(--cat) 55%, transparent);
 }
 
-.cardHead {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.card[data-kind]:hover {
+  background: var(--hover);
 }
 
-.cardTitle {
-  margin: 0;
-  flex: 1;
+.body {
   min-width: 0;
-  font-size: 15.5px;
-  font-weight: 600;
-  line-height: 1.3;
+}
+
+.title {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.35;
   color: var(--text);
 }
 
-.goalChip {
-  display: inline-block;
-  margin-right: 6px;
-  vertical-align: 1px;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 11.5px;
-  line-height: 1;
-  padding: 5px 9px;
-  border-radius: var(--radius-pill);
-  background: var(--panel-inset);
+.card[data-kind] .title {
   color: var(--text-secondary);
 }
 
+.detail {
+  margin: 1px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tally {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .cardMenu {
-  flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.15s var(--ease);
 }
@@ -95,14 +104,76 @@
   opacity: 1;
 }
 
-.detail {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: var(--text-tertiary);
+/* ---------- The circle: done, tiny, rest, blank ---------- */
+
+.toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface-strong);
+  color: transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.25s var(--spring);
 }
 
-/* ---------- Three weeks at a glance ---------- */
+.toggle:hover {
+  border-color: var(--text-tertiary);
+}
+
+.toggle[data-kind='done'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-inverse);
+  animation: tick 0.3s var(--spring);
+}
+
+/* Tiny keeps the ring and marks the middle: a smaller thing, still a thing. */
+.toggle[data-kind='tiny'] {
+  border-color: var(--primary);
+}
+
+.glyphTiny {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* Rest is a deliberate pause, drawn as one. */
+.toggle[data-kind='rest'] {
+  border-style: dashed;
+  border-color: var(--text-tertiary);
+}
+
+.glyphRest {
+  width: 9px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--text-tertiary);
+}
+
+@keyframes tick {
+  from {
+    transform: scale(0.8);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle {
+    animation: none !important;
+    transition: none;
+  }
+}
+
+/* ---------- Three weeks at a glance (on the habits list) ---------- */
 
 .dots {
   display: flex;
@@ -128,7 +199,6 @@
   border-color: var(--cat);
 }
 
-/* A chosen rest: present, deliberately not filled in. */
 .dot[data-kind='rest'] {
   border-style: dashed;
   border-color: var(--text-tertiary);
@@ -138,64 +208,13 @@
   box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 2.5px color-mix(in srgb, var(--cat) 65%, transparent);
 }
 
-.tally {
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 10px;
-  font-size: 12.5px;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.aimMet {
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-.total {
-  color: var(--text-tertiary);
-}
-
-/* ---------- Logging a day: the one thing you came to do ---------- */
-
-.checkIn {
-  display: flex;
-  gap: 6px;
-}
-
-.checkInButton {
-  appearance: none;
-  flex: 1;
-  border: 1px solid var(--border-strong);
-  background: transparent;
-  color: var(--text-secondary);
-  font: inherit;
-  font-size: 13px;
-  line-height: 1;
-  padding: 9px 10px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: background 0.15s var(--ease), color 0.15s var(--ease), border-color 0.15s var(--ease);
-}
-
-.checkInButton:hover {
-  background: var(--hover);
-  color: var(--text);
-}
-
-.checkInButton[aria-pressed='true'] {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: var(--text-inverse);
-}
-
 /* ---------- The gentle prompt after a quiet stretch ---------- */
 
 .quiet {
+  grid-column: 1 / -1;
   display: grid;
   gap: 8px;
-  padding: 10px 0 2px;
+  padding: 8px 0 2px;
   border-top: 1px solid var(--border);
 }
 
@@ -230,21 +249,10 @@
 
 .empty {
   margin: 0;
-  padding: 10px 2px;
+  padding: 8px 2px;
   font-size: 13.5px;
   line-height: 1.5;
   color: var(--text-tertiary);
-}
-
-/* In a narrow panel the dots wrap and the buttons keep their full width. */
-@container (max-width: 380px) {
-  .history {
-    gap: 6px;
-  }
-
-  .cardMenu {
-    opacity: 1;
-  }
 }
 
 @media (max-width: 767px) {

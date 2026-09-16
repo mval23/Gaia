@@ -20,7 +20,7 @@ import { RhythmsSection } from '../components/plan/RhythmsSection';
 import { TodaySection } from '../components/plan/TodaySection';
 import { LaterSection } from '../components/plan/LaterSection';
 import { CloseDayCard } from '../components/plan/CloseDayCard';
-import { MiniMonth } from '../components/plan/MiniMonth';
+import { WeekStrip } from '../components/plan/WeekStrip';
 import { WeeklyReflection } from '../components/plan/WeeklyReflection';
 import { TimeGrid, type Suggestion } from '../components/timeline/TimeGrid';
 import { SplitHandle } from '../components/ui/SplitHandle';
@@ -142,6 +142,7 @@ export function TodayPage() {
           <h1 className={styles.title}>
             <time dateTime={date}>{formatLongDate(date)}</time>
           </h1>
+          <WeekStrip date={date} today={today} onPick={setDate} />
         </div>
 
         <div className={styles.controls}>
@@ -207,10 +208,6 @@ export function TodayPage() {
               </span>
             </p>
           )}
-        </div>
-        {/* Wide screens only: the month, with every cell opening that week. */}
-        <div className={styles.miniSlot}>
-          <MiniMonth date={date} today={today} />
         </div>
         {full && !hideNumbers && <p className={styles.fullNote}>{COPY.fullDay}</p>}
       </header>

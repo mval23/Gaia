@@ -5,7 +5,7 @@ import { categoryById, checkInKey, goalById, isQuiet, weekCount } from '../../st
 import { rhythmLabel, weeklyTarget } from '../../lib/rhythm';
 import { formatClock } from '../../lib/time';
 import { Menu } from '../ui/Menu';
-import { CheckInControl } from './CheckInControl';
+import { HabitToggle } from './HabitToggle';
 import styles from './habits.module.css';
 
 interface Props {
@@ -17,13 +17,16 @@ interface Props {
   onEdit: (id: string) => void;
 }
 
+const LOGGED_WORD: Record<CheckInKind, string> = {
+  done: 'done',
+  tiny: 'tiny counts',
+  rest: 'resting today',
+};
+
 /**
- * One habit, as a card.
- *
- * The shape follows the two reference images: a coloured top edge for identity
- * (the "border idea"), then name, then the quiet detail, then the pattern of
- * recent days, and the logging controls last — the one thing you came to do,
- * always in the same place.
+ * One habit in the day's panel. Until it is logged it shows what it is and how
+ * the week is going; once logged it folds down to a single line, like a
+ * finished task, and gets out of the way.
  */
 export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
   const { state, dispatch } = useGaia();
@@ -41,8 +44,7 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
 
   const setKind = (kind: CheckInKind) => {
     dispatch({ type: 'checkin/set', habitId: habit.id, date, kind });
-    const said = kind === 'done' ? 'logged' : kind === 'tiny' ? 'tiny counts, logged' : 'rest day noted';
-    announce(`${habit.title}: ${said}`);
+    announce(`${habit.title}: ${kind === 'tiny' ? 'tiny counts, logged' : kind === 'rest' ? 'rest day noted' : 'logged'}`);
   };
 
   const clear = () => {
@@ -50,11 +52,11 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
     announce(`${habit.title}: cleared for this day`);
   };
 
-  // The quiet detail line: what it is attached to, when it happens, how often.
   const detail = [
     gentle && habit.tinyVersion ? habit.tinyVersion : habit.cue,
     rhythmLabel(habit.rhythm),
     habit.preferredStartMin !== undefined ? `around ${formatClock(habit.preferredStartMin, settings.timeFormat)}` : null,
+    goal?.title,
   ]
     .filter(Boolean)
     .join(' · ');
@@ -62,57 +64,10 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
   return (
     <li
       className={styles.card}
-      data-logged={value ?? undefined}
-      // The top edge carries the category colour, so the card itself stays calm.
+      data-kind={value ?? undefined}
       style={{ ['--cat' as string]: category?.color ?? 'var(--border-strong)' }}
     >
-      <div className={styles.cardHead}>
-        <h3 className={styles.cardTitle}>{habit.title}</h3>
-        <Menu
-          label={`More options for ${habit.title}`}
-          triggerClassName={styles.cardMenu}
-          items={[
-            { label: 'Edit habit', icon: 'pencil', onSelect: () => onEdit(habit.id) },
-            {
-              label: 'Let it rest for now',
-              icon: 'clock',
-              onSelect: () => {
-                dispatch({ type: 'habit/update', id: habit.id, patch: { status: 'paused' } });
-                announce(`${habit.title} is resting`);
-              },
-            },
-            { kind: 'separator' },
-            {
-              label: 'Delete habit',
-              icon: 'trash',
-              danger: true,
-              onSelect: () => {
-                const previous = state;
-                dispatch({ type: 'habit/delete', id: habit.id });
-                notify(`“${habit.title}” deleted, along with its history`, previous);
-              },
-            },
-          ]}
-        />
-      </div>
-
-      {(goal || detail) && (
-        <p className={styles.detail}>
-          {goal && <span className={styles.goalChip}>{goal.title}</span>}
-          {detail}
-        </p>
-      )}
-
-      {!settings.hideNumbers && !gentle && (
-        <p className={styles.tally}>
-          <span className={aimMet ? styles.aimMet : undefined}>
-            {aimMet
-              ? 'That is your week'
-              : `${thisWeek} of ${habit.rhythm.type === 'timesPerWeek' ? `about ${target}` : target} this week`}
-          </span>
-        </p>
-      )}
-      <CheckInControl
+      <HabitToggle
         title={habit.title}
         value={value}
         tinyVersion={habit.tinyVersion}
@@ -120,7 +75,51 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
         onClear={clear}
       />
 
-      {quiet && (
+      <div className={styles.body}>
+        <p className={styles.title}>{habit.title}</p>
+        {value ? (
+          <p className={styles.detail}>{LOGGED_WORD[value]}</p>
+        ) : (
+          detail && <p className={styles.detail}>{detail}</p>
+        )}
+      </div>
+
+      {!value && !gentle && !settings.hideNumbers && (
+        <p className={styles.tally}>
+          {aimMet
+            ? 'that is your week'
+            : `${thisWeek} of ${habit.rhythm.type === 'timesPerWeek' ? `about ${target}` : target}`}
+        </p>
+      )}
+
+      <Menu
+        label={`More options for ${habit.title}`}
+        triggerClassName={styles.cardMenu}
+        items={[
+          { label: 'Edit habit', icon: 'pencil', onSelect: () => onEdit(habit.id) },
+          {
+            label: 'Let it rest for now',
+            icon: 'clock',
+            onSelect: () => {
+              dispatch({ type: 'habit/update', id: habit.id, patch: { status: 'paused' } });
+              announce(`${habit.title} is resting`);
+            },
+          },
+          { kind: 'separator' },
+          {
+            label: 'Delete habit',
+            icon: 'trash',
+            danger: true,
+            onSelect: () => {
+              const previous = state;
+              dispatch({ type: 'habit/delete', id: habit.id });
+              notify(`“${habit.title}” deleted, along with its history`, previous);
+            },
+          },
+        ]}
+      />
+
+      {quiet && !value && (
         <div className={styles.quiet}>
           <p>This rhythm hasn’t found its place lately. That happens.</p>
           <div className={styles.quietActions}>
