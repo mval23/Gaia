@@ -2,11 +2,10 @@ import { useState } from 'react';
 import type { Task } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { blocksOnDate } from '../../store/selectors';
-import { addDays, formatShortDate } from '../../lib/dates';
+import { addDays } from '../../lib/dates';
 import { COPY } from '../../lib/copy';
 import { formatRange } from '../../lib/time';
 import { Icon } from '../ui/Icon';
-import { DatePickerButton } from '../ui/DatePickerButton';
 import styles from './plan.module.css';
 
 interface Props {
@@ -75,10 +74,6 @@ export function CloseDayCard({ tasks, date }: Props) {
                 <button type="button" className={styles.closeButton} onClick={() => move(task, undefined, 'waiting under Later')}>
                   Later
                 </button>
-                <DatePickerButton
-                  value={date}
-                  onChange={(picked) => move(task, picked, `moved to ${formatShortDate(picked)}`)}
-                />
                 <button
                   type="button"
                   className={styles.closeButton}

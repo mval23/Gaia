@@ -80,7 +80,6 @@
   margin: 10px 0 0;
 }
 
-/* ---------- Tasks ---------- */
 .filters {
   display: flex;
   flex-wrap: wrap;
@@ -133,102 +132,6 @@
   margin-left: auto;
   font-size: 14px;
   color: var(--text-secondary);
-}
-
-.list {
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-.taskRow {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 56px;
-  padding: 6px 14px 6px 18px;
-  transition: background-color 0.15s var(--ease);
-}
-
-.taskRow + .taskRow {
-  border-top: 1px solid var(--border);
-}
-
-.taskRow:hover {
-  background: var(--surface-strong);
-}
-
-.taskTitle {
-  flex: 1;
-  min-width: 0;
-  padding: 4px 0;
-  text-align: left;
-  font-size: 15.5px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border-radius: 4px;
-}
-
-.taskTitle:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--border-strong);
-  text-underline-offset: 3px;
-}
-
-.titleInput {
-  flex: 1;
-  min-width: 0;
-  height: 34px;
-  padding: 0 8px;
-  margin-left: -9px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--navy);
-  background: var(--surface-strong);
-  font-size: 15.5px;
-  color: var(--text);
-  box-shadow: 0 0 0 3px var(--tint);
-}
-
-.titleInput:focus-visible {
-  outline: none;
-}
-
-.taskRowDone .taskTitle {
-  color: var(--text-secondary);
-  text-decoration: line-through;
-}
-
-.meta {
-  font-size: 13.5px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-.due {
-  width: 56px;
-  font-size: 13.5px;
-  color: var(--text-secondary);
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.priority {
-  width: 7px;
-  height: 7px;
-  margin: 0 4px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: var(--priority-medium);
-}
-
-.priority[data-priority='high'] {
-  background: var(--priority-high);
-}
-
-.priority[data-priority='low'] {
-  background: var(--priority-low);
 }
 
 /* ---------- Categories ---------- */
@@ -444,10 +347,6 @@
     font-size: 40px;
   }
 
-  .meta {
-    display: none;
-  }
-
   .count {
     margin-left: 0;
     width: 100%;
@@ -487,15 +386,6 @@
     width: 100%;
   }
 
-  .taskRow {
-    gap: 10px;
-    padding: 6px 6px 6px 12px;
-  }
-
-  .due {
-    display: none;
-  }
-
   .catRow {
     flex-wrap: wrap;
     gap: 6px 8px;
@@ -531,14 +421,9 @@
 
 /* ---------- Habits ---------- */
 
-/* An observation offered once, with nothing prevented and nothing to dismiss. */
-.softNote {
-  margin: 12px 0 0;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  background: var(--panel-inset);
-  font-size: 13.5px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-  max-width: 62ch;
+/* The task tree, the same shape the Plan page uses. */
+.tree {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
 }

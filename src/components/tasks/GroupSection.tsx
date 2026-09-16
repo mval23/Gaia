@@ -8,12 +8,14 @@ interface GroupSectionProps {
   group: Group;
   activeCount: number;
   showHeader: boolean;
+  /** Namespaces the collapsed memory, so one page does not fold another. */
+  collapseKey?: string;
   children: ReactNode;
 }
 
-export function GroupSection({ group, activeCount, showHeader, children }: GroupSectionProps) {
+export function GroupSection({ group, activeCount, showHeader, collapseKey = 'group', children }: GroupSectionProps) {
   const { isCollapsed, toggle } = useCollapsed();
-  const key = `group:${group.id}`;
+  const key = `${collapseKey}:${group.id}`;
   const collapsed = showHeader && isCollapsed(key);
   const bodyId = `group-body-${group.id}`;
 
