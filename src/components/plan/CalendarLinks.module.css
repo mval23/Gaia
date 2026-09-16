@@ -1,0 +1,19 @@
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+}
+
+.links a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+}
+
+.links a:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}

@@ -131,6 +131,24 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
             onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
           />
 
+          <Row icon="goal" label="Supports" htmlFor="editor-goal">
+            <Select
+              id="editor-goal"
+              value={task.goalId ?? ''}
+              onChange={(e) => patch({ goalId: e.target.value || undefined })}
+              wrapClassName={styles.full}
+            >
+              <option value="">Nothing in particular</option>
+              {state.goals
+                .filter((g) => g.status === 'active' || g.id === task.goalId)
+                .map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.title}
+                  </option>
+                ))}
+            </Select>
+          </Row>
+
           <Row icon="folder" label="Category" htmlFor="editor-category">
             <Select
               id="editor-category"

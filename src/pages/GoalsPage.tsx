@@ -219,7 +219,7 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
         </p>
       )}
 
-      {(habits.length > 0 || tasks.length > 0) && (
+      {(!closed || habits.length > 0 || tasks.length > 0) && (
         <div className={styles.linkedGrid}>
           {habits.length > 0 && (
             <div>
@@ -240,9 +240,9 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
               </ul>
             </div>
           )}
-          {tasks.length > 0 && (
-            <div>
-              <h4 className={styles.linkedTitle}>Steps</h4>
+          <div>
+            <h4 className={styles.linkedTitle}>Steps</h4>
+            {tasks.length > 0 && (
               <ul className={styles.linkedList}>
                 {tasks.map((task) => (
                   <li key={task.id} data-done={task.status === 'done' || undefined}>
@@ -253,14 +253,68 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
+            )}
+            <AddStep goal={goal} />
+          </div>
         </div>
       )}
 
-      {habits.length === 0 && tasks.length === 0 && !closed && (
-        <p className={styles.activity}>Nothing attached yet, and that is fine. Naming it is enough for now.</p>
-      )}
     </article>
+  );
+}
+
+/** Creates a task already pointing at this goal, in the goal's category. */
+function AddStep({ goal }: { goal: Goal }) {
+  const { state, dispatch } = useGaia();
+  const { announce } = useFeedback();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState('');
+  const categoryId = goal.categoryId ?? state.categories[0]?.id;
+
+  if (!categoryId || goal.status === 'completed' || goal.status === 'released') return null;
+
+  const commit = () => {
+    const title = value.trim();
+    if (!title) return false;
+    const id = uid('t');
+    dispatch({ type: 'task/add', id, categoryId, title });
+    dispatch({ type: 'task/update', id, patch: { goalId: goal.id } });
+    announce(`Added “${title}” to ${goal.title}`);
+    setValue('');
+    return true;
+  };
+
+  if (!editing) {
+    return (
+      <button type="button" className={`${ui.textButton} ${styles.addStep}`} onClick={() => setEditing(true)}>
+        <Icon name="plus" size={14} />
+        Add a step
+      </button>
+    );
+  }
+
+  return (
+    <input
+      className={`field ${styles.addStepField}`}
+      autoFocus
+      placeholder="One small thing that moves this along"
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          // Keep focus so several steps can be added in a row.
+          commit();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          setValue('');
+          setEditing(false);
+        }
+      }}
+      onBlur={() => {
+        commit();
+        setEditing(false);
+      }}
+    />
   );
 }

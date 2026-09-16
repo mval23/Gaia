@@ -20,7 +20,7 @@ import { RhythmsSection } from '../components/plan/RhythmsSection';
 import { TodaySection } from '../components/plan/TodaySection';
 import { LaterSection } from '../components/plan/LaterSection';
 import { CloseDayCard } from '../components/plan/CloseDayCard';
-import { WeekStrip } from '../components/plan/WeekStrip';
+import { CalendarLinks } from '../components/plan/CalendarLinks';
 import { WeeklyReflection } from '../components/plan/WeeklyReflection';
 import { TimeGrid, type Suggestion } from '../components/timeline/TimeGrid';
 import { SplitHandle } from '../components/ui/SplitHandle';
@@ -142,7 +142,7 @@ export function TodayPage() {
           <h1 className={styles.title}>
             <time dateTime={date}>{formatLongDate(date)}</time>
           </h1>
-          <WeekStrip date={date} today={today} onPick={setDate} />
+          <CalendarLinks date={date} />
         </div>
 
         <div className={styles.controls}>
