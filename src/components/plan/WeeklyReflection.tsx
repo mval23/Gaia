@@ -39,7 +39,7 @@ export function WeeklyReflection({ date }: { date: string }) {
 
   return (
     <section className={styles.reflection} aria-labelledby="reflection-title">
-      <h2 id="reflection-title" className={styles.closeTitle}>
+      <h2 id="reflection-title" className={styles.reflectionTitle}>
         {COPY.reflectionInvite}
       </h2>
       {PROMPTS.map(({ field, label }) => (

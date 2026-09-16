@@ -19,7 +19,6 @@ import { MonetAccent } from '../components/art/MonetAccent';
 import { RhythmsSection } from '../components/plan/RhythmsSection';
 import { TodaySection } from '../components/plan/TodaySection';
 import { LaterSection } from '../components/plan/LaterSection';
-import { CloseDayCard } from '../components/plan/CloseDayCard';
 import { CalendarLinks } from '../components/plan/CalendarLinks';
 import { WeeklyReflection } from '../components/plan/WeeklyReflection';
 import { TimeGrid, type Suggestion } from '../components/timeline/TimeGrid';
@@ -247,8 +246,6 @@ export function TodayPage() {
               hideNumbers={hideNumbers}
               onScheduleNext={scheduleNext}
             />
-
-            {isToday && <CloseDayCard tasks={todayTasks} date={date} />}
 
             <LaterSection
               tasks={laterTasks}

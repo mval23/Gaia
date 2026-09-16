@@ -12,8 +12,6 @@ export const COPY = {
   rhythmsEmpty: 'Habits are small things you’d like to return to. Start with something that takes two minutes.',
   rhythmsDone: 'Nothing else on today’s rhythm.',
   aimMet: 'That is your week',
-  closeDay: 'Some things didn’t fit today. Where should they go?',
-  closeDayBlocks: 'Did any of these happen?',
   reflectionInvite: 'Your week, when you have five minutes.',
   reflectionSaved: 'Saved. See you next week, or whenever.',
 } as const;
