@@ -34,7 +34,7 @@ export function SettingsPage() {
           <p className="eyebrow">Settings</p>
           <h1 className={styles.title}>Make it yours</h1>
         </div>
-        <MonetAccent className={styles.accent} art="sunsetStrip" variant="strip" fill phrase="let the day unfold" />
+        <MonetAccent className={styles.accent} art="sunset" variant="strip" fill phrase="let the day unfold" />
       </header>
 
       <div className={styles.sections}>

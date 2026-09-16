@@ -229,7 +229,14 @@
   user-select: none;
 }
 
+.art .artButton {
+  display: block;
+  width: 100%;
+  border-radius: 0;
+}
+
 .artImg {
+  display: block;
   width: 100%;
   height: 68px;
   object-fit: cover;

@@ -63,7 +63,7 @@ export function HabitsColumn() {
 
       {habits.length === 0 ? (
         <div className={styles.empty}>
-          <MonetAccent art="irisTile" variant="card" phrase="small things, often." />
+          <MonetAccent art="iris" variant="card" phrase="small things, often." />
           <p>{COPY.rhythmsEmpty}</p>
         </div>
       ) : (

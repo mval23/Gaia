@@ -66,7 +66,7 @@ export function GoalsPage() {
           <p className="eyebrow">Goals &amp; habits</p>
           <h1 className={styles.title}>What matters to you</h1>
         </div>
-        <MonetAccent className={styles.accent} art="seineStrip" variant="strip" fill phrase="make room for what matters" />
+        <MonetAccent className={styles.accent} art="seine" variant="strip" fill phrase="make room for what matters" />
       </header>
 
       <div ref={columnsRef} className={styles.columns} style={{ ['--split' as string]: split }}>
@@ -114,7 +114,7 @@ export function GoalsPage() {
 
       {active.length === 0 && resting.length === 0 && closed.length === 0 ? (
         <div className={styles.empty}>
-          <MonetAccent art="pondCard" variant="card" phrase="no goals yet, and that’s completely fine." />
+          <MonetAccent art="pond" variant="card" phrase="no goals yet, and that’s completely fine." />
           <p>
             Gaia works well with just tasks. When something matters to you, it can live here, with small habits and
             steps attached to it. Goals can be about doing less, too.

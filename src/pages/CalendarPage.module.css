@@ -61,7 +61,7 @@
 }
 
 /* This header wraps, so the strip can't size itself from its height; 45px tall at the painting's 40:9. */
-.accent > span:first-child {
+.accent > :first-child {
   width: 200px;
 }
 

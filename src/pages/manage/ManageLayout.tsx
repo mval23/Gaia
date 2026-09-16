@@ -30,7 +30,7 @@ export function ManageLayout() {
             );
           })}
         </nav>
-        <MonetAccent art="liliesStrip" variant="strip" fill phrase="everything has a place" className={styles.accent} />
+        <MonetAccent art="lilies" variant="strip" fill phrase="everything has a place" className={styles.accent} />
       </header>
       <Outlet />
     </div>
