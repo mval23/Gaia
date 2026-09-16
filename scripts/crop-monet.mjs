@@ -14,6 +14,12 @@ const crops = [
   { name: 'lilies-strip', file: '1933.1157 - Water Lilies.jpg', region: [0.04, 0.62, 0.92, 0.2], size: [560, 120] },
   { name: 'seine-strip', file: 'the_seine_at_giverny_1963.10.180.jpg', region: [0.02, 0.4, 0.96, 0.26], size: [480, 108] },
   { name: 'garden-card', file: 'the_artist_s_garden_at_vetheuil_1970.17.45.jpg', region: [0.1, 0.42, 0.62, 0.34], size: [360, 240] },
+  // Added later: irises, a sunset reflection, a darker lily pond, and the sea at Pourville.
+  { name: 'iris-tile', file: 'pond.jpg', region: [0.01, 0.18, 0.33, 0.24], size: [168, 168] },
+  { name: 'sunset-strip', file: 'labre.jpg', region: [0.02, 0.42, 0.96, 0.22], size: [560, 120] },
+  { name: 'pond-card', file: 'water_lilies.jpg', region: [0.06, 0.6, 0.52, 0.36], size: [360, 240] },
+  { name: 'sea-strip', file: 'cliff-walk-at-pourville.jpg', region: [0.02, 0.38, 0.4, 0.12], size: [480, 108] },
+  { name: 'cliff-tile', file: 'cliff-walk-at-pourville.jpg', region: [0.57, 0.31, 0.21, 0.25], size: [168, 168] },
 ];
 
 for (const c of crops) {

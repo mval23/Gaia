@@ -72,6 +72,10 @@
 }
 
 .addInline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
   max-width: 420px;
   margin: 10px 0 0;
 }
@@ -105,7 +109,7 @@
 
 .search:focus-within {
   border-color: var(--navy);
-  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.12);
+  box-shadow: 0 0 0 3px var(--scrim);
 }
 
 .searchInput {
@@ -184,7 +188,7 @@
   background: var(--surface-strong);
   font-size: 15.5px;
   color: var(--text);
-  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.1);
+  box-shadow: 0 0 0 3px var(--tint);
 }
 
 .titleInput:focus-visible {
@@ -345,7 +349,7 @@
   outline: none;
   border-color: var(--navy);
   background: var(--surface-strong);
-  box-shadow: 0 0 0 3px rgba(43, 52, 69, 0.1);
+  box-shadow: 0 0 0 3px var(--tint);
 }
 
 .groupSelect {
@@ -521,6 +525,94 @@
   }
 
   .chips {
+    margin-left: 0;
+  }
+}
+
+/* ---------- Habits ---------- */
+
+/* An observation offered once, with nothing prevented and nothing to dismiss. */
+.softNote {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--panel-inset);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 62ch;
+}
+
+/* A habit on the habits page: identity on one line, its pattern underneath. */
+.habitRow {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.habitRow + .habitRow {
+  border-top: 1px solid var(--border);
+}
+
+.habitRow:hover {
+  background: var(--hover);
+}
+
+.habitRow[data-muted] .taskTitle,
+.habitRow[data-muted] .habitTally {
+  color: var(--text-tertiary);
+}
+
+.habitHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.habitSpacer {
+  flex: 1;
+}
+
+.habitGoal {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 5px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--panel-inset);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.habitStats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding-left: 18px;
+}
+
+.habitTally {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.habitMeta {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  margin-left: auto;
+}
+
+@media (max-width: 767px) {
+  .habitHead {
+    flex-wrap: wrap;
+  }
+
+  .habitMeta {
     margin-left: 0;
   }
 }

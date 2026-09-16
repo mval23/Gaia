@@ -1,0 +1,274 @@
+.page {
+  max-width: 880px;
+  padding: 28px var(--gutter) 64px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 4px;
+}
+
+.title {
+  margin: 4px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.addButton {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.addInline {
+  display: grid;
+  gap: 6px;
+  max-width: 460px;
+}
+
+.addHint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.empty {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  max-width: 52ch;
+}
+
+.empty p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ---------- One goal ---------- */
+
+.card {
+  display: grid;
+  gap: 10px;
+  padding: 18px 22px 20px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--cat);
+  box-shadow: var(--shadow-sm);
+}
+
+/* A resting or closed goal steps back visually, without looking discarded. */
+.card[data-status='paused'],
+.card[data-status='completed'],
+.card[data-status='released'] {
+  background: var(--panel);
+  box-shadow: none;
+  border-top-color: color-mix(in srgb, var(--cat) 45%, var(--border));
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cardDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 9px;
+  flex-shrink: 0;
+}
+
+.cardTitleBlock {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.cardTitleButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.2;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.cardTitleButton:hover {
+  color: var(--navy);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.cardMeta {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.why {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.closingNote {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--panel-inset);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.activity {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.linkedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 2px;
+}
+
+.linkedTitle {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+.linkedList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+  font-size: 14px;
+}
+
+.linkedList li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  min-width: 0;
+}
+
+.linkedList li[data-done] {
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.linkedMeta {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Sections ---------- */
+
+.group {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: 11.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+.groupNote {
+  margin: -6px 0 0;
+  font-size: 13.5px;
+  color: var(--text-tertiary);
+}
+
+.reflections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.reflection {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.reflection p {
+  margin: 0;
+}
+
+.reflectionWeek {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.reflectionHard {
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 767px) {
+  .header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card {
+    padding: 16px 18px;
+  }
+}

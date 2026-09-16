@@ -1,0 +1,105 @@
+.page {
+  max-width: 740px;
+  padding: 28px var(--gutter) 64px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.title {
+  margin: 4px 0 10px;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.lede {
+  margin: 0;
+  max-width: 54ch;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.tier {
+  display: grid;
+  gap: 8px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+}
+
+/* Warmth rather than alarm: urgency is carried by the words, not the colour. */
+.now {
+  background: color-mix(in srgb, var(--priority-high) 14%, var(--surface));
+}
+
+.weeks {
+  background: color-mix(in srgb, #a9c3e0 16%, var(--surface));
+}
+
+.extra {
+  background: color-mix(in srgb, #9fd0ba 16%, var(--surface));
+}
+
+.tierTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 21px;
+  color: var(--text);
+}
+
+.tierWhen {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.lines,
+.bullets {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.lines {
+  list-style: none;
+}
+
+.bullets {
+  padding-left: 20px;
+}
+
+.lines a,
+.tierWhen a {
+  color: var(--text);
+}
+
+.footNote {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 767px) {
+  .header {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

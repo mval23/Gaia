@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Task } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
-import { blocksOnDate, categoriesInGroup, nextBlock, sortedGroups } from '../../store/selectors';
+import { blocksOnDate, categoriesInGroup, categoryById, groupById, nextBlock, sortedGroups } from '../../store/selectors';
 import { useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
 import { formatShortDate } from '../../lib/dates';
@@ -17,11 +17,13 @@ interface TaskRowProps {
   /** The day the list is showing; used for the schedule chip and completion behaviour. */
   date?: string;
   onScheduleNext?: (task: Task) => void;
+  /** Show which group and category it belongs to, for the flat Today list. */
+  showContext?: boolean;
 }
 
 const PRIORITY_LABEL = { low: 'Low priority', medium: 'Medium priority', high: 'High priority' } as const;
 
-export function TaskRow({ task, date, onScheduleNext }: TaskRowProps) {
+export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProps) {
   const { state, dispatch } = useGaia();
   const { notify, announce } = useFeedback();
   const { startTaskDrag } = useDragActions();
@@ -34,6 +36,10 @@ export function TaskRow({ task, date, onScheduleNext }: TaskRowProps) {
   const fmt = state.settings.timeFormat;
   const onDay = date ? blocksOnDate(task, date) : [];
   const onThisDay = onDay.length > 0;
+  const category = showContext ? categoryById(state, task.categoryId) : undefined;
+  const group = category ? groupById(state, category.groupId) : undefined;
+  // After a few moves, the task itself hints that it may need a different shape.
+  const keepsMoving = (task.plannedMoves ?? 0) >= 3;
 
   const toggle = () => {
     const previous = state;
@@ -79,7 +85,46 @@ export function TaskRow({ task, date, onScheduleNext }: TaskRowProps) {
           },
         ]
       : []),
+    ...(date && task.plannedFor !== date && !done
+      ? [
+          {
+            label: 'Plan for this day',
+            icon: 'plan' as const,
+            onSelect: () => {
+              dispatch({ type: 'task/plan', id: task.id, date });
+              announce(`${task.title} is on today's list`);
+            },
+          },
+        ]
+      : []),
+    ...(task.plannedFor
+      ? [
+          {
+            label: 'Move back to Later',
+            icon: 'arrowDown' as const,
+            onSelect: () => {
+              dispatch({ type: 'task/plan', id: task.id, date: undefined });
+              announce(`${task.title} will wait under Later`);
+            },
+          },
+        ]
+      : []),
     { label: 'Move to category…', icon: 'move', keepOpen: true, onSelect: () => setMenuView('move') },
+    { kind: 'separator' },
+    ...(task.status !== 'let-go'
+      ? [
+          {
+            label: 'Let it go',
+            icon: 'unschedule' as const,
+            onSelect: () => {
+              const previous = state;
+              dispatch({ type: 'task/update', id: task.id, patch: { status: 'let-go' } });
+              dispatch({ type: 'task/unschedule', id: task.id });
+              notify(`Let go. "${task.title}" is still in your history.`, previous);
+            },
+          },
+        ]
+      : []),
     { kind: 'separator' },
     {
       label: 'Delete task',
@@ -146,6 +191,17 @@ export function TaskRow({ task, date, onScheduleNext }: TaskRowProps) {
         </span>
       )}
       {!editing && !chip && task.due && !done && <span className={styles.due}>{formatDue(task.due)}</span>}
+      {!editing && showContext && category && (
+        <span className={styles.rowContext}>
+          <span className={styles.contextDot} style={{ background: category.color }} aria-hidden="true" />
+          <span>{group ? `${group.name} · ${category.name}` : category.name}</span>
+        </span>
+      )}
+      {!editing && keepsMoving && (
+        <span className={styles.movesChip} title="This one keeps moving. It might need a different shape, a different day, or to be let go.">
+          keeps moving
+        </span>
+      )}
       <span
         className={styles.priority}
         data-priority={task.priority}
@@ -170,6 +226,7 @@ function formatDue(iso: string) {
   const diff = Math.round((d.getTime() - today.getTime()) / 86_400_000);
   if (diff === 0) return 'Due today';
   if (diff === 1) return 'Tomorrow';
-  if (diff < 0) return 'Overdue';
+  // Never 'overdue': a date that has passed is information, not a verdict.
+  if (diff < 0) return `Was due ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }

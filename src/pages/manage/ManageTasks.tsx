@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useFeedback, useGaia } from '../../store/GaiaProvider';
+import { useMemo, useState } from 'react';
+import { uid, useFeedback, useGaia } from '../../store/GaiaProvider';
 import { categoriesInGroup, categoryById, groupById, sortedGroups } from '../../store/selectors';
 import { useParam, useSetParams } from '../../hooks/useDateParam';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
@@ -17,7 +17,7 @@ const PRIORITY_LABEL = { low: 'Low priority', medium: 'Medium priority', high: '
 
 export function ManageTasks() {
   const { state, dispatch } = useGaia();
-  const { notify } = useFeedback();
+  const { notify, announce } = useFeedback();
   const { openTask } = useTaskEditor();
   const [q, setQ] = useParam('q');
   const [groupId] = useParam('group');
@@ -48,7 +48,9 @@ export function ManageTasks() {
         if (status === 'open' && task.status !== 'open') return false;
         if (status === 'done' && task.status !== 'done') return false;
         if (status === 'scheduled' && task.blocks.length === 0) return false;
-        if (status === 'unscheduled' && (task.blocks.length > 0 || task.status === 'done')) return false;
+        if (status === 'let-go' && task.status !== 'let-go') return false;
+        if (status !== 'let-go' && task.status === 'let-go') return false;
+        if (status === 'unscheduled' && (task.blocks.length > 0 || task.status !== 'open')) return false;
         return true;
       })
       .sort((a, b) => {
@@ -111,6 +113,7 @@ export function ManageTasks() {
           <option value="done">Completed</option>
           <option value="scheduled">Scheduled</option>
           <option value="unscheduled">Unscheduled</option>
+          <option value="let-go">Let go</option>
         </Select>
         <Select aria-label="Sort tasks" value={sort ?? ''} onChange={(e) => setSort(e.target.value || null)}>
           <option value="">Sort: Due date</option>
@@ -168,6 +171,90 @@ export function ManageTasks() {
           ))}
         </ul>
       )}
+
+      <AddTask
+        categories={categoryOptions}
+        preferred={validCategory}
+        onAdd={(title, categoryId) => {
+          dispatch({ type: 'task/add', id: uid('t'), categoryId, title });
+          announce(`Added “${title}”`);
+        }}
+      />
     </section>
+  );
+}
+
+/** The same quick capture as the Plan page: type, press Enter, keep going. */
+function AddTask({
+  categories,
+  preferred,
+  onAdd,
+}: {
+  categories: { id: string; name: string }[];
+  preferred: string | null;
+  onAdd: (title: string, categoryId: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState('');
+  const [target, setTarget] = useState('');
+  const categoryId = target || preferred || categories[0]?.id;
+
+  if (!categoryId) return null;
+
+  const commit = () => {
+    const title = value.trim();
+    if (!title) return false;
+    onAdd(title, categoryId);
+    setValue('');
+    return true;
+  };
+
+  if (!editing) {
+    return (
+      <button type="button" className={`${ui.textButton} ${styles.addButton}`} onClick={() => setEditing(true)}>
+        <Icon name="plus" size={16} />
+        Add a task
+      </button>
+    );
+  }
+
+  return (
+    <div className={styles.addInline}>
+      <input
+        className="field"
+        autoFocus
+        placeholder="What needs doing?"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            // Keep focus so several can be added in a row.
+            commit();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setValue('');
+            setEditing(false);
+          }
+        }}
+        onBlur={() => {
+          commit();
+          setEditing(false);
+        }}
+      />
+      <Select
+        aria-label="Category for the new task"
+        value={categoryId}
+        // Choosing a category must not blur the field into a commit.
+        onMouseDown={(e) => e.preventDefault()}
+        onChange={(e) => setTarget(e.target.value)}
+      >
+        {categories.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </Select>
+    </div>
   );
 }

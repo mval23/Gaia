@@ -2,30 +2,27 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Task } from '../types';
 import { uid, useFeedback, useGaia } from '../store/GaiaProvider';
 import { useMoveBlockDay } from '../hooks/useMoveBlockDay';
-import {
-  GROUP_ALL,
-  categoriesInGroup,
-  compareDayList,
-  inDayList,
-  groupParamValue,
-  resolveGroupParam,
-  blocksOn,
-  sortedGroups,
-} from '../store/selectors';
+import { blocksOn, habitsForDate, partitionDay, resolveGroupParam } from '../store/selectors';
 import { useDateParam, useParam } from '../hooks/useDateParam';
 import { useTaskEditor } from '../hooks/useTaskEditor';
+import { useHabitEditor } from '../hooks/useSheetParam';
 import { useDragActions } from '../dnd/DragProvider';
 import { MOBILE_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
-import { addDays, formatLongDate, fromISODate, relativeDayLabel } from '../lib/dates';
+import { addDays, dayOfWeek, formatLongDate, fromISODate, relativeDayLabel } from '../lib/dates';
 import { findFreeSlot } from '../lib/layout';
+import { COPY, FULL_DAY_RATIO } from '../lib/copy';
 import { formatDuration, formatRange, nowMinutes, summarizeDay } from '../lib/time';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { DatePickerButton } from '../components/ui/DatePickerButton';
 import { Icon } from '../components/ui/Icon';
 import { MonetAccent } from '../components/art/MonetAccent';
-import { GroupSection } from '../components/tasks/GroupSection';
-import { CategoryCard } from '../components/tasks/CategoryCard';
-import { TimeGrid } from '../components/timeline/TimeGrid';
+import { RhythmsSection } from '../components/plan/RhythmsSection';
+import { TodaySection } from '../components/plan/TodaySection';
+import { LaterSection } from '../components/plan/LaterSection';
+import { CloseDayCard } from '../components/plan/CloseDayCard';
+import { MiniMonth } from '../components/plan/MiniMonth';
+import { WeeklyReflection } from '../components/plan/WeeklyReflection';
+import { TimeGrid, type Suggestion } from '../components/timeline/TimeGrid';
 import { SplitHandle } from '../components/ui/SplitHandle';
 import { useStoredNumber } from '../hooks/useStoredNumber';
 import ui from '../components/ui/ui.module.css';
@@ -47,9 +44,11 @@ export function TodayPage() {
   const { state, dispatch } = useGaia();
   const { notify } = useFeedback();
   const { openTask } = useTaskEditor();
+  const { openHabit } = useHabitEditor();
   const { registerShiftTarget, registerUnscheduleZone } = useDragActions();
   const { date, setDate, isToday, today } = useDateParam();
-  const [groupRaw, setGroupRaw] = useParam('group');
+  // Still read from the URL so a ?group= link keeps working, but no control here.
+  const [groupRaw] = useParam('group');
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const [mobilePanel, setMobilePanel] = useState<'tasks' | 'day'>('tasks');
   const prevRef = useRef<HTMLButtonElement>(null);
@@ -62,34 +61,37 @@ export function TodayPage() {
   const fmt = settings.timeFormat;
 
   const groupFilter = resolveGroupParam(state, groupRaw);
-  const groups = sortedGroups(state);
-  const visibleGroups = groupFilter === GROUP_ALL ? groups : groups.filter((g) => g.id === groupFilter);
+
+  // A gentle day belongs to one date, so tomorrow starts fresh.
+  const gentle = settings.gentleDayDate === date;
+  const hideNumbers = settings.hideNumbers || gentle;
 
   const blocks = useMemo(() => blocksOn(state, date, groupFilter), [state, date, groupFilter]);
+  const windowMin = (settings.dayEndHour - settings.dayStartHour) * 60;
   const summary = {
     ...summarizeDay(
       blocks.map(({ block }) => block.durationMin),
-      (settings.dayEndHour - settings.dayStartHour) * 60,
+      windowMin,
     ),
     // A task scheduled twice today still counts as one task.
     tasks: new Set(blocks.map(({ task }) => task.id)).size,
   };
+  const full = windowMin > 0 && summary.plannedMin > windowMin * FULL_DAY_RATIO;
   const blocksByDate = useMemo(() => new Map([[date, blocks]]), [date, blocks]);
   const moveDay = useMoveBlockDay();
 
-  const listFor = useCallback(
-    (categoryId: string) =>
-      state.tasks
-        .filter((t) => t.categoryId === categoryId && inDayList(t, date))
-        .sort((a, b) => compareDayList(a, b, date)),
-    [state.tasks, date],
+  const { today: todayTasks, later: laterTasks } = useMemo(
+    () => partitionDay(state, date, groupFilter),
+    [state, date, groupFilter],
   );
 
-  const activeTotal = visibleGroups.reduce(
-    (n, g) =>
-      n + categoriesInGroup(state, g.id).reduce((m, c) => m + listFor(c.id).filter((t) => t.status === 'open').length, 0),
-    0,
-  );
+  // Habits with a preferred time appear as dashed suggestions, never as commitments.
+  const suggestionsByDate = useMemo(() => {
+    const list: Suggestion[] = habitsForDate(state, date, groupFilter)
+      .filter((habit) => habit.preferredStartMin !== undefined)
+      .map((habit) => ({ habit, startMin: habit.preferredStartMin as number, durationMin: 30 }));
+    return new Map([[date, list]]);
+  }, [state, date, groupFilter]);
 
   // Day-shift drop targets: hovering prev/next while dragging moves to that day.
   useEffect(() => {
@@ -106,29 +108,27 @@ export function TodayPage() {
     return registerUnscheduleZone(`${shiftId}-tasks`, tasksPanelRef.current);
   }, [registerUnscheduleZone, shiftId, isMobile, mobilePanel]);
 
-  const scheduleNext = (task: Task) => {
-    const busy = blocksOn(state, date).map(({ block }) => block);
-    const from = isToday ? Math.max(settings.dayStartHour * 60, nowMinutes()) : settings.dayStartHour * 60;
-    const until = settings.dayEndHour * 60;
-    for (const duration of [60, 30, 15]) {
-      const start = findFreeSlot(busy, duration, from, until);
-      if (start !== null) {
-        dispatch({
-          type: 'block/add',
-          taskId: task.id,
-          block: { id: uid('b'), date, startMin: start, durationMin: duration },
-        });
-        notify(`“${task.title}” scheduled ${formatRange(start, duration, fmt)}`);
-        return;
+  const scheduleNext = useCallback(
+    (task: Task) => {
+      const busy = blocksOn(state, date).map(({ block }) => block);
+      const from = isToday ? Math.max(settings.dayStartHour * 60, nowMinutes()) : settings.dayStartHour * 60;
+      const until = settings.dayEndHour * 60;
+      for (const duration of [60, 30, 15]) {
+        const start = findFreeSlot(busy, duration, from, until);
+        if (start !== null) {
+          dispatch({ type: 'block/add', taskId: task.id, block: { id: uid('b'), date, startMin: start, durationMin: duration } });
+          // Scheduling something is also choosing it for this day.
+          dispatch({ type: 'task/plan', id: task.id, date });
+          notify(`“${task.title}” scheduled ${formatRange(start, duration, fmt)}`);
+          return;
+        }
       }
-    }
-    notify(`No free time left on ${relativeDayLabel(date).toLowerCase()}`);
-  };
+      notify(`No open time left on ${relativeDayLabel(date).toLowerCase()}`);
+    },
+    [state, date, isToday, settings.dayStartHour, settings.dayEndHour, dispatch, notify, fmt],
+  );
 
-  const groupOptions = [
-    { value: GROUP_ALL, label: 'All' },
-    ...groups.map((g) => ({ value: g.id, label: g.name })),
-  ];
+  const showReflection = dayOfWeek(date) === settings.reflectionWeekday;
 
   return (
     <div className={styles.page}>
@@ -145,13 +145,6 @@ export function TodayPage() {
         </div>
 
         <div className={styles.controls}>
-          <SegmentedControl
-            label="Filter by group"
-            options={groupOptions}
-            value={groupFilter}
-            onChange={(v) => setGroupRaw(groupParamValue(state, v))}
-            className={styles.groupFilter}
-          />
           <div className={styles.dayNav}>
             <div className={styles.arrowPill} role="group" aria-label="Change day">
               <button
@@ -179,25 +172,47 @@ export function TodayPage() {
                 Today
               </button>
             )}
+            <button
+              type="button"
+              className={`${ui.pillButton} ${styles.gentleToggle}`}
+              aria-pressed={gentle}
+              title="Tiny versions only, and no figures"
+              onClick={() =>
+                dispatch({ type: 'settings/update', patch: { gentleDayDate: gentle ? undefined : date } })
+              }
+            >
+              Gentle day
+            </button>
           </div>
-          <p className={styles.summary} aria-label="Day summary">
-            <span>
-              <strong>{summary.tasks}</strong> {summary.tasks === 1 ? 'task' : 'tasks'}
-            </span>
-            <span className={styles.bullet} aria-hidden="true">
-              •
-            </span>
-            <span>
-              <strong>{formatDuration(summary.plannedMin)}</strong> planned
-            </span>
-            <span className={styles.bullet} aria-hidden="true">
-              •
-            </span>
-            <span>
-              <strong>{formatDuration(summary.freeMin)}</strong> free
-            </span>
-          </p>
+          {hideNumbers ? (
+            <p className={styles.summary}>
+              <span className="serif">{COPY.gentleDay}</span>
+            </p>
+          ) : (
+            <p className={styles.summary} aria-label="Day summary">
+              <span>
+                <strong>{summary.tasks}</strong> {summary.tasks === 1 ? 'task' : 'tasks'}
+              </span>
+              <span className={styles.bullet} aria-hidden="true">
+                •
+              </span>
+              <span>
+                <strong>{formatDuration(summary.plannedMin)}</strong> planned
+              </span>
+              <span className={styles.bullet} aria-hidden="true">
+                •
+              </span>
+              <span>
+                <strong>{formatDuration(summary.freeMin)}</strong> open
+              </span>
+            </p>
+          )}
         </div>
+        {/* Wide screens only: the month, with every cell opening that week. */}
+        <div className={styles.miniSlot}>
+          <MiniMonth date={date} today={today} />
+        </div>
+        {full && !hideNumbers && <p className={styles.fullNote}>{COPY.fullDay}</p>}
       </header>
 
       {isMobile && (
@@ -215,53 +230,38 @@ export function TodayPage() {
         </div>
       )}
 
-      <div
-        ref={workspaceRef}
-        className={styles.workspace}
-        style={{ ['--split' as string]: split }}
-      >
+      <div ref={workspaceRef} className={styles.workspace} style={{ ['--split' as string]: split }}>
         <section
           ref={tasksPanelRef}
           id="plan-tasks-panel"
           className={`${styles.panel} ${styles.panelPlain}`}
-          aria-labelledby="tasks-panel-title"
+          aria-label="Rhythms and tasks"
           hidden={isMobile && mobilePanel !== 'tasks'}
         >
-          <div className={styles.panelHeader}>
-            <h2 id="tasks-panel-title" className="eyebrow">
-              Tasks
-            </h2>
-            <span className={styles.panelMeta}>{activeTotal} active</span>
-          </div>
           <div className={styles.panelScroll}>
-            {visibleGroups.map((group) => {
-              const cats = categoriesInGroup(state, group.id);
-              const groupActive = cats.reduce((n, c) => n + listFor(c.id).filter((t) => t.status === 'open').length, 0);
-              return (
-                <GroupSection
-                  key={group.id}
-                  group={group}
-                  activeCount={groupActive}
-                  showHeader={groupFilter === GROUP_ALL}
-                >
-                  {cats.length === 0 ? (
-                    <p className={styles.emptyGroup}>No categories in {group.name} yet. Add one in Manage.</p>
-                  ) : (
-                    cats.map((cat) => (
-                      <CategoryCard
-                        key={cat.id}
-                        category={cat}
-                        group={group}
-                        tasks={listFor(cat.id)}
-                        date={date}
-                        onScheduleNext={scheduleNext}
-                      />
-                    ))
-                  )}
-                </GroupSection>
-              );
-            })}
-            {activeTotal === 0 ? (
+            <RhythmsSection date={date} groupFilter={groupFilter} gentle={gentle} />
+
+            {showReflection && <WeeklyReflection date={date} />}
+
+            <TodaySection
+              tasks={todayTasks}
+              date={date}
+              gentle={gentle}
+              hideNumbers={hideNumbers}
+              onScheduleNext={scheduleNext}
+            />
+
+            {isToday && <CloseDayCard tasks={todayTasks} date={date} />}
+
+            <LaterSection
+              tasks={laterTasks}
+              date={date}
+              groupFilter={groupFilter}
+              hideNumbers={hideNumbers}
+              onScheduleNext={scheduleNext}
+            />
+
+            {todayTasks.length === 0 && laterTasks.length === 0 ? (
               <div className={styles.emptyState}>
                 <MonetAccent art="gardenCard" variant="card" phrase="everything has a place. leave space." />
               </div>
@@ -284,11 +284,7 @@ export function TodayPage() {
           />
         )}
 
-        <section
-          className={styles.panel}
-          aria-labelledby="day-panel-title"
-          hidden={isMobile && mobilePanel !== 'day'}
-        >
+        <section className={styles.panel} aria-labelledby="day-panel-title" hidden={isMobile && mobilePanel !== 'day'}>
           <div className={styles.panelHeader}>
             <h2 id="day-panel-title" className="eyebrow">
               Day
@@ -306,7 +302,9 @@ export function TodayPage() {
               label={`Timeline for ${formatLongDate(date)}`}
               dates={[date]}
               blocksByDate={blocksByDate}
+              suggestionsByDate={suggestionsByDate}
               onOpenTask={openTask}
+              onOpenHabit={openHabit}
               onMoveDay={moveDay}
             />
           </div>

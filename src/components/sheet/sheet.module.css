@@ -1,0 +1,200 @@
+/* Shared by the goal and habit editors. The task editor keeps its own module. */
+
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+}
+
+.sheet {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: min(720px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: var(--glass-strong);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-lg);
+  animation: slide 0.22s var(--ease);
+  overflow: hidden;
+}
+
+@keyframes slide {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.headText {
+  flex: 1;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 20px 20px;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.footSpacer {
+  flex: 1;
+}
+
+/* ---------- Rows ---------- */
+
+.row {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowLabel {
+  padding-top: 7px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.rowControl {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+
+.titleInput {
+  width: 100%;
+  resize: none;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+}
+
+.days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.dayToggle {
+  appearance: none;
+  width: 36px;
+  height: 32px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12.5px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.dayToggle[aria-pressed='true'] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--text-inverse);
+}
+
+.note {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--panel-inset);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.activity {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.linked {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.linked li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+}

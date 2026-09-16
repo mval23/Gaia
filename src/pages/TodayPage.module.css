@@ -170,13 +170,14 @@
 }
 
 .panelScroll {
+  container-type: inline-size;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding: 2px 16px 20px;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(43, 52, 69, 0.18) transparent;
+  scrollbar-color: var(--tint-strong) transparent;
 }
 
 /* The Tasks panel has no surface of its own; its category cards carry the fill. */
@@ -303,6 +304,35 @@
   }
 
   .listAccent {
+    display: none;
+  }
+}
+
+/* A gentle day: tiny versions only, and no figures. */
+.gentleToggle[aria-pressed='true'] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--text-inverse);
+}
+
+/* Said once, quietly, and never as a warning. */
+.fullNote {
+  flex-basis: 100%;
+  margin: 6px 0 0;
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+/* The month sits in the corner, and only when there is room for it. */
+.miniSlot {
+  margin-left: auto;
+  align-self: flex-start;
+}
+
+@media (max-width: 1199px) {
+  .miniSlot {
     display: none;
   }
 }

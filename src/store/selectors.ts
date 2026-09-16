@@ -1,4 +1,6 @@
-import type { Category, GaiaState, Group, Task, TimeBlock } from '../types';
+import type { Category, CheckInKind, GaiaState, Goal, Group, Habit, Task, TimeBlock } from '../types';
+import { addDays, startOfWeek, weekDates } from '../lib/dates';
+import { isOnRhythm, weeklyTarget } from '../lib/rhythm';
 
 export const GROUP_ALL = 'all';
 
@@ -10,8 +12,8 @@ export function categoriesInGroup(state: GaiaState, groupId: string): Category[]
   return state.categories.filter((c) => c.groupId === groupId).sort((a, b) => a.order - b.order);
 }
 
-export function categoryById(state: GaiaState, id: string): Category | undefined {
-  return state.categories.find((c) => c.id === id);
+export function categoryById(state: GaiaState, id: string | undefined): Category | undefined {
+  return id ? state.categories.find((c) => c.id === id) : undefined;
 }
 
 export function groupById(state: GaiaState, id: string): Group | undefined {
@@ -42,6 +44,7 @@ export function activeCount(tasks: Task[]): number {
  * day's timeline (checked or not). Checked tasks that aren't on the timeline drop out.
  */
 export function inDayList(task: Task, date: string): boolean {
+  if (task.status === 'let-go') return false;
   return task.status === 'open' || blocksOnDate(task, date).length > 0;
 }
 
@@ -109,4 +112,181 @@ export function resolveGroupParam(state: GaiaState, param: string | null): strin
 export function groupParamValue(state: GaiaState, groupId: string): string | null {
   if (groupId === GROUP_ALL) return null;
   return groupById(state, groupId)?.name.toLowerCase() ?? null;
+}
+
+/* ---------- Goals ---------- */
+
+export function goalById(state: GaiaState, id: string | undefined): Goal | undefined {
+  return id ? state.goals.find((g) => g.id === id) : undefined;
+}
+
+/** 'resting' is a paused goal: waiting, not failed. 'closed' covers completed and let go. */
+export function goalsByStatus(state: GaiaState): { active: Goal[]; resting: Goal[]; closed: Goal[] } {
+  const byNewest = (a: Goal, b: Goal) => b.createdAt.localeCompare(a.createdAt);
+  return {
+    active: state.goals.filter((g) => g.status === 'active').sort(byNewest),
+    resting: state.goals.filter((g) => g.status === 'paused').sort(byNewest),
+    closed: state.goals
+      .filter((g) => g.status === 'completed' || g.status === 'released')
+      .sort((a, b) => (b.closedAt ?? '').localeCompare(a.closedAt ?? '')),
+  };
+}
+
+export function habitsForGoal(state: GaiaState, goalId: string): Habit[] {
+  return state.habits
+    .filter((h) => h.goalId === goalId)
+    .sort((a, b) => Number(a.status === 'archived') - Number(b.status === 'archived'));
+}
+
+export function tasksForGoal(state: GaiaState, goalId: string): Task[] {
+  return state.tasks.filter((t) => t.goalId === goalId);
+}
+
+/* ---------- Habits ---------- */
+
+export function habitById(state: GaiaState, id: string | undefined): Habit | undefined {
+  return id ? state.habits.find((h) => h.id === id) : undefined;
+}
+
+export function habitsInCategory(state: GaiaState, categoryId: string): Habit[] {
+  return state.habits.filter((h) => h.categoryId === categoryId);
+}
+
+/**
+ * A habit rests when the person paused it, archived it, or paused the goal it
+ * belongs to. Pausing a goal writes nothing to its habits — it is derived here,
+ * so resuming the goal restores exactly the habits the person had running.
+ */
+export function isHabitResting(state: GaiaState, habit: Habit): boolean {
+  if (habit.status !== 'active') return true;
+  return goalById(state, habit.goalId)?.status === 'paused';
+}
+
+/** Today's rhythms: what belongs on this day, and is not resting. */
+export function habitsForDate(state: GaiaState, date: string, groupFilter = GROUP_ALL): Habit[] {
+  return state.habits.filter(
+    (h) =>
+      !isHabitResting(state, h) &&
+      isOnRhythm(h.rhythm, date) &&
+      (groupFilter === GROUP_ALL || categoryById(state, h.categoryId)?.groupId === groupFilter),
+  );
+}
+
+export const checkInKey = (habitId: string, date: string) => `${habitId}|${date}`;
+
+/**
+ * Build once per render and share it: selectors here are unmemoized, so a
+ * per-row scan of every check-in would be O(rows x history).
+ */
+export function checkInIndex(state: GaiaState): Map<string, CheckInKind> {
+  const map = new Map<string, CheckInKind>();
+  for (const c of state.checkIns) map.set(checkInKey(c.habitId, c.date), c.kind);
+  return map;
+}
+
+export function checkInFor(state: GaiaState, habitId: string, date: string): CheckInKind | undefined {
+  return state.checkIns.find((c) => c.habitId === habitId && c.date === date)?.kind;
+}
+
+/**
+ * Progress for the week containing `date`. 'rest' is deliberately not counted:
+ * it is neither progress nor a miss, it is a day someone chose for themselves.
+ */
+export function weekCount(state: GaiaState, habitId: string, date: string): number {
+  const week = new Set(weekDates(date, state.settings.weekStart));
+  return state.checkIns.filter((c) => c.habitId === habitId && week.has(c.date) && c.kind !== 'rest').length;
+}
+
+/** The number that never resets. */
+export function totalCount(state: GaiaState, habitId: string): number {
+  return state.checkIns.filter((c) => c.habitId === habitId && c.kind !== 'rest').length;
+}
+
+export function firstLoggedDate(state: GaiaState, habitId: string): string | undefined {
+  return state.checkIns
+    .filter((c) => c.habitId === habitId && c.kind !== 'rest')
+    .reduce<string | undefined>((min, c) => (!min || c.date < min ? c.date : min), undefined);
+}
+
+/** The last day the person touched this habit at all, rest days included. */
+export function lastContactDate(state: GaiaState, habitId: string): string | undefined {
+  return state.checkIns
+    .filter((c) => c.habitId === habitId)
+    .reduce<string | undefined>((max, c) => (!max || c.date > max ? c.date : max), undefined);
+}
+
+export const QUIET_DAYS = 14;
+
+/** After a genuinely quiet stretch, the habit itself offers to change. Never a notification. */
+export function isQuiet(state: GaiaState, habit: Habit, today: string): boolean {
+  const last = lastContactDate(state, habit.id) ?? habit.createdAt.slice(0, 10);
+  return last <= addDays(today, -QUIET_DAYS);
+}
+
+/** Whether a flexible habit has already met its weekly aim, so it can sort last, kindly. */
+export function weekAimMet(state: GaiaState, habit: Habit, date: string): boolean {
+  return weekCount(state, habit.id, date) >= weeklyTarget(habit.rhythm);
+}
+
+/* ---------- The day: what was chosen, and what waits ---------- */
+
+export interface DayPartition {
+  today: Task[];
+  later: Task[];
+}
+
+/**
+ * The fix for "every open task, every day". A task belongs to Today only when
+ * the person chose it for this date or scheduled it on the timeline; everything
+ * else waits under Later, out of sight but not lost. A let-go task is in
+ * neither: it keeps its history without asking anything of anyone.
+ */
+export function partitionDay(state: GaiaState, date: string, groupFilter = GROUP_ALL): DayPartition {
+  const today: Task[] = [];
+  const later: Task[] = [];
+  for (const task of state.tasks) {
+    if (task.status === 'let-go') continue;
+    if (!taskInGroupFilter(state, task, groupFilter)) continue;
+    // A paused goal's tasks step back to Later, without being touched.
+    const resting = goalById(state, task.goalId)?.status === 'paused';
+    const onDay = task.plannedFor === date || blocksOnDate(task, date).length > 0;
+    if (onDay && !resting) today.push(task);
+    else if (task.status === 'open') later.push(task);
+  }
+  today.sort((a, b) => compareDayList(a, b, date));
+  return { today, later };
+}
+
+/** A descriptive line for a goal card: steps taken and days active. Never a percentage. */
+export function goalActivity(
+  state: GaiaState,
+  goal: Goal,
+  today: string,
+  windowDays = 28,
+): { steps: number; totalSteps: number; activeDays: number; windowDays: number } {
+  const tasks = tasksForGoal(state, goal.id);
+  const since = addDays(today, -windowDays);
+  const days = new Set<string>();
+  for (const habit of habitsForGoal(state, goal.id)) {
+    for (const c of state.checkIns) {
+      if (c.habitId === habit.id && c.date > since && c.date <= today) days.add(c.date);
+    }
+  }
+  for (const task of tasks) {
+    if (task.status === 'done' && task.completedAt && task.completedAt.slice(0, 10) > since) {
+      days.add(task.completedAt.slice(0, 10));
+    }
+  }
+  return {
+    steps: tasks.filter((t) => t.status === 'done').length,
+    totalSteps: tasks.filter((t) => t.status !== 'let-go').length,
+    activeDays: days.size,
+    windowDays,
+  };
+}
+
+/** The week a reflection belongs to. */
+export function reflectionForWeek(state: GaiaState, date: string) {
+  const weekStart = startOfWeek(date, state.settings.weekStart);
+  return state.reflections.find((r) => r.weekStart === weekStart);
 }

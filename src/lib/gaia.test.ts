@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { formatClock, formatDuration, formatRange, snap, summarizeDay } from './time';
 import { findFreeSlot, layoutLanes } from './layout';
-import { addMonths, monthGrid, weekDates } from './dates';
+import { addDays, addMonths, dayOfWeek, monthGrid, startOfWeek, weekDates, weekdayOrder } from './dates';
+import { DEFAULT_RHYTHM, isOnRhythm, normalizeRhythm, rhythmLabel, weeklyTarget } from './rhythm';
+import { createEmpty } from '../data/seed';
+import { mentionsBodyOrFood } from './sensitive';
+import { isState, migrateState } from '../store/persist';
+import type { CheckIn, GaiaState, Rhythm } from '../types';
 import { createSeed } from '../data/seed';
 import { reducer } from '../store/reducer';
 import {
@@ -11,6 +16,16 @@ import {
   categoriesInGroup,
   inDayList,
   compareDayList,
+  checkInFor,
+  goalActivity,
+  goalsByStatus,
+  habitsForDate,
+  isHabitResting,
+  isQuiet,
+  lastContactDate,
+  partitionDay,
+  totalCount,
+  weekCount,
 } from '../store/selectors';
 
 describe('time', () => {
@@ -167,5 +182,435 @@ describe('hierarchy', () => {
     expect(task().blocks.map((b) => b.id)).toEqual(['c']);
     next = reducer(next, { type: 'task/unschedule', id: 't-2' });
     expect(task().blocks).toEqual([]);
+  });
+});
+
+describe('rhythm', () => {
+  const MWF: Rhythm = { type: 'daysOfWeek', days: [1, 3, 5] };
+
+  it('knows which days a habit belongs to', () => {
+    expect(dayOfWeek('2026-09-13')).toBe(0);
+    expect(isOnRhythm(MWF, '2026-09-14')).toBe(true); // Monday
+    expect(isOnRhythm(MWF, '2026-09-13')).toBe(false); // Sunday
+    // A flexible habit belongs on every day; how often it happened is a softer question.
+    expect(isOnRhythm({ type: 'timesPerWeek', times: 3 }, '2026-09-13')).toBe(true);
+  });
+
+  it('describes a rhythm in plain words', () => {
+    expect(rhythmLabel(MWF)).toBe('Mon, Wed, Fri');
+    expect(rhythmLabel({ type: 'timesPerWeek', times: 3 })).toBe('about 3 times a week');
+    expect(rhythmLabel({ type: 'daysOfWeek', days: [0, 1, 2, 3, 4, 5, 6] })).toBe('every day');
+    expect(weeklyTarget(MWF)).toBe(3);
+    expect(weeklyTarget({ type: 'timesPerWeek', times: 4 })).toBe(4);
+  });
+
+  it('repairs anything unusable that was stored', () => {
+    expect(normalizeRhythm({ type: 'daysOfWeek', days: [1, 1, 9, -2, 3] })).toEqual({
+      type: 'daysOfWeek',
+      days: [1, 3],
+    });
+    expect(normalizeRhythm({ type: 'daysOfWeek', days: [] })).toEqual(DEFAULT_RHYTHM);
+    expect(normalizeRhythm({ type: 'timesPerWeek', times: 99 })).toEqual(DEFAULT_RHYTHM);
+    expect(normalizeRhythm('nonsense')).toEqual(DEFAULT_RHYTHM);
+  });
+});
+
+describe('check-ins', () => {
+  const seed = createSeed('2026-09-14');
+  const base = reducer(seed, {
+    type: 'habit/add',
+    id: 'h-test',
+    categoryId: 'c-health',
+    title: 'Test habit',
+    rhythm: { type: 'timesPerWeek', times: 3 },
+  });
+  const log = (state: GaiaState, date: string, kind: CheckIn['kind'] = 'done') =>
+    reducer(state, { type: 'checkin/set', habitId: 'h-test', date, kind });
+
+  it('keeps one entry per day, and the newest wins', () => {
+    const once = log(base, '2026-09-14');
+    const twice = log(once, '2026-09-14', 'tiny');
+    const mine = twice.checkIns.filter((c) => c.habitId === 'h-test');
+    expect(mine).toHaveLength(1);
+    expect(mine[0].kind).toBe('tiny');
+  });
+
+  it('has no value that means "missed": an unlogged day is simply absent', () => {
+    const state = log(base, '2026-09-14');
+    expect(checkInFor(state, 'h-test', '2026-09-14')).toBe('done');
+    expect(checkInFor(state, 'h-test', '2026-09-15')).toBeUndefined();
+    const cleared = reducer(state, { type: 'checkin/clear', habitId: 'h-test', date: '2026-09-14' });
+    expect(checkInFor(cleared, 'h-test', '2026-09-14')).toBeUndefined();
+  });
+
+  it('counts the week without counting rest days', () => {
+    let state = log(base, '2026-09-14');
+    state = log(state, '2026-09-15', 'tiny');
+    state = log(state, '2026-09-16', 'rest');
+    expect(weekCount(state, 'h-test', '2026-09-14')).toBe(2);
+    expect(totalCount(state, 'h-test')).toBe(2);
+    // A rest day is still contact, so it postpones the gentle nudge.
+    expect(lastContactDate(state, 'h-test')).toBe('2026-09-16');
+  });
+
+  it('keeps last week out of this week', () => {
+    const state = log(base, '2026-09-12'); // Saturday, the week before
+    expect(weekDates('2026-09-16')[0]).toBe('2026-09-13');
+    expect(weekCount(state, 'h-test', '2026-09-16')).toBe(0);
+    expect(totalCount(state, 'h-test')).toBe(1); // the total never resets
+  });
+
+  it('waits a full fortnight before offering to change a habit', () => {
+    const habit = base.habits.find((h) => h.id === 'h-test')!;
+    const at = (daysAgo: number) => log(base, addDays('2026-09-14', -daysAgo));
+    expect(isQuiet(at(13), habit, '2026-09-14')).toBe(false);
+    expect(isQuiet(at(14), habit, '2026-09-14')).toBe(true);
+  });
+
+  it('never logs for a habit or a date that does not exist', () => {
+    expect(reducer(base, { type: 'checkin/set', habitId: 'nope', date: '2026-09-14', kind: 'done' })).toBe(base);
+    expect(reducer(base, { type: 'checkin/set', habitId: 'h-test', date: 'later', kind: 'done' })).toBe(base);
+  });
+});
+
+describe('goals', () => {
+  const seed = createSeed('2026-09-14');
+
+  it('trims a title, and refuses a blank goal without touching anything', () => {
+    const added = reducer(seed, { type: 'goal/add', id: 'goal-x', title: '  Sleep better  ', kind: 'ongoing' });
+    expect(added.goals.find((g) => g.id === 'goal-x')!.title).toBe('Sleep better');
+    expect(reducer(seed, { type: 'goal/add', id: 'goal-y', title: '   ', kind: 'ongoing' })).toBe(seed);
+    const dangling = reducer(seed, {
+      type: 'goal/add',
+      id: 'goal-z',
+      title: 'Read more',
+      kind: 'finish',
+      categoryId: 'c-nope',
+    });
+    expect(dangling.goals.find((g) => g.id === 'goal-z')!.categoryId).toBeUndefined();
+  });
+
+  it('completing a goal keeps every check-in, and archives habits only when asked', () => {
+    const history = seed.checkIns.length;
+    const done = reducer(seed, {
+      type: 'goal/setStatus',
+      id: 'goal-rested',
+      status: 'completed',
+      closingNote: '  the walks helped  ',
+    });
+    const goal = done.goals.find((g) => g.id === 'goal-rested')!;
+    expect(goal.closedAt).toBeTruthy();
+    expect(goal.closingNote).toBe('the walks helped');
+    expect(done.checkIns).toHaveLength(history);
+    expect(done.habits.filter((h) => h.goalId === 'goal-rested').every((h) => h.status === 'active')).toBe(true);
+
+    const archived = reducer(seed, {
+      type: 'goal/setStatus',
+      id: 'goal-rested',
+      status: 'completed',
+      archiveHabits: true,
+    });
+    expect(archived.habits.filter((h) => h.goalId === 'goal-rested').every((h) => h.status === 'archived')).toBe(true);
+    expect(archived.habits.find((h) => h.id === 'h-run')!.status).toBe('active');
+    expect(archived.checkIns).toHaveLength(history);
+  });
+
+  it('pausing a goal writes nothing to its habits, and resuming restores them', () => {
+    const paused = reducer(seed, { type: 'goal/setStatus', id: 'goal-rested', status: 'paused' });
+    expect(paused.habits).toBe(seed.habits);
+    const walk = paused.habits.find((h) => h.id === 'h-walk')!;
+    expect(isHabitResting(paused, walk)).toBe(true);
+    expect(habitsForDate(paused, '2026-09-14').some((h) => h.id === 'h-walk')).toBe(false);
+
+    const resumed = reducer(paused, { type: 'goal/setStatus', id: 'goal-rested', status: 'active' });
+    expect(habitsForDate(resumed, '2026-09-14').some((h) => h.id === 'h-walk')).toBe(true);
+    expect(resumed.goals.find((g) => g.id === 'goal-rested')!.closedAt).toBeUndefined();
+  });
+
+  it("sends a paused goal's chosen task back to Later", () => {
+    const day = '2026-09-14';
+    expect(partitionDay(seed, day).today.some((t) => t.id === 't-10')).toBe(true);
+    const paused = reducer(seed, { type: 'goal/setStatus', id: 'goal-stats', status: 'paused' });
+    const split = partitionDay(paused, day);
+    expect(split.today.some((t) => t.id === 't-10')).toBe(false);
+    expect(split.later.some((t) => t.id === 't-10')).toBe(true);
+  });
+
+  it('deleting a goal unlinks its tasks and habits but deletes neither', () => {
+    const next = reducer(seed, { type: 'goal/delete', id: 'goal-rested' });
+    expect(next.goals.some((g) => g.id === 'goal-rested')).toBe(false);
+    expect(next.tasks).toHaveLength(seed.tasks.length);
+    expect(next.habits).toHaveLength(seed.habits.length);
+    expect(next.checkIns).toHaveLength(seed.checkIns.length);
+    expect(next.tasks.filter((t) => t.goalId === 'goal-rested')).toHaveLength(0);
+    expect(next.habits.filter((h) => h.goalId === 'goal-rested')).toHaveLength(0);
+  });
+
+  it('sorts goals into active, resting and closed', () => {
+    const paused = reducer(seed, { type: 'goal/setStatus', id: 'goal-rested', status: 'paused' });
+    const closed = reducer(paused, { type: 'goal/setStatus', id: 'goal-stats', status: 'released' });
+    const sorted = goalsByStatus(closed);
+    expect(sorted.active).toHaveLength(0);
+    expect(sorted.resting.map((g) => g.id)).toEqual(['goal-rested']);
+    expect(sorted.closed.map((g) => g.id)).toEqual(['goal-stats']);
+  });
+
+  it('describes a goal without scoring it', () => {
+    const goal = seed.goals.find((g) => g.id === 'goal-stats')!;
+    const activity = goalActivity(seed, goal, '2026-09-14');
+    expect(activity.totalSteps).toBe(2);
+    expect(activity.steps).toBe(0);
+    expect(activity.activeDays).toBeGreaterThan(0);
+  });
+});
+
+describe('cascades', () => {
+  const seed = createSeed('2026-09-14');
+
+  it('deleting a category takes its habits and their history, and spares the goal', () => {
+    const gone = seed.habits.filter((h) => h.categoryId === 'c-health').map((h) => h.id);
+    expect(gone.length).toBeGreaterThan(0);
+    const statsHistory = seed.checkIns.filter((c) => c.habitId === 'h-stats').length;
+    const next = reducer(seed, { type: 'category/delete', id: 'c-health' });
+    expect(next.habits.some((h) => gone.includes(h.id))).toBe(false);
+    expect(next.checkIns.some((c) => gone.includes(c.habitId))).toBe(false);
+    expect(next.checkIns.filter((c) => c.habitId === 'h-stats')).toHaveLength(statsHistory);
+    const goal = next.goals.find((g) => g.id === 'goal-rested');
+    expect(goal).toBeTruthy();
+    expect(goal!.categoryId).toBeUndefined();
+  });
+
+  it('re-homes habits with their category when a group goes', () => {
+    const next = reducer(seed, { type: 'group/delete', id: 'g-personal', moveCategoriesTo: 'g-other' });
+    expect(next.habits).toBe(seed.habits);
+    expect(next.categories.find((c) => c.id === 'c-health')!.groupId).toBe('g-other');
+    expect(habitsForDate(next, '2026-09-14', 'g-other').some((h) => h.id === 'h-walk')).toBe(true);
+  });
+
+  it('deleting a habit removes only its own history', () => {
+    const others = seed.checkIns.filter((c) => c.habitId !== 'h-walk').length;
+    const next = reducer(seed, { type: 'habit/delete', id: 'h-walk' });
+    expect(next.habits.some((h) => h.id === 'h-walk')).toBe(false);
+    expect(next.checkIns).toHaveLength(others);
+  });
+});
+
+describe('migration', () => {
+  /** A save written before goals, habits or check-ins existed. */
+  const legacy = (): GaiaState => {
+    const seed = createSeed('2026-09-14');
+    return {
+      groups: seed.groups,
+      categories: seed.categories,
+      tasks: seed.tasks,
+      settings: { timeFormat: '12h', dayStartHour: 6, dayEndHour: 22 },
+    } as unknown as GaiaState;
+  };
+
+  it('still recognises a save written before goals existed', () => {
+    // If this fails, every existing planner is silently replaced by sample data.
+    expect(isState(legacy())).toBe(true);
+  });
+
+  it('fills in the new collections and keeps what was saved', () => {
+    const before = legacy();
+    const after = migrateState(before);
+    expect(after.goals).toEqual([]);
+    expect(after.habits).toEqual([]);
+    expect(after.checkIns).toEqual([]);
+    expect(after.reflections).toEqual([]);
+    expect(after.tasks).toHaveLength(before.tasks.length);
+    expect(after.categories).toBe(before.categories);
+    expect(after.settings.timeFormat).toBe('12h');
+    expect(after.settings.dayStartHour).toBe(6);
+    // New settings arrive with their defaults.
+    expect(after.settings.hideNumbers).toBe(false);
+    expect(after.settings.reflectionWeekday).toBe(0);
+  });
+
+  it('repairs anything unusable rather than discarding the save', () => {
+    const seed = createSeed('2026-09-14');
+    const raw = {
+      ...legacy(),
+      tasks: [
+        { ...seed.tasks[0], status: 'nonsense' },
+        { ...seed.tasks[1], id: 't-lg', status: 'let-go' },
+      ],
+      goals: [{ id: 'goal-bad', title: 'Hmm', kind: '??', status: '??', categoryId: 'c-nope', createdAt: 'x' }],
+      habits: [
+        {
+          id: 'h-bad',
+          title: '  Wobbly  ',
+          categoryId: 'c-health',
+          rhythm: { type: 'weird' },
+          status: '??',
+          preferredStartMin: 99999,
+          createdAt: 'x',
+        },
+      ],
+      checkIns: [
+        { habitId: 'h-bad', date: '2026-09-14', kind: 'done' },
+        { habitId: 'h-bad', date: 'someday', kind: 'done' },
+        { habitId: 'h-gone', date: '2026-09-14', kind: 'done' },
+        { habitId: 'h-bad', date: '2026-09-15', kind: 'missed' },
+      ],
+    } as unknown as GaiaState;
+
+    const after = migrateState(raw);
+    expect(after.tasks[0].status).toBe('open');
+    expect(after.tasks[1].status).toBe('let-go');
+
+    const goal = after.goals[0];
+    expect(goal.kind).toBe('ongoing');
+    expect(goal.status).toBe('active');
+    expect(goal.categoryId).toBeUndefined();
+
+    const habit = after.habits[0];
+    expect(habit.title).toBe('Wobbly');
+    expect(habit.rhythm).toEqual(DEFAULT_RHYTHM);
+    expect(habit.status).toBe('active');
+    expect(habit.preferredStartMin).toBe(1439);
+
+    // Kept: the one valid entry. Dropped: bad date, unknown habit, and any
+    // stored kind that does not exist — there is no "missed".
+    expect(after.checkIns).toEqual([{ habitId: 'h-bad', date: '2026-09-14', kind: 'done' }]);
+  });
+
+  it('gives "delete everything" a state that will load again', () => {
+    expect(isState(createEmpty())).toBe(true);
+    expect(createEmpty().goals).toEqual([]);
+  });
+});
+
+describe('the day', () => {
+  const seed = createSeed('2026-09-14');
+  const day = '2026-09-14';
+
+  it('puts only what was chosen or scheduled into Today, and lets the rest wait', () => {
+    const { today, later } = partitionDay(seed, day);
+    // Open, but not chosen and not scheduled: it waits under Later.
+    expect(today.some((t) => t.id === 't-2')).toBe(false);
+    expect(later.some((t) => t.id === 't-2')).toBe(true);
+    // Chosen for today.
+    expect(today.some((t) => t.id === 't-5')).toBe(true);
+    // Finished on another day: in neither list.
+    expect(today.some((t) => t.id === 't-8')).toBe(false);
+    expect(later.some((t) => t.id === 't-8')).toBe(false);
+  });
+
+  it('keeps a task with time on the timeline in Today even when it was never chosen', () => {
+    const state = reducer(seed, { type: 'task/plan', id: 't-7', date: undefined });
+    expect(state.tasks.find((t) => t.id === 't-7')!.plannedFor).toBeUndefined();
+    expect(partitionDay(state, day).today.some((t) => t.id === 't-7')).toBe(true);
+  });
+
+  it('leaves a let-go task out of both lists, with its history intact', () => {
+    const state = reducer(seed, { type: 'task/update', id: 't-2', patch: { status: 'let-go' } });
+    const { today, later } = partitionDay(state, day);
+    expect(today.some((t) => t.id === 't-2')).toBe(false);
+    expect(later.some((t) => t.id === 't-2')).toBe(false);
+    expect(state.tasks.some((t) => t.id === 't-2')).toBe(true);
+  });
+
+  it('brings a let-go task back as open, never as done', () => {
+    const gone = reducer(seed, { type: 'task/update', id: 't-2', patch: { status: 'let-go' } });
+    const back = reducer(gone, { type: 'task/toggle', id: 't-2' });
+    expect(back.tasks.find((t) => t.id === 't-2')!.status).toBe('open');
+    expect(back.tasks.find((t) => t.id === 't-2')!.completedAt).toBeUndefined();
+  });
+
+  it('counts a move between days, but not a step back to Later', () => {
+    const chosen = reducer(seed, { type: 'task/plan', id: 't-2', date: day });
+    expect(chosen.tasks.find((t) => t.id === 't-2')!.plannedMoves).toBeUndefined();
+    const moved = reducer(chosen, { type: 'task/plan', id: 't-2', date: '2026-09-15' });
+    expect(moved.tasks.find((t) => t.id === 't-2')!.plannedMoves).toBe(1);
+    const back = reducer(moved, { type: 'task/plan', id: 't-2', date: undefined });
+    expect(back.tasks.find((t) => t.id === 't-2')!.plannedMoves).toBe(1);
+    expect(back.tasks.find((t) => t.id === 't-2')!.plannedFor).toBeUndefined();
+  });
+
+  it('keeps a reflection to one per week', () => {
+    const weekStart = startOfWeek(day);
+    const saved = reducer(seed, {
+      type: 'reflection/save',
+      id: 'r-1',
+      weekStart,
+      patch: { wentWell: '  the walks  ' },
+    });
+    expect(saved.reflections).toHaveLength(1);
+    expect(saved.reflections[0].wentWell).toBe('the walks');
+    const again = reducer(saved, { type: 'reflection/save', id: 'r-2', weekStart, patch: { wasHard: 'evenings' } });
+    expect(again.reflections).toHaveLength(1);
+    expect(again.reflections[0].id).toBe('r-1');
+    expect(again.reflections[0].wentWell).toBe('the walks');
+    // Emptying it leaves no trace: skipping a week is not recorded.
+    const cleared = reducer(again, {
+      type: 'reflection/save',
+      id: 'r-3',
+      weekStart,
+      patch: { wentWell: '', wasHard: '' },
+    });
+    expect(cleared.reflections).toHaveLength(0);
+  });
+});
+
+describe('letting go', () => {
+  const seed = createSeed('2026-09-14');
+
+  it('takes a let-go task out of the day list, even when it still has time on it', () => {
+    const day = '2026-09-14';
+    const scheduled = seed.tasks.find((t) => t.id === 't-7')!;
+    expect(inDayList(scheduled, day)).toBe(true);
+    const state = reducer(seed, { type: 'task/update', id: 't-7', patch: { status: 'let-go' } });
+    expect(inDayList(state.tasks.find((t) => t.id === 't-7')!, day)).toBe(false);
+    // The history, including its sessions, is still there.
+    expect(state.tasks.find((t) => t.id === 't-7')!.blocks.length).toBeGreaterThan(0);
+  });
+});
+
+describe('sensitive topics', () => {
+  it('notices goals about food, weight or the body, and leaves everything else alone', () => {
+    expect(mentionsBodyOrFood('Lose weight before June')).toBe(true);
+    expect(mentionsBodyOrFood('Bajar de peso')).toBe(true);
+    expect(mentionsBodyOrFood('Count calories every day')).toBe(true);
+    // Ordinary goals must not trip it: a false alarm here costs trust.
+    expect(mentionsBodyOrFood('Cook at home more often')).toBe(false);
+    expect(mentionsBodyOrFood('Run a 5K comfortably')).toBe(false);
+    expect(mentionsBodyOrFood('Feel more rested')).toBe(false);
+    expect(mentionsBodyOrFood('Pass Statistics this semester')).toBe(false);
+  });
+});
+
+describe('week start', () => {
+  it('moves the first day of the week without touching anything else', () => {
+    // 2026-09-13 is a Sunday, 2026-09-14 the Monday after it.
+    expect(startOfWeek('2026-09-15')).toBe('2026-09-13');
+    expect(startOfWeek('2026-09-15', 1)).toBe('2026-09-14');
+    expect(weekDates('2026-09-15', 1)[0]).toBe('2026-09-14');
+    expect(weekDates('2026-09-15', 1)[6]).toBe('2026-09-20');
+    expect(weekdayOrder(1)).toEqual([1, 2, 3, 4, 5, 6, 0]);
+    // September 2026 opens on a Tuesday, so a Monday grid leads with 31 August.
+    expect(monthGrid('2026-09-15', 1)[0].date).toBe('2026-08-31');
+  });
+
+  it('decides which week a check-in counts towards', () => {
+    const seed = createSeed('2026-09-14');
+    const withHabit = reducer(seed, {
+      type: 'habit/add',
+      id: 'h-week',
+      categoryId: 'c-health',
+      title: 'Week test',
+      rhythm: { type: 'timesPerWeek', times: 3 },
+    });
+    // Logged on Sunday the 13th.
+    const logged = reducer(withHabit, { type: 'checkin/set', habitId: 'h-week', date: '2026-09-13', kind: 'done' });
+    expect(weekCount(logged, 'h-week', '2026-09-15')).toBe(1);
+
+    const mondayStart = reducer(logged, { type: 'settings/update', patch: { weekStart: 1 } });
+    // With weeks starting Monday, that Sunday belongs to the week before.
+    expect(weekCount(mondayStart, 'h-week', '2026-09-15')).toBe(0);
+    expect(weekCount(mondayStart, 'h-week', '2026-09-13')).toBe(1);
+    // The lifetime total never depends on where the week begins.
+    expect(totalCount(mondayStart, 'h-week')).toBe(1);
   });
 });

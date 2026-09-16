@@ -1,10 +1,10 @@
 import type { KeyboardEvent, CSSProperties } from 'react';
-import type { Schedule, Task, TimeBlock as Block } from '../../types';
+import type { Habit, Schedule, Task, TimeBlock as Block } from '../../types';
 import type { Placement } from '../../lib/layout';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { categoryById, groupOfTask } from '../../store/selectors';
 import { HOUR_PX, useDragActions } from '../../dnd/DragProvider';
-import { DAY_MIN, MIN_DURATION, SNAP_MIN, formatDuration, formatRange } from '../../lib/time';
+import { DAY_MIN, MIN_DURATION, SNAP_MIN, formatClock, formatDuration, formatRange } from '../../lib/time';
 import { CompleteToggle } from '../ui/CompleteToggle';
 import styles from './timeline.module.css';
 
@@ -20,7 +20,8 @@ interface TimeBlockProps {
 
 function blockStyle(schedule: Schedule, placement: Placement, color?: string): CSSProperties {
   const top = (schedule.startMin / 60) * HOUR_PX;
-  const height = Math.max((schedule.durationMin / 60) * HOUR_PX, 18);
+  // Leave a hairline between back-to-back sessions so they read as two things.
+  const height = Math.max((schedule.durationMin / 60) * HOUR_PX - 2, 18);
   const width = 100 / placement.lanes;
   return {
     top,
@@ -145,5 +146,63 @@ export function BlockHelp() {
       complete, arrow keys to move by 15 minutes, Shift plus arrow keys to change duration, Alt plus left or right
       arrow to move to another day, Delete to remove this time block.
     </p>
+  );
+}
+
+/**
+ * A habit's preferred time, drawn dashed and unfilled. It is a suggestion, so
+ * it is never counted as planned time and cannot be dragged: moving a habit's
+ * hour belongs in its editor, not in a moment of rearranging the day.
+ */
+export function SuggestedBlock({
+  habit,
+  startMin,
+  durationMin,
+  placement,
+  logged,
+  onOpen,
+  onLog,
+}: {
+  habit: Habit;
+  startMin: number;
+  durationMin: number;
+  placement: Placement;
+  logged: boolean;
+  onOpen: () => void;
+  onLog: () => void;
+}) {
+  const { state } = useGaia();
+  const category = categoryById(state, habit.categoryId);
+  const fmt = state.settings.timeFormat;
+  const label = `${habit.title}, suggested around ${formatClock(startMin, fmt)}, ${
+    logged ? 'logged today' : 'not logged yet'
+  }`;
+
+  return (
+    <div
+      className={`${styles.block} ${styles.blockSuggested} ${durationMin < 45 ? styles.blockCompact : ''}`}
+      style={blockStyle({ date: '', startMin, durationMin }, placement, category?.color)}
+      data-suggested="true"
+      data-logged={logged || undefined}
+      role="button"
+      tabIndex={0}
+      aria-label={label}
+      title={label}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          onOpen();
+        } else if (e.key === ' ') {
+          e.preventDefault();
+          onLog();
+        }
+      }}
+    >
+      <div className={styles.blockText}>
+        <span className={styles.blockTitle}>{habit.title}</span>
+        <span className={styles.blockMeta}>{logged ? 'logged' : formatClock(startMin, fmt)}</span>
+      </div>
+    </div>
   );
 }

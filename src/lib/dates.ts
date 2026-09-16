@@ -33,23 +33,32 @@ export function addMonths(iso: string, months: number): string {
   return toISODate(d);
 }
 
-/** Sunday-based week start, matching the Calendar reference. */
-export function startOfWeek(iso: string): string {
-  const d = fromISODate(iso);
-  return addDays(iso, -d.getDay());
+/**
+ * The first day of the week containing `iso`. `weekStart` is a weekday index:
+ * 0 for Sunday, 1 for Monday. Defaults to Sunday, which is what the Calendar
+ * reference used before the setting existed.
+ */
+export function startOfWeek(iso: string, weekStart = 0): string {
+  const offset = (fromISODate(iso).getDay() - weekStart + 7) % 7;
+  return addDays(iso, -offset);
 }
 
-export function weekDates(iso: string): string[] {
-  const start = startOfWeek(iso);
+export function weekDates(iso: string, weekStart = 0): string[] {
+  const start = startOfWeek(iso, weekStart);
   return Array.from({ length: 7 }, (_, i) => addDays(start, i));
 }
 
-/** 6x7 or 5x7 grid of dates covering the month, Sunday first. */
-export function monthGrid(iso: string): { date: string; inMonth: boolean }[] {
+/** The weekday indexes of a week in order, for column headers. */
+export function weekdayOrder(weekStart = 0): number[] {
+  return Array.from({ length: 7 }, (_, i) => (weekStart + i) % 7);
+}
+
+/** 6x7 or 5x7 grid of dates covering the month, starting on `weekStart`. */
+export function monthGrid(iso: string, weekStart = 0): { date: string; inMonth: boolean }[] {
   const d = fromISODate(iso);
   const first = new Date(d.getFullYear(), d.getMonth(), 1);
   const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-  const lead = first.getDay();
+  const lead = (first.getDay() - weekStart + 7) % 7;
   const total = Math.ceil((lead + daysInMonth) / 7) * 7;
   const start = addDays(toISODate(first), -lead);
   return Array.from({ length: total }, (_, i) => {
@@ -80,4 +89,9 @@ export function relativeDayLabel(iso: string): string {
   if (iso === addDays(today, 1)) return 'Tomorrow';
   if (iso === addDays(today, -1)) return 'Yesterday';
   return weekdayName(iso);
+}
+
+/** 0 = Sunday, matching startOfWeek and weekDates. */
+export function dayOfWeek(iso: string): number {
+  return fromISODate(iso).getDay();
 }

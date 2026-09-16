@@ -5,6 +5,7 @@ import styles from './manage.module.css';
 
 const TABS = [
   { to: '/manage/tasks', label: 'Tasks' },
+  { to: '/manage/habits', label: 'Habits' },
   { to: '/manage/categories', label: 'Categories' },
   { to: '/manage/groups', label: 'Groups' },
 ];
