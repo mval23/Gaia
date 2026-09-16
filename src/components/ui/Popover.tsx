@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom';
 import styles from './ui.module.css';
 
 interface PopoverProps {
-  anchorRef: RefObject<HTMLElement>;
+  anchorRef?: RefObject<HTMLElement>;
+  /** Opens at a screen point instead of next to an element, as a right-click menu does. */
+  point?: { x: number; y: number };
   open: boolean;
   onClose: (reason: 'escape' | 'outside') => void;
   children: ReactNode;
@@ -21,6 +23,7 @@ interface PopoverProps {
  */
 export function Popover({
   anchorRef,
+  point,
   open,
   onClose,
   children,
@@ -40,22 +43,24 @@ export function Popover({
       return;
     }
     const place = () => {
-      const anchor = anchorRef.current;
       const panel = panelRef.current;
-      if (!anchor || !panel) return;
-      const a = anchor.getBoundingClientRect();
+      const a = point
+        ? { left: point.x, right: point.x, top: point.y, bottom: point.y }
+        : anchorRef?.current?.getBoundingClientRect();
+      if (!a || !panel) return;
       const pw = panel.offsetWidth;
       const ph = panel.scrollHeight;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const margin = 8;
-      let left = align === 'end' ? a.right - pw : a.left;
+      let left = align === 'end' && !point ? a.right - pw : a.left;
       left = Math.max(margin, Math.min(left, vw - pw - margin));
       const below = vh - a.bottom - margin * 2;
       const above = a.top - margin * 2;
       const openUp = ph > below && above > below;
       const maxHeight = Math.max(160, openUp ? above : below);
-      const top = openUp ? Math.max(margin, a.top - Math.min(ph, maxHeight) - 6) : a.bottom + 6;
+      const gap = point ? 2 : 6;
+      const top = openUp ? Math.max(margin, a.top - Math.min(ph, maxHeight) - gap) : a.bottom + gap;
       setPos({ top, left, maxHeight });
     };
     place();
@@ -65,7 +70,7 @@ export function Popover({
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
     };
-  }, [open, align, anchorRef, children]);
+  }, [open, align, anchorRef, point, children]);
 
   useEffect(() => {
     if (!open) return;
@@ -77,7 +82,7 @@ export function Popover({
     };
     const onDown = (e: PointerEvent) => {
       const target = e.target as Node;
-      if (panelRef.current?.contains(target) || anchorRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target) || anchorRef?.current?.contains(target)) return;
       onClose('outside');
     };
     document.addEventListener('keydown', onKey, true);

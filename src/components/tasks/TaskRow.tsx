@@ -11,12 +11,13 @@ import {
   sortedGroups,
 } from '../../store/selectors';
 import { useDragActions, useDragSession } from '../../dnd/DragProvider';
+import { useDayMoveItems } from '../../hooks/useDayMoveItems';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
 import { formatShortDate } from '../../lib/dates';
 import { formatClock, formatRange } from '../../lib/time';
 import { CompleteToggle } from '../ui/CompleteToggle';
 import { Icon } from '../ui/Icon';
-import { Menu, type MenuEntry } from '../ui/Menu';
+import { ContextMenu, Menu, useContextMenu, type MenuEntry } from '../ui/Menu';
 import { InlineTitle } from './InlineTitle';
 import styles from './tasks.module.css';
 
@@ -37,6 +38,8 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
   const { startTaskDrag } = useDragActions();
   const session = useDragSession();
   const { openTask } = useTaskEditor();
+  const dayMoveItems = useDayMoveItems(task, date);
+  const contextMenu = useContextMenu();
   const [menuView, setMenuView] = useState<'main' | 'move'>('main');
   const [editing, setEditing] = useState(false);
   const done = task.status === 'done';
@@ -58,6 +61,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
   };
 
   const mainItems: MenuEntry[] = [
+    ...(dayMoveItems.length ? [...dayMoveItems, { kind: 'separator' as const }] : []),
     { label: 'Edit details', icon: 'pencil', onSelect: () => openTask(task.id) },
     // A task can be scheduled many times, so this always adds another session.
     ...(onScheduleNext && !done
@@ -66,18 +70,6 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
             label: onThisDay ? 'Add another session' : 'Schedule next free hour',
             icon: 'schedule' as const,
             onSelect: () => onScheduleNext(task),
-          },
-        ]
-      : []),
-    ...(onThisDay && date
-      ? [
-          {
-            label: onDay.length > 1 ? `Remove from this day (${onDay.length})` : 'Remove from this day',
-            icon: 'unschedule' as const,
-            onSelect: () => {
-              dispatch({ type: 'task/unschedule', id: task.id, date });
-              announce(`${task.title} removed from this day`);
-            },
           },
         ]
       : []),
@@ -184,6 +176,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
       // The completion toggle, name field and menu stop propagation, so other presses can start a drag.
       onPointerDown={(e) => !editing && startTaskDrag(e, task)}
       data-draggable={!editing || undefined}
+      onContextMenu={editing ? undefined : contextMenu.onContextMenu}
     >
       <CompleteToggle done={done} title={task.title} onToggle={toggle} />
       <InlineTitle
@@ -224,6 +217,15 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
         items={menuView === 'main' ? mainItems : moveItems}
         onOpenChange={(open) => !open && setMenuView('main')}
         triggerClassName={styles.rowMenu}
+      />
+      <ContextMenu
+        label={`Options for ${task.title}`}
+        items={menuView === 'main' ? mainItems : moveItems}
+        point={contextMenu.point}
+        onClose={() => {
+          contextMenu.close();
+          setMenuView('main');
+        }}
       />
     </li>
   );
