@@ -67,7 +67,7 @@ function Sheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
             <button
               type="button"
               className={ui.secondaryButton}
-              onClick={() => setStatus('paused', false, `${goal.title} is resting. Nothing is lost.`)}
+              onClick={() => setStatus('paused', false, `${goal.title} is resting. Its habits rest too. Nothing is lost.`)}
             >
               Let it rest
             </button>
@@ -90,12 +90,12 @@ function Sheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
               {
                 label: 'Finished, keep its habits',
                 icon: 'check',
-                onSelect: () => setStatus('completed', false, `You finished ${goal.title}`),
+                onSelect: () => setStatus('completed', false, `You finished ${goal.title}. Want to note what helped?`),
               },
               {
                 label: 'Finished, archive its habits',
                 icon: 'check',
-                onSelect: () => setStatus('completed', true, `You finished ${goal.title}`),
+                onSelect: () => setStatus('completed', true, `You finished ${goal.title}. Want to note what helped?`),
               },
               { kind: 'separator' },
               { kind: 'heading', label: 'Not for now' },
@@ -103,7 +103,7 @@ function Sheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
                 label: 'Let this goal go',
                 icon: 'unschedule',
                 onSelect: () =>
-                  setStatus('released', true, `Let go. ${goal.title} stays in your history.`),
+                  setStatus('released', true, `Let go. ${goal.title} stays in your history. Thank you for being honest with yourself.`),
               },
             ]}
           />
@@ -153,7 +153,7 @@ function Sheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
         />
       </SheetRow>
 
-      <SheetRow label="Why" htmlFor="goal-why" hint="Only you see this. It comes back when you finish.">
+      <SheetRow label="Why" htmlFor="goal-why" hint="Optional, and only you see this. It comes back when you finish.">
         <textarea
           id="goal-why"
           className={`field ${styles.textarea}`}
@@ -205,7 +205,7 @@ function Sheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
       </SheetRow>
 
       {closed && (
-        <SheetRow label="Closing note" htmlFor="goal-note" hint="Anything you would like to remember from it.">
+        <SheetRow label="Closing note" htmlFor="goal-note" hint={goal.status === 'completed' ? 'What helped? Anything you’d like to remember from it.' : 'Anything you’d like to remember from it?'}>
           <textarea
             id="goal-note"
             className={`field ${styles.textarea}`}
@@ -218,8 +218,8 @@ function Sheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
       <div className={styles.note}>
         {!state.settings.hideNumbers && (
           <p className={styles.activity}>
-            {activity.steps} of {activity.totalSteps} {activity.totalSteps === 1 ? 'step' : 'steps'} taken · active on{' '}
-            {activity.activeDays} of the last {activity.windowDays} days
+            {activity.steps} {activity.steps === 1 ? 'step' : 'steps'} taken · active {activity.activeDays} of the last{' '}
+            {activity.windowDays} days
           </p>
         )}
         {habits.length > 0 && (
@@ -248,7 +248,7 @@ function Sheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
           </ul>
         )}
         {habits.length === 0 && tasks.length === 0 && (
-          <p className={styles.activity}>Nothing attached yet, and that is fine. Naming it is enough for now.</p>
+          <p className={styles.activity}>Nothing attached yet, and that is fine. Naming it is enough for now. When you’re ready, what’s one small way to begin?</p>
         )}
       </div>
     </SheetShell>

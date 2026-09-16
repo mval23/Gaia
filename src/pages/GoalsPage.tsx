@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Goal } from '../types';
 import { uid, useFeedback, useGaia } from '../store/GaiaProvider';
 import { useGoalEditor, useHabitEditor } from '../hooks/useSheetParam';
@@ -16,6 +16,9 @@ import { rhythmLabel } from '../lib/rhythm';
 import { Icon } from '../components/ui/Icon';
 import { MonetAccent } from '../components/art/MonetAccent';
 import { HabitsColumn } from '../components/habits/HabitsColumn';
+import { SplitHandle } from '../components/ui/SplitHandle';
+import { useStoredNumber } from '../hooks/useStoredNumber';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import ui from '../components/ui/ui.module.css';
 import styles from './GoalsPage.module.css';
 
@@ -23,6 +26,14 @@ const KIND_LABEL: Record<Goal['kind'], string> = {
   finish: 'Something to finish',
   ongoing: 'A direction',
 };
+
+// The Goals column's share of the width, in percent; Habits takes the rest.
+const SPLIT_KEY = 'gaia:ui:goals-split';
+const SPLIT_DEFAULT = 52;
+const SPLIT_MIN = 30;
+const SPLIT_MAX = 70;
+// Matches the breakpoint where the two columns stack in GoalsPage.module.css.
+const SIDE_BY_SIDE_QUERY = '(min-width: 1024px)';
 
 export function GoalsPage() {
   const { state, dispatch } = useGaia();
@@ -32,6 +43,9 @@ export function GoalsPage() {
   const { active, resting, closed } = goalsByStatus(state);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
+  const columnsRef = useRef<HTMLDivElement>(null);
+  const [split, setSplit] = useStoredNumber(SPLIT_KEY, SPLIT_DEFAULT);
+  const sideBySide = useMediaQuery(SIDE_BY_SIDE_QUERY);
 
   const add = () => {
     const title = draft.trim();
@@ -39,7 +53,7 @@ export function GoalsPage() {
     const id = uid('goal');
     // Everything else is optional, and editable in the sheet that opens next.
     dispatch({ type: 'goal/add', id, title, kind: 'ongoing' });
-    announce(`Added “${title}”`);
+    announce(`Added “${title}”. There’s no rush here.`);
     setDraft('');
     openGoal(id);
     return true;
@@ -52,23 +66,29 @@ export function GoalsPage() {
           <p className="eyebrow">Goals &amp; habits</p>
           <h1 className={styles.title}>What matters to you</h1>
         </div>
-        <MonetAccent art="seineStrip" variant="strip" phrase="make room for what matters" />
+        <MonetAccent className={styles.accent} art="seineStrip" variant="strip" fill phrase="make room for what matters" />
       </header>
 
-      <div className={styles.columns}>
-        <section className={styles.column} aria-labelledby="goals-title">
+      <div ref={columnsRef} className={styles.columns} style={{ ['--split' as string]: split }}>
+        <section id="goals-column" className={styles.column} aria-labelledby="goals-title">
           <div className={styles.columnHead}>
             <h2 id="goals-title" className={styles.columnTitle}>
               Goals
             </h2>
+            {!adding && (
+              <button type="button" className={`${ui.pillButton} ${styles.addButton}`} onClick={() => setAdding(true)}>
+                <Icon name="plus" size={15} />
+                Add a goal
+              </button>
+            )}
           </div>
 
-      {adding ? (
+      {adding && (
         <div className={styles.addInline}>
           <input
             className="field"
             autoFocus
-            placeholder="Something you'd like to move toward"
+            placeholder="Something to move toward"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -90,19 +110,14 @@ export function GoalsPage() {
             It often helps to name what you want more of, rather than what you want to stop.
           </p>
         </div>
-      ) : (
-        <button type="button" className={`${ui.pillButton} ${styles.addButton}`} onClick={() => setAdding(true)}>
-          <Icon name="plus" size={16} />
-          Add a goal
-        </button>
       )}
 
       {active.length === 0 && resting.length === 0 && closed.length === 0 ? (
         <div className={styles.empty}>
-          <MonetAccent art="pondCard" variant="card" phrase="no goals yet, and that is fine." />
+          <MonetAccent art="pondCard" variant="card" phrase="no goals yet, and that’s completely fine." />
           <p>
             Gaia works well with just tasks. When something matters to you, it can live here, with small habits and
-            steps attached to it.
+            steps attached to it. Goals can be about doing less, too.
           </p>
         </div>
       ) : (
@@ -128,6 +143,9 @@ export function GoalsPage() {
               <h2 id="closed-title" className={styles.groupTitle}>
                 Finished and let go
               </h2>
+              <p className={styles.groupNote}>
+                Their history stays. Choosing what not to pursue can make room for what matters now.
+              </p>
               {closed.map((goal) => (
                 <GoalCard key={goal.id} goal={goal} today={today} />
               ))}
@@ -137,6 +155,21 @@ export function GoalsPage() {
       )}
 
         </section>
+
+        {sideBySide && (
+          <SplitHandle
+            containerRef={columnsRef}
+            value={split}
+            min={SPLIT_MIN}
+            max={SPLIT_MAX}
+            defaultValue={SPLIT_DEFAULT}
+            onChange={setSplit}
+            label="Resize goals and habits columns"
+            controls="goals-column"
+            valueText={(v) => `Goals column ${v}% wide`}
+            className={styles.splitHandle}
+          />
+        )}
 
         <HabitsColumn />
       </div>
@@ -208,14 +241,25 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
         </button>
       </div>
 
-      {goal.why && <p className={styles.why}>{goal.why}</p>}
+      {goal.why &&
+        (goal.status === 'completed' ? (
+          <p className={styles.why}>You started because “{goal.why}”</p>
+        ) : (
+          <p className={styles.why}>{goal.why}</p>
+        ))}
+
+      {goal.status === 'completed' && !goal.closingNote && (
+        <button type="button" className={`${ui.textButton} ${styles.addStep}`} onClick={() => openGoal(goal.id)}>
+          Want to note what helped?
+        </button>
+      )}
 
       {closed && goal.closingNote && <p className={styles.closingNote}>{goal.closingNote}</p>}
 
       {!state.settings.hideNumbers && !closed && (
         <p className={styles.activity}>
-          {activity.steps} of {activity.totalSteps} {activity.totalSteps === 1 ? 'step' : 'steps'} taken · active on{' '}
-          {activity.activeDays} of the last {activity.windowDays} days
+          {activity.steps} {activity.steps === 1 ? 'step' : 'steps'} taken · active {activity.activeDays} of the last{' '}
+          {activity.windowDays} days
         </p>
       )}
 
@@ -242,6 +286,9 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
           )}
           <div>
             <h4 className={styles.linkedTitle}>Steps</h4>
+            {!closed && habits.length === 0 && tasks.length === 0 && (
+              <p className={styles.linkedHint}>What’s one small way to begin? You can leave this for later.</p>
+            )}
             {tasks.length > 0 && (
               <ul className={styles.linkedList}>
                 {tasks.map((task) => (

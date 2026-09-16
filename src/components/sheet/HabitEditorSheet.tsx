@@ -65,7 +65,7 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
             onClick={() => {
               const resting = habit.status !== 'active';
               patch({ status: resting ? 'active' : 'paused' });
-              announce(resting ? `${habit.title} is active again` : `${habit.title} is resting`);
+              announce(resting ? `${habit.title} is active again` : `${habit.title} is resting. Its history stays.`);
             }}
           >
             {habit.status === 'active' ? 'Let it rest' : 'Start again'}
@@ -97,7 +97,7 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
         />
       </SheetRow>
 
-      <SheetRow label="How often" hint="You can change this whenever it stops fitting.">
+      <SheetRow label="How often" hint="How often feels realistic right now? You can change this anytime.">
         <SegmentedControl
           label="Rhythm type"
           size="sm"
@@ -141,7 +141,7 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
       <SheetRow
         label="When"
         htmlFor="habit-cue"
-        hint="Linking it to something you already do makes it easier to remember."
+        hint="When will this happen? Try linking it to something you already do, like after coffee or when you get home."
       >
         <input
           id="habit-cue"
@@ -152,7 +152,11 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
         />
       </SheetRow>
 
-      <SheetRow label="Tiny version" htmlFor="habit-tiny" hint="On hard days, this is enough.">
+      <SheetRow
+        label="Tiny version"
+        htmlFor="habit-tiny"
+        hint="What’s the smallest version that still counts? On hard days, this is enough."
+      >
         <input
           id="habit-tiny"
           className="field"

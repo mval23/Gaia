@@ -11,10 +11,24 @@ interface SplitHandleProps {
   onChange: (value: number) => void;
   label: string;
   controls?: string;
+  /** Spoken value, e.g. "Goals column 52% wide". Defaults to the tasks panel wording. */
+  valueText?: (value: number) => string;
+  className?: string;
 }
 
 /** Draggable vertical divider between two panels, also operable with the keyboard. */
-export function SplitHandle({ containerRef, value, min, max, defaultValue, onChange, label, controls }: SplitHandleProps) {
+export function SplitHandle({
+  containerRef,
+  value,
+  min,
+  max,
+  defaultValue,
+  onChange,
+  label,
+  controls,
+  valueText,
+  className,
+}: SplitHandleProps) {
   const dragging = useRef(false);
   const clamp = (v: number) => Math.round(Math.min(max, Math.max(min, v)) * 10) / 10;
 
@@ -65,10 +79,10 @@ export function SplitHandle({ containerRef, value, min, max, defaultValue, onCha
       aria-valuenow={Math.round(value)}
       aria-valuemin={min}
       aria-valuemax={max}
-      aria-valuetext={`Tasks panel ${Math.round(value)}% wide`}
+      aria-valuetext={valueText ? valueText(Math.round(value)) : `Tasks panel ${Math.round(value)}% wide`}
       tabIndex={0}
       title="Drag to resize · double-click to reset"
-      className={styles.handle}
+      className={className ? `${styles.handle} ${className}` : styles.handle}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={stop}

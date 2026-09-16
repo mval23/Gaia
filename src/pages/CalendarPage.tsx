@@ -87,7 +87,7 @@ export function CalendarPage() {
               Today
             </button>
           </div>
-          <MonetAccent art="seaStrip" variant="strip" phrase="there is time" className={styles.accent} />
+          <MonetAccent art="seaStrip" variant="strip" fill phrase="there is time" className={styles.accent} />
         </div>
         <SegmentedControl<View>
           label="Calendar view"
@@ -134,6 +134,8 @@ export function CalendarPage() {
           />
         </section>
       )}
+
+      <MonetAccent art="liliesTile" phrase="one day at a time" className={styles.footAccent} />
     </div>
   );
 }

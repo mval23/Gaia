@@ -14,6 +14,29 @@
   margin-bottom: 4px;
 }
 
+/* On desktop the title keeps its size; the painting beside it is the part that gives way. */
+@media (min-width: 1024px) {
+  .header > :first-child {
+    flex-shrink: 0;
+  }
+}
+
+/* The painting sits to the right of the title only when there is room for it (a quarter of
+   the header, plus its phrase, which wraps). It never drops below the title. */
+.header {
+  container-type: inline-size;
+}
+
+.accent {
+  display: none;
+}
+
+@container (min-width: 720px) {
+  .accent {
+    display: flex;
+  }
+}
+
 .title {
   margin: 4px 0 0;
   font-family: var(--font-heading);
@@ -196,6 +219,13 @@
   text-decoration-thickness: 1px;
 }
 
+.linkedHint {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
 .linkedMeta {
   font-size: 12.5px;
   color: var(--text-tertiary);
@@ -263,6 +293,11 @@
 }
 
 @media (max-width: 767px) {
+  /* The header stacks here, so there is no room beside the title. */
+  .accent {
+    display: none;
+  }
+
   .header {
     flex-direction: column;
     gap: 12px;
@@ -276,10 +311,23 @@
 /* ---------- Two columns: what matters, and what you return to ---------- */
 
 .columns {
+  --split: 52;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  gap: 28px;
+  /* Goals | resize handle | Habits; --split is the goals share in percent, set by the handle. */
+  grid-template-columns: calc(var(--split) * 1% - 14px) 28px minmax(0, 1fr);
   align-items: start;
+}
+
+/* Stretches the full column height; the grip stays in view near the top while scrolling. */
+.columns > .splitHandle {
+  align-self: stretch;
+  align-items: flex-start;
+}
+
+.columns > .splitHandle > span {
+  position: sticky;
+  top: 40vh;
+  margin-top: 60px;
 }
 
 .column {

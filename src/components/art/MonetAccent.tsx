@@ -28,17 +28,31 @@ interface MonetAccentProps {
   phrase?: string;
   variant?: 'tile' | 'strip' | 'card';
   className?: string;
+  /**
+   * Strips only: grow to the full height of the header row instead of a fixed 40px,
+   * without making that row any taller, and take a quarter of the header's width
+   * (the header must be an inline-size container). The painting is cropped to fit.
+   */
+  fill?: boolean;
 }
 
 /**
  * A small, isolated Monet fragment. Purely decorative: hidden from assistive tech
  * and transparent to pointer events so it can never block drag-and-drop.
  */
-export function MonetAccent({ art, phrase, variant = 'tile', className }: MonetAccentProps) {
+export function MonetAccent({ art, phrase, variant = 'tile', className, fill = false }: MonetAccentProps) {
   const a = ART[art];
+  const img = <img src={a.src} width={a.w} height={a.h} alt="" loading="lazy" decoding="async" draggable={false} />;
   return (
-    <div className={`${styles.accent} ${styles[variant]} ${className ?? ''}`} aria-hidden="true">
-      <img src={a.src} width={a.w} height={a.h} alt="" loading="lazy" decoding="async" draggable={false} />
+    <div
+      className={`${styles.accent} ${styles[variant]} ${fill ? styles.fill : ''} ${className ?? ''}`}
+      aria-hidden="true"
+    >
+      {fill ? (
+        <span className={styles.frame}>{img}</span>
+      ) : (
+        img
+      )}
       {phrase && <span className={styles.phrase}>{phrase}</span>}
     </div>
   );

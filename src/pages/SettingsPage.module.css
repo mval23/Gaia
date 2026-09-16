@@ -1,5 +1,5 @@
 .page {
-  max-width: 720px;
+  max-width: 1180px;
   padding: 28px var(--gutter) 64px;
   display: grid;
   gap: 24px;
@@ -13,6 +13,29 @@
   gap: 24px;
 }
 
+/* On desktop the title keeps its size; the painting beside it is the part that gives way. */
+@media (min-width: 1024px) {
+  .header > :first-child {
+    flex-shrink: 0;
+  }
+}
+
+/* The painting sits to the right of the title only when there is room for it (a quarter of
+   the header, plus its phrase, which wraps). It never drops below the title. */
+.header {
+  container-type: inline-size;
+}
+
+.accent {
+  display: none;
+}
+
+@container (min-width: 540px) {
+  .accent {
+    display: flex;
+  }
+}
+
 .title {
   margin: 4px 0 0;
   font-family: var(--font-heading);
@@ -22,8 +45,35 @@
   color: var(--text);
 }
 
+/* ---------- Section layout: one column, then two on desktop ---------- */
+
+.sections,
+.stack {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  /* Appearance holds the palette cards, which read best side by side. */
+  .wide {
+    grid-column: 1 / -1;
+  }
+
+  .wide .paletteGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .group {
   display: grid;
+  align-content: start;
   gap: 10px;
   padding: 20px 22px;
   border-radius: 22px;
@@ -140,6 +190,11 @@
 }
 
 @media (max-width: 767px) {
+  /* The header stacks here, so there is no room beside the title. */
+  .accent {
+    display: none;
+  }
+
   .header {
     flex-direction: column;
     gap: 12px;
