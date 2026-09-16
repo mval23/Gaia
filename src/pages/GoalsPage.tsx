@@ -99,7 +99,7 @@ export function GoalsPage() {
 
       {active.length === 0 && resting.length === 0 && closed.length === 0 ? (
         <div className={styles.empty}>
-          <MonetAccent art="gardenCard" variant="card" phrase="no goals yet, and that is fine." />
+          <MonetAccent art="pondCard" variant="card" phrase="no goals yet, and that is fine." />
           <p>
             Gaia works well with just tasks. When something matters to you, it can live here, with small habits and
             steps attached to it.

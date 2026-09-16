@@ -30,7 +30,7 @@ export function ManageLayout() {
             );
           })}
         </nav>
-        <MonetAccent art="seineStrip" variant="strip" phrase="make room for what matters" className={styles.accent} />
+        <MonetAccent art="liliesStrip" variant="strip" phrase="everything has a place" className={styles.accent} />
       </header>
       <Outlet />
     </div>
