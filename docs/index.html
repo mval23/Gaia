@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gaia Docs</title>
+  <meta name="description" content="Gaia is a kind way to organise yourself: a calm planner that turns toxic productivity into something softer." />
+  <link rel="icon" type="image/png" href="assets/favicon-64.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" />
+  <style>
+    /* Same tokens as src/styles/tokens.css, trimmed to what this page uses. */
+    :root {
+      --bg: #f5f2ed; --surface: #fbfaf7; --panel: #f3f1ed;
+      --primary: #5b6679; --avatar: #ab9dce; --accent-2: #9fd0ba; --accent-3: #e6bccb;
+      --text: #2b3445; --text-2: #5f6a7d; --text-3: #7c8698;
+      --border: rgba(43, 52, 69, 0.08); --border-strong: rgba(43, 52, 69, 0.18);
+      --tint: color-mix(in srgb, var(--avatar) 16%, transparent);
+      --shadow: 0 1px 2px rgba(43, 52, 69, 0.04), 0 8px 24px rgba(43, 52, 69, 0.06);
+      --no: #b4565e;
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-heading: 'Playfair Display', 'Iowan Old Style', Georgia, serif;
+      color-scheme: light;
+    }
+    :root[data-palette='rouen']    { --bg: #f7f2e9; --surface: #fdfaf4; --panel: #f2ece1; --primary: #6b5f4e; --avatar: #d3b58a; --accent-2: #e2cfa8; --accent-3: #c9a98a; }
+    :root[data-palette='giverny']  { --bg: #f1f4ee; --surface: #fafcf8; --panel: #ebf0e7; --primary: #4f6350; --avatar: #9fc39b; --accent-2: #bdd3b0; --accent-3: #d9cbbe; }
+    :root[data-palette='waterloo'] { --bg: #f3f1f4; --surface: #fbfafc; --panel: #eeeaf1; --primary: #5c5570; --avatar: #c8a9c4; --accent-2: #b3a7d6; --accent-3: #b6c3d6; }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme='light']) {
+        --bg: #141922; --surface: #1b212d; --panel: #202735;
+        --primary: #8fa0bd; --text: #e6e9ef; --text-2: #aab3c3; --text-3: #8591a5;
+        --border: rgba(230, 233, 239, 0.08); --border-strong: rgba(230, 233, 239, 0.18);
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+        --no: #e08a92; color-scheme: dark;
+      }
+      :root:not([data-theme='light'])[data-palette='rouen']    { --bg: #1a1712; --surface: #221e18; --panel: #29241d; --primary: #c2a883; }
+      :root:not([data-theme='light'])[data-palette='giverny']  { --bg: #121711; --surface: #1a201a; --panel: #212820; --primary: #9fbf9c; }
+      :root:not([data-theme='light'])[data-palette='waterloo'] { --bg: #16141b; --surface: #1e1b25; --panel: #26222e; --primary: #b9aecf; }
+    }
+    :root[data-theme='dark'] {
+      --bg: #141922; --surface: #1b212d; --panel: #202735;
+      --primary: #8fa0bd; --text: #e6e9ef; --text-2: #aab3c3; --text-3: #8591a5;
+      --border: rgba(230, 233, 239, 0.08); --border-strong: rgba(230, 233, 239, 0.18);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+      --no: #e08a92; color-scheme: dark;
+    }
+    :root[data-theme='dark'][data-palette='rouen']    { --bg: #1a1712; --surface: #221e18; --panel: #29241d; --primary: #c2a883; }
+    :root[data-theme='dark'][data-palette='giverny']  { --bg: #121711; --surface: #1a201a; --panel: #212820; --primary: #9fbf9c; }
+    :root[data-theme='dark'][data-palette='waterloo'] { --bg: #16141b; --surface: #1e1b25; --panel: #26222e; --primary: #b9aecf; }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.65 var(--font-sans);
+      transition: background-color .4s ease, color .4s ease;
+    }
+    img { max-width: 100%; height: auto; display: block; }
+    a { color: var(--primary); text-underline-offset: 3px; }
+    code { font: 0.88em ui-monospace, 'Cascadia Code', Consolas, monospace; background: var(--panel); padding: 2px 6px; border-radius: 6px; }
+    pre { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; overflow-x: auto; font: 13.5px/1.6 ui-monospace, 'Cascadia Code', Consolas, monospace; margin: 0; }
+    pre code { background: none; padding: 0; }
+
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    /* Top bar */
+    header.bar {
+      position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+      background: color-mix(in srgb, var(--surface) 86%, transparent);
+      backdrop-filter: saturate(140%) blur(14px); -webkit-backdrop-filter: saturate(140%) blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .bar .wrap { display: flex; align-items: center; gap: 20px; height: 60px; }
+    .brand { flex: none; display: flex; align-items: center; gap: 10px; font: 500 22px var(--font-heading); color: var(--text); text-decoration: none; }
+    .brand img { width: 30px; height: 30px; border-radius: 9px; }
+    nav.links { display: flex; gap: 4px; margin-left: auto; }
+    nav.links a { color: var(--text-2); text-decoration: none; font-size: 14px; padding: 6px 12px; border-radius: 999px; }
+    nav.links a:hover { background: var(--tint); color: var(--text); }
+    .seg { display: flex; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 3px; }
+    .seg button {
+      border: 0; background: none; color: var(--text-2); font: 500 13px var(--font-sans);
+      padding: 5px 11px; border-radius: 999px; cursor: pointer;
+    }
+    .seg button[aria-pressed='true'] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+    /* Hero */
+    .hero { padding: 72px 0 40px; text-align: center; }
+    .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); }
+    h1, h2, h3 { font-family: var(--font-heading); font-weight: 400; letter-spacing: -0.01em; line-height: 1.15; }
+    .hero h1 { font-size: clamp(44px, 8vw, 84px); margin: 10px 0 12px; }
+    .hero .lede { font-size: clamp(17px, 2.2vw, 20px); color: var(--text-2); max-width: 620px; margin: 0 auto; }
+    .hero .script { font: italic 22px var(--font-heading); color: var(--primary); margin-top: 22px; }
+    .strip { border-radius: 22px; overflow: hidden; box-shadow: var(--shadow); margin: 40px 0 0; aspect-ratio: 5 / 1; }
+    .strip img { width: 100%; height: 100%; object-fit: cover; transition: opacity .5s ease; }
+    .petals { display: inline-flex; gap: 6px; margin-top: 26px; }
+    .petals span { width: 12px; height: 12px; border-radius: 50%; background: var(--avatar); }
+    .petals span:nth-child(2) { background: var(--accent-2); }
+    .petals span:nth-child(3) { background: var(--accent-3); }
+    .petals span:nth-child(4) { background: var(--primary); }
+
+    section { padding: 64px 0; }
+    section + section { border-top: 1px solid var(--border); }
+    h2 { font-size: clamp(32px, 4.5vw, 44px); margin: 8px 0 14px; }
+    h3 { font-size: 24px; margin: 0 0 8px; }
+    .intro { color: var(--text-2); max-width: 680px; font-size: 17px; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      box-shadow: var(--shadow); padding: 24px; min-width: 0;
+    }
+
+    /* Manifesto */
+    .letter { max-width: 720px; margin: 28px auto 0; padding: 36px 40px; position: relative; }
+    .letter p { margin: 0 0 14px; font-size: 17px; }
+    .letter p:last-child { margin: 0; }
+    .letter .sign { font: italic 20px var(--font-heading); color: var(--primary); text-align: right; }
+    blockquote {
+      margin: 28px 0; padding: 0 0 0 20px; border-left: 3px solid var(--avatar);
+      font: italic clamp(22px, 3vw, 28px)/1.35 var(--font-heading); color: var(--text);
+    }
+
+    /* Before / after */
+    .swap { display: grid; gap: 12px; margin-top: 32px; }
+    .swap-row { display: grid; grid-template-columns: 1fr 40px 1.4fr; align-items: center; gap: 12px; }
+    .swap .old {
+      color: var(--text-3); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--no) 60%, transparent);
+      font-size: 15px; padding: 16px 18px; border: 1px dashed var(--border-strong); border-radius: 14px;
+    }
+    .swap .arrow { text-align: center; color: var(--text-3); font-size: 20px; }
+    .swap .new { padding: 16px 20px; display: flex; gap: 14px; align-items: flex-start; border-left: 4px solid var(--avatar); }
+    .swap-row:nth-child(3n+2) .new { border-left-color: var(--accent-2); }
+    .swap-row:nth-child(3n) .new { border-left-color: var(--accent-3); }
+    .ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .swap .new .ic { color: var(--primary); margin-top: 2px; }
+    .badge { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--tint); color: var(--primary); flex: none; }
+    .badge .ic { width: 22px; height: 22px; }
+    h3 .ic { vertical-align: -3px; margin-right: 8px; color: var(--primary); }
+    .sign .ic { width: 18px; height: 18px; vertical-align: -3px; margin-left: 4px; }
+    .tabs button .ic { width: 17px; height: 17px; }
+    .swap .new b { display: block; font-weight: 600; }
+    .swap .new span.d { color: var(--text-2); font-size: 14.5px; }
+
+    /* Tour */
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 20px; }
+    .tabs button {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text-2);
+      font: 500 14px var(--font-sans); padding: 8px 16px 8px 13px; border-radius: 999px; cursor: pointer;
+      transition: all .2s ease;
+    }
+    .tabs button:hover { color: var(--text); border-color: var(--border-strong); }
+    .tabs button[aria-selected='true'] { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .shot { padding: 10px; }
+    .shot img { border-radius: 12px; border: 1px solid var(--border); width: 100%; }
+    .shot figcaption { padding: 16px 8px 6px; display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+    .shot figcaption h3 { margin: 0; }
+    .shot figcaption p { margin: 0; color: var(--text-2); flex: 1 1 320px; }
+
+    .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 18px; margin-top: 18px; }
+    .gallery figure { margin: 0; }
+    .gallery img { border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .gallery figcaption { font-size: 14px; color: var(--text-2); padding: 10px 4px 0; }
+    .gallery figcaption em { font-family: var(--font-heading); }
+
+    /* Habits explainer */
+    .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 28px; }
+    .log { display: flex; flex-direction: column; gap: 6px; }
+    .dot { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 8px; }
+    .dot.done { background: var(--avatar); }
+    .dot.tiny { background: linear-gradient(90deg, var(--avatar) 50%, transparent 50%); border: 2px solid var(--avatar); }
+    .dot.rest { border: 2px solid var(--avatar); }
+    .dot.blank { border: 2px dashed var(--border-strong); }
+    .log p { margin: 0; color: var(--text-2); font-size: 15px; }
+    .rhythm { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0 6px; }
+    .rhythm i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border-strong); }
+    .rhythm i.d { background: var(--avatar); border-color: var(--avatar); }
+    .rhythm i.t { background: linear-gradient(90deg, var(--avatar) 50%, transparent 50%); border-color: var(--avatar); }
+    .rhythm i.r { border-color: var(--avatar); }
+
+    /* Palettes */
+    .palettes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 28px; }
+    .pal {
+      text-align: left; cursor: pointer; font: inherit; color: inherit;
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 0; overflow: hidden;
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    .pal:hover { transform: translateY(-2px); }
+    .pal[aria-pressed='true'] { border-color: var(--text); }
+    .pal img { height: 70px; width: 100%; object-fit: cover; }
+    .pal .body { padding: 14px 16px 16px; }
+    .pal .sw { display: flex; gap: 5px; margin-bottom: 8px; }
+    .pal .sw span { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--border); }
+    .pal b { display: block; font-weight: 600; }
+    .pal small { color: var(--text-2); }
+
+    /* Dev */
+    .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 18px; margin-top: 28px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); font-weight: 600; }
+    tr:last-child td { border-bottom: 0; }
+    ul.rules { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+    ul.rules li { padding-left: 28px; position: relative; color: var(--text-2); }
+    ul.rules li::before { content: ''; position: absolute; left: 6px; top: .6em; width: 8px; height: 8px; border-radius: 50%; background: var(--avatar); }
+    ul.rules li b { color: var(--text); font-weight: 600; }
+    .never { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .never span { font-size: 13px; padding: 4px 12px; border-radius: 999px; background: color-mix(in srgb, var(--no) 12%, transparent); color: var(--no); text-decoration: line-through; }
+
+    .support { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+    .support p { margin: 0; flex: 1 1 300px; color: var(--text-2); }
+
+    footer { padding: 40px 0 56px; text-align: center; color: var(--text-3); font-size: 14px; }
+    footer .script { font: italic 20px var(--font-heading); color: var(--text-2); margin: 20px 0 6px; }
+
+    @media (max-width: 900px) {
+      nav.links { display: none; }
+      .seg { margin-left: auto; }
+    }
+    @media (max-width: 720px) {
+      .bar .wrap { padding: 0 16px; }
+      .wrap { padding: 0 16px; }
+      .swap-row { grid-template-columns: 1fr; gap: 6px; }
+      .swap .arrow { transform: rotate(90deg); height: 18px; }
+      .letter { padding: 26px 22px; }
+      .strip { aspect-ratio: 3 / 1; }
+      .seg button { padding: 5px 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- Same paths as src/components/ui/Icon.tsx -->
+  <symbol id="i-plan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.1"/><path d="M12 3.2v2.3M12 18.5v2.3M3.2 12h2.3M18.5 12h2.3M5.9 5.9l1.6 1.6M16.5 16.5l1.6 1.6M18.1 5.9l-1.6 1.6M7.5 16.5l-1.6 1.6"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.75" y="5" width="16.5" height="15" rx="2.5"/><path d="M3.75 9.5h16.5M8 3v3.5M16 3v3.5"/></symbol>
+  <symbol id="i-manage" viewBox="0 0 24 24"><path d="M10 7.5h10M4 16.5h10"/><circle cx="6.5" cy="7.5" r="2.5"/><circle cx="17.5" cy="16.5" r="2.5"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.8-1.4-1.8-3.1-2.2.8a7.4 7.4 0 0 0-2.6-1.5L14.2 3h-3.6l-.4 2.3a7.4 7.4 0 0 0-2.6 1.5l-2.2-.8-1.8 3.1 1.8 1.4a7.6 7.6 0 0 0 0 3l-1.8 1.4 1.8 3.1 2.2-.8a7.4 7.4 0 0 0 2.6 1.5l.4 2.3h3.6l.4-2.3a7.4 7.4 0 0 0 2.6-1.5l2.2.8 1.8-3.1z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5.5 12.5 4.2 4 8.8-9"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.25S3.75 15.5 3.75 9.6A4.35 4.35 0 0 1 12 7.4a4.35 4.35 0 0 1 8.25 2.2c0 5.9-8.25 10.65-8.25 10.65z"/></symbol>
+  <symbol id="i-goal" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.25"/><circle cx="12" cy="12" r="3.25"/></symbol>
+  <symbol id="i-rhythm" viewBox="0 0 24 24"><path d="M4.75 12a7.25 7.25 0 0 1 12.4-5.1"/><path d="M19.25 12a7.25 7.25 0 0 1-12.4 5.1"/><path d="M14.5 3.75l2.9 3-3 2.9"/><path d="M9.5 20.25l-2.9-3 3-2.9"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5c.6 3.9 2.6 5.9 6.5 6.5-3.9.6-5.9 2.6-6.5 6.5-.6-3.9-2.6-5.9-6.5-6.5 3.9-.6 5.9-2.6 6.5-6.5zM18.5 15.5c.2 1.4.9 2.1 2.3 2.3-1.4.2-2.1.9-2.3 2.3-.2-1.4-.9-2.1-2.3-2.3 1.4-.2 2.1-.9 2.3-2.3z"/></symbol>
+  <symbol id="i-move" viewBox="0 0 24 24"><path d="M4.5 12h15M14 6.5l5.5 5.5-5.5 5.5"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3.75a8.25 8.25 0 1 0 0 16.5c1 0 1.6-.8 1.6-1.6 0-1.1-.9-1.4-.9-2.4 0-.9.7-1.5 1.6-1.5h2c2.2 0 3.9-1.7 3.9-3.9 0-4-3.7-7.1-8.2-7.1z"/><path d="M8 11h.01M10.5 7.5h.01M15 7.8h.01" stroke-width="2.4"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3.75h8.5l3.5 3.5V19a1.25 1.25 0 0 1-1.25 1.25H6A1.25 1.25 0 0 1 4.75 19V5A1.25 1.25 0 0 1 6 3.75z"/><path d="M14 3.75V7.5h4"/></symbol>
+</svg>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="assets/gaia-logo.webp" alt="" />Gaia</a>
+    <nav class="links" aria-label="Sections">
+      <a href="#why">Why</a>
+      <a href="#tour">Tour</a>
+      <a href="#habits">Habits</a>
+      <a href="#palettes">Palettes</a>
+      <a href="#start">Start</a>
+      <a href="#dev">Developers</a>
+    </nav>
+    <div class="seg" role="group" aria-label="Theme">
+      <button data-theme-btn="light" aria-pressed="false">Light</button>
+      <button data-theme-btn="dark" aria-pressed="false">Dark</button>
+      <button data-theme-btn="system" aria-pressed="true">System</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+
+    <div class="hero">
+      <div class="eyebrow">A calm daily planner</div>
+      <h1>Gaia</h1>
+      <p class="lede">A kind way to organise yourself. Tasks, time-blocking, goals and habits, built to support you instead of keeping score.</p>
+      <div class="script">a quiet day is still a full day</div>
+      <div class="petals" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      <div class="strip"><img id="hero-strip" src="assets/lilies-wide.webp" alt="Claude Monet, Water Lilies" width="2400" height="480" /></div>
+    </div>
+
+    <!-- Why -->
+    <section id="why">
+      <div class="eyebrow">Why Gaia exists</div>
+      <h2>Organising yourself shouldn’t hurt</h2>
+      <p class="intro">Most planners are built like scoreboards. Gaia is an attempt to turn toxic productivity into something softer.</p>
+
+      <div class="card letter">
+        <p>Red numbers for what you didn’t do. Streaks that break. Lists that grow every time you look at them. A lot of productivity tools measure you, and on a hard week they tell you that you failed.</p>
+        <p>Gaia is meant to feel different. It helps you <em>choose</em> a day instead of survive one. It remembers what you did and never counts what you didn’t. Rest counts as part of the plan, and letting something go is allowed.</p>
+        <blockquote>Tending a garden, not clearing an inbox.</blockquote>
+        <p>That is why it is named after Gaia, the Greek goddess of the Earth, and why it is painted in the colours of Monet’s gardens.</p>
+        <p class="sign">made with care <svg class="ic"><use href="#i-heart"/></svg></p>
+      </div>
+
+      <div class="swap" aria-label="How Gaia reframes productivity">
+        <div class="swap-row">
+          <div class="old">Unfinished tasks follow you forever</div><div class="arrow" aria-hidden="true">→</div>
+          <div class="card new"><svg class="ic"><use href="#i-plan"/></svg><div><b>A day is chosen, not inherited</b><span class="d">A task shows up under Today only when you pick it for that day or place it on the timeline.</span></div></div>
+        </div>
+        <div class="swap-row">
+          <div class="old">You broke your 12-day streak</div><div class="arrow" aria-hidden="true">→</div>
+          <div class="card new"><svg class="ic"><use href="#i-rhythm"/></svg><div><b>There are no streaks</b><span class="d">Habits have a flexible rhythm, like “about three times a week”. A blank day is just blank.</span></div></div>
+        </div>
+        <div class="swap-row">
+          <div class="old">Done, or it counts as failed</div><div class="arrow" aria-hidden="true">→</div>
+          <div class="card new"><svg class="ic"><use href="#i-check"/></svg><div><b>Done, tiny, or rest</b><span class="d">The small version you manage on a hard day still counts.</span></div></div>
+        </div>
+        <div class="swap-row">
+          <div class="old">Delete it, or let it rot on the list</div><div class="arrow" aria-hidden="true">→</div>
+          <div class="card new"><svg class="ic"><use href="#i-move"/></svg><div><b>Letting go is a real option</b><span class="d">You can let tasks go and release goals, and their history stays.</span></div></div>
+        </div>
+        <div class="swap-row">
+          <div class="old">Every empty hour is wasted time</div><div class="arrow" aria-hidden="true">→</div>
+          <div class="card new"><svg class="ic"><use href="#i-clock"/></svg><div><b>Rest is not empty time</b><span class="d">Gaia calls it <em>open time</em>. If a day gets very full, it says so once, quietly.</span></div></div>
+        </div>
+        <div class="swap-row">
+          <div class="old">Here are all your numbers</div><div class="arrow" aria-hidden="true">→</div>
+          <div class="card new"><svg class="ic"><use href="#i-manage"/></svg><div><b>Numbers are optional</b><span class="d">One setting hides every count and leaves what you logged untouched.</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tour -->
+    <section id="tour">
+      <div class="eyebrow">A little tour</div>
+      <h2>What’s inside</h2>
+      <p class="intro">Six places, one calm rhythm. Choose a tab to look around.</p>
+
+      <div class="tabs" role="tablist" aria-label="Screens">
+        <button role="tab" aria-selected="true" data-shot="plan"><svg class="ic"><use href="#i-plan"/></svg>Plan</button>
+        <button role="tab" aria-selected="false" data-shot="goals"><svg class="ic"><use href="#i-goal"/></svg>Goals &amp; habits</button>
+        <button role="tab" aria-selected="false" data-shot="calendar"><svg class="ic"><use href="#i-calendar"/></svg>Calendar</button>
+        <button role="tab" aria-selected="false" data-shot="manage"><svg class="ic"><use href="#i-manage"/></svg>Manage</button>
+        <button role="tab" aria-selected="false" data-shot="settings"><svg class="ic"><use href="#i-settings"/></svg>Settings</button>
+        <button role="tab" aria-selected="false" data-shot="support"><svg class="ic"><use href="#i-heart"/></svg>Support</button>
+      </div>
+
+      <figure class="card shot" role="tabpanel" style="margin:0">
+        <img id="shot-img" src="screenshots/plan.png" alt="" width="1440" height="900" />
+        <figcaption>
+          <h3 id="shot-title"></h3>
+          <p id="shot-text"></p>
+        </figcaption>
+      </figure>
+
+      <div class="gallery">
+        <figure>
+          <img src="screenshots/habit-editor.png" width="1440" height="900" alt="Habit editor with a tiny version and a flexible rhythm" loading="lazy" />
+          <figcaption><em>“What’s the smallest version that still counts?”</em> Every habit has a cue, a rhythm, and a tiny version.</figcaption>
+        </figure>
+        <figure>
+          <img src="screenshots/task-editor.png" width="1440" height="900" alt="Task editor with two scheduled sessions" loading="lazy" />
+          <figcaption>Editors open as side sheets and save as you type. A task can be worked on across several sessions.</figcaption>
+        </figure>
+        <figure>
+          <img src="screenshots/goals-dark.png" width="1440" height="900" alt="Goals and habits in dark mode" loading="lazy" />
+          <figcaption>The same calm after dark. Gaia can follow your system theme.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Habits -->
+    <section id="habits">
+      <div class="eyebrow">Habits, gently</div>
+      <h2>Rhythms, not streaks</h2>
+      <p class="intro">A habit in Gaia is something you’d like to come back to, not a chain you have to protect. There are three things you can log, and nothing that means “missed”.</p>
+
+      <div class="grid3">
+        <div class="card log"><div class="dot done" aria-hidden="true"></div><h3>Done</h3><p>You did the thing. Lovely.</p></div>
+        <div class="card log"><div class="dot tiny" aria-hidden="true"></div><h3>Tiny</h3><p>You did the smallest version, like stepping outside for two minutes. It counts.</p></div>
+        <div class="card log"><div class="dot rest" aria-hidden="true"></div><h3>Rest</h3><p>You chose to rest. That is a decision, not a failure.</p></div>
+        <div class="card log"><div class="dot blank" aria-hidden="true"></div><h3>Blank</h3><p>Nothing logged, and nothing stored either. Gaia has no value for “missed”.</p></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <b>Short walk after lunch</b> <span style="color:var(--text-3)">· about 3 times a week</span>
+        <div class="rhythm" aria-label="Recent days: some done, one tiny, one rest, the rest blank">
+          <i></i><i></i><i class="d"></i><i></i><i class="t"></i><i></i><i class="d"></i><i></i><i class="r"></i><i></i><i class="d"></i><i class="d"></i><i></i><i class="t"></i>
+        </div>
+        <small style="color:var(--text-2)">2 of about 3 this week · 6 times since September</small>
+      </div>
+    </section>
+
+    <!-- Palettes -->
+    <section id="palettes">
+      <div class="eyebrow">Make it yours</div>
+      <h2>Four paintings, four moods</h2>
+      <p class="intro">Every colour in Gaia comes from a Monet painting. Choose one to repaint this page, the same way it repaints the app.</p>
+
+      <div class="palettes">
+        <button class="pal" data-palette-btn="lilies" data-strip="lilies" aria-pressed="true">
+          <img src="assets/lilies-wide.webp" alt="" loading="lazy" />
+          <div class="body"><div class="sw"><span style="background:#f5f2ed"></span><span style="background:#ab9dce"></span><span style="background:#9fd0ba"></span><span style="background:#5b6679"></span></div><b>Water Lilies</b><small>Warm ivory, lavender and sage</small></div>
+        </button>
+        <button class="pal" data-palette-btn="rouen" data-strip="rouen" aria-pressed="false">
+          <img src="assets/rouen-wide.webp" alt="" loading="lazy" />
+          <div class="body"><div class="sw"><span style="background:#f7f2e9"></span><span style="background:#d3b58a"></span><span style="background:#c9a98a"></span><span style="background:#6b5f4e"></span></div><b>Rouen Cathedral</b><small>Sunlit stone and gold</small></div>
+        </button>
+        <button class="pal" data-palette-btn="giverny" data-strip="garden" aria-pressed="false">
+          <img src="assets/garden-wide.webp" alt="" loading="lazy" />
+          <div class="body"><div class="sw"><span style="background:#f1f4ee"></span><span style="background:#9fc39b"></span><span style="background:#bdd3b0"></span><span style="background:#4f6350"></span></div><b>Garden at Giverny</b><small>Green shade and pale paths</small></div>
+        </button>
+        <button class="pal" data-palette-btn="waterloo" data-strip="bridge" aria-pressed="false">
+          <img src="assets/bridge-wide.webp" alt="" loading="lazy" />
+          <div class="body"><div class="sw"><span style="background:#f3f1f4"></span><span style="background:#c8a9c4"></span><span style="background:#b3a7d6"></span><span style="background:#5c5570"></span></div><b>Waterloo Bridge</b><small>Dusk mauve and smoke</small></div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Start -->
+    <section id="start">
+      <div class="eyebrow">Getting started</div>
+      <h2>Open Gaia</h2>
+      <div class="two">
+        <div class="card">
+          <h3>The easy way</h3>
+          <p style="color:var(--text-2);margin:0">Double-click <b>Gaia</b> on your desktop, or <code>Start Gaia.bat</code> in the project folder. The first time, it installs what it needs. Then it starts the app and opens it in your browser. Keep the small terminal window open while you use Gaia, and close it to stop.</p>
+        </div>
+        <div class="card">
+          <h3>From a terminal</h3>
+          <pre><code>npm install
+npm run dev</code></pre>
+          <p style="color:var(--text-2);margin:12px 0 0">Then open <code>http://localhost:5173</code>. Requires Node.js 18 or newer.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <h3><svg class="ic"><use href="#i-user"/></svg>Your data stays with you</h3>
+        <p style="color:var(--text-2);margin:0">There is no account, and nothing is uploaded. Your planner lives in this browser’s <code>localStorage</code> (key <code>gaia:v1</code>). Clearing your browser data erases it. In <b>Settings ▸ Your data</b> you can export everything as JSON, restore the sample data, or delete it all (you can undo that once).</p>
+      </div>
+    </section>
+
+    <!-- Dev -->
+    <section id="dev">
+      <div class="eyebrow">For developers</div>
+      <h2>Keeping Gaia kind in code</h2>
+      <p class="intro">The gentleness isn’t only in the look. It is written into the data model and the wording rules.</p>
+
+      <div class="two">
+        <div class="card">
+          <h3>How things relate</h3>
+          <pre><code>Group → Category → Task      where it belongs
+                    ↑
+Goal  → Habits + Tasks       what it’s for</code></pre>
+          <p style="color:var(--text-2);margin:14px 0 0">A goal is never a folder. Tasks and habits belong to a category, and they can <em>also</em> point at one goal. Most never will, and that’s fine.</p>
+        </div>
+        <div class="card">
+          <h3>Words Gaia never uses</h3>
+          <div class="never"><span>missed</span><span>overdue</span><span>failed</span><span>streak</span></div>
+          <p style="color:var(--text-2);margin:14px 0 0">The shared wording lives in <code>src/lib/copy.ts</code>. Check-ins only ever store something positive or neutral. If you add a feature, please keep it that way.</p>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="card">
+          <h3>Conventions</h3>
+          <ul class="rules">
+            <li><b>Colour only comes from tokens.</b> No component names a colour. Regenerate <code>tokens.css</code> with <code>node scripts/gen-tokens.mjs</code>.</li>
+            <li><b>Editors are side sheets in the URL</b> (<code>?task=</code>, <code>?goal=</code>, <code>?habit=</code>), so Back closes them.</li>
+            <li><b>No form submits.</b> Every control writes as it changes.</li>
+            <li><b>Undo snapshots the whole state</b> before a destructive action, via <code>notify(message, previous)</code>.</li>
+            <li><b>Old saves still load.</b> <code>migrateState</code> fills in anything new, and existing data always wins.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Commands</h3>
+          <table>
+            <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code>npm run dev</code></td><td>Dev server on port 5173</td></tr>
+              <tr><td><code>npm test</code></td><td>Unit tests</td></tr>
+              <tr><td><code>npm run build</code></td><td>Type-check and build into <code>dist/</code></td></tr>
+              <tr><td><code>npm run art</code></td><td>Regenerate Monet crops and icons</td></tr>
+              <tr><td><code>node scripts/gen-tokens.mjs</code></td><td>Regenerate <code>tokens.css</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>How the code is laid out</h3>
+        <pre><code>src/
+  types.ts            Group, Category, Task, Goal, Habit, CheckIn, Reflection
+  store/              reducer, selectors, persist (localStorage + migrateState), GaiaProvider
+  lib/                pure helpers: dates, time, layout, rhythm, copy, sensitive
+  components/         ui kit, tasks, habits, plan sections, timeline, sheets, layout
+  pages/              Plan (TodayPage), Calendar, Goals, Settings, Support, Manage/*
+  styles/             tokens.css (all colour) and global.css
+monet/                original paintings (never bundled; npm run art crops them)</code></pre>
+      </div>
+    </section>
+
+    <!-- Support -->
+    <section>
+      <div class="card support">
+        <span class="badge"><svg class="ic"><use href="#i-heart"/></svg></span>
+        <p><b style="color:var(--text)">Gaia is a planning tool, not a health service.</b> If things feel heavy, the Support page in the app lists crisis and mental-health resources in Colombia (Línea 106, 123, 192 option 4) and internationally (<a href="https://findahelpline.com" rel="noopener">findahelpline.com</a>).</p>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="petals" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <div class="script">leave space · let the day unfold · make room for what matters</div>
+    <div>All paintings by Claude Monet, public domain.</div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    function store(key, value) {
+      try { if (value === undefined) return localStorage.getItem(key); localStorage.setItem(key, value); } catch (e) { return null; }
+    }
+
+    // Theme
+    var themeBtns = document.querySelectorAll('[data-theme-btn]');
+    function setTheme(t) {
+      if (t === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
+      themeBtns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.themeBtn === t)); });
+      store('gaia-docs:theme', t);
+    }
+    themeBtns.forEach(function (b) { b.addEventListener('click', function () { setTheme(b.dataset.themeBtn); }); });
+    setTheme(store('gaia-docs:theme') || 'system');
+
+    // Palette
+    var palBtns = document.querySelectorAll('[data-palette-btn]');
+    var strip = document.getElementById('hero-strip');
+    function setPalette(p) {
+      var match = null;
+      palBtns.forEach(function (b) {
+        var on = b.dataset.paletteBtn === p;
+        b.setAttribute('aria-pressed', String(on));
+        if (on) match = b;
+      });
+      if (!match) return;
+      if (p === 'lilies') root.removeAttribute('data-palette'); else root.setAttribute('data-palette', p);
+      strip.src = 'assets/' + match.dataset.strip + '-wide.webp';
+      store('gaia-docs:palette', p);
+    }
+    palBtns.forEach(function (b) { b.addEventListener('click', function () { setPalette(b.dataset.paletteBtn); }); });
+    setPalette(store('gaia-docs:palette') || 'lilies');
+
+    // Tour
+    var shots = {
+      plan: ['Plan', 'Your day, chosen gently. Today’s rhythms, the few things you picked, and a folded Later list for everything else. The timeline shows where they fit, and how much open time is left.', 'The Plan page: rhythms, today’s tasks and a day timeline'],
+      goals: ['Goals & habits', 'What matters to you. A goal is a direction, not a deadline. It can be paused, finished, or let go, and keeps its history either way.', 'The Goals and habits page with two goals and four habits'],
+      calendar: ['Calendar', 'Day, week and month views of the same time blocks, with a small reminder that there is time.', 'Calendar month view'],
+      manage: ['Manage', 'The workshop: tasks, categories and groups, with filters and inline editing.', 'Manage tasks table'],
+      settings: ['Settings', 'Theme, palette, the shape of your day, whether counts are shown at all, and your data. “Tracking is a tool, not a test.”', 'Settings page with theme, palettes and data options'],
+      support: ['Support', 'Crisis and mental-health resources, always one click away.', 'Support page with crisis and mental-health resources']
+    };
+    var tabs = document.querySelectorAll('[data-shot]');
+    var img = document.getElementById('shot-img');
+    function show(key) {
+      var s = shots[key];
+      img.src = 'screenshots/' + key + '.png';
+      img.alt = s[2];
+      document.getElementById('shot-title').textContent = s[0];
+      document.getElementById('shot-text').textContent = s[1];
+      tabs.forEach(function (t) { t.setAttribute('aria-selected', String(t.dataset.shot === key)); });
+    }
+    tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.dataset.shot); }); });
+    show('plan');
+  })();
+</script>
+</body>
+</html>
