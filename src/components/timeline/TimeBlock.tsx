@@ -5,7 +5,9 @@ import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { categoryById, groupOfTask } from '../../store/selectors';
 import { HOUR_PX, useDragActions } from '../../dnd/DragProvider';
 import { DAY_MIN, MIN_DURATION, SNAP_MIN, formatClock, formatDuration, formatRange } from '../../lib/time';
+import { useDayMoveItems } from '../../hooks/useDayMoveItems';
 import { CompleteToggle } from '../ui/CompleteToggle';
+import { ContextMenu, useContextMenu, type MenuEntry } from '../ui/Menu';
 import styles from './timeline.module.css';
 
 interface TimeBlockProps {
@@ -45,6 +47,20 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
   const done = task.status === 'done';
   const compact = schedule.durationMin < 45;
   const range = formatRange(schedule.startMin, schedule.durationMin, fmt);
+  const dayMoveItems = useDayMoveItems(task, block.date, block);
+  const contextMenu = useContextMenu();
+
+  const toggle = () => {
+    dispatch({ type: 'task/toggle', id: task.id });
+    announce(done ? `${task.title} marked not done` : `${task.title} completed`);
+  };
+
+  const menuItems: MenuEntry[] = [
+    ...dayMoveItems,
+    { kind: 'separator' },
+    { label: 'Edit details', icon: 'pencil', onSelect: onOpen },
+    { label: done ? 'Mark not done' : 'Complete', icon: 'check', onSelect: toggle },
+  ];
 
   const update = (next: Schedule, message: string) => {
     dispatch({ type: 'block/update', taskId: task.id, blockId: block.id, schedule: next });
@@ -58,8 +74,7 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
       onOpen();
     } else if (e.key === ' ') {
       e.preventDefault();
-      dispatch({ type: 'task/toggle', id: task.id });
-      announce(done ? `${task.title} marked not done` : `${task.title} completed`);
+      toggle();
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       dispatch({ type: 'block/remove', taskId: task.id, blockId: block.id });
@@ -90,6 +105,7 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
       aria-describedby="block-help"
       onPointerDown={(e) => startBlockDrag(e, task, block, 'move', onOpen)}
       onKeyDown={onKeyDown}
+      onContextMenu={contextMenu.onContextMenu}
     >
       <div
         className={`${styles.handle} ${styles.handleTop}`}
@@ -114,6 +130,12 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
         className={`${styles.handle} ${styles.handleBottom}`}
         onPointerDown={(e) => startBlockDrag(e, task, block, 'resize-bottom')}
         aria-hidden="true"
+      />
+      <ContextMenu
+        label={`Options for ${task.title}`}
+        items={menuItems}
+        point={contextMenu.point}
+        onClose={contextMenu.close}
       />
     </div>
   );

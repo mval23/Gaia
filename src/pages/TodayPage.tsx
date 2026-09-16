@@ -257,10 +257,10 @@ export function TodayPage() {
 
             {todayTasks.length === 0 && laterTasks.length === 0 ? (
               <div className={styles.emptyState}>
-                <MonetAccent art="gardenCard" variant="card" phrase="room to begin." />
+                <MonetAccent art="garden" variant="card" phrase="room to begin." />
               </div>
             ) : (
-              <MonetAccent art="irisTile" phrase="begin gently" className={styles.listAccent} />
+              <MonetAccent art="iris" phrase="begin gently" className={styles.listAccent} />
             )}
           </div>
         </section>

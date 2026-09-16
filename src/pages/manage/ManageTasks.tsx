@@ -131,7 +131,7 @@ export function ManageTasks() {
 
       {visibleGroups.length === 0 ? (
         <div className={styles.empty}>
-          <MonetAccent art="gardenCard" variant="card" phrase="nothing waiting." />
+          <MonetAccent art="garden" variant="card" phrase="nothing waiting." />
         </div>
       ) : (
         <div className={styles.tree}>

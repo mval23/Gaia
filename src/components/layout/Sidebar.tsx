@@ -7,7 +7,7 @@ import { SearchPalette } from './SearchPalette';
 import { MOBILE_QUERY, useMediaQuery } from '../../hooks/useMediaQuery';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import logoMark from '../../assets/brand/gaia-logo.webp';
-import liliesTile from '../../assets/monet/lilies-tile.webp';
+import { MonetImage } from '../art/MonetAccent';
 import styles from './Sidebar.module.css';
 
 const NAV: { to: string; label: string; icon: IconName; match: (path: string) => boolean }[] = [
@@ -258,9 +258,9 @@ export function Sidebar() {
 
             <div className={styles.grow} />
 
-            <div className={styles.art} aria-hidden="true">
-              <img className={styles.artImg} src={liliesTile} width={168} height={168} alt="" loading="lazy" draggable={false} />
-              <div className={styles.artText}>
+            <div className={styles.art}>
+              <MonetImage spot="sidebar" painting="lilies" shape="tile" className={styles.artButton} imgClassName={styles.artImg} />
+              <div className={styles.artText} aria-hidden="true">
                 <p className={styles.artPhrase}>leave space</p>
                 <p className={styles.artNote}>A quiet day is still a full day.</p>
               </div>

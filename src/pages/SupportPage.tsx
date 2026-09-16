@@ -18,7 +18,7 @@ export function SupportPage() {
             doing. If you need someone, these people are there for exactly this.
           </p>
         </div>
-        <MonetAccent art="cliffTile" phrase="slow is still moving" />
+        <MonetAccent art="cliff" phrase="slow is still moving" />
       </header>
 
       <section className={`${styles.tier} ${styles.now}`} aria-labelledby="tier-now">

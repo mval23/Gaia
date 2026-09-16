@@ -108,6 +108,7 @@ const paths = {
   ),
   arrowUp: <path d="M12 19V5M6 11l6-6 6 6" />,
   arrowDown: <path d="M12 5v14M6 13l6 6 6-6" />,
+  arrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
   unschedule: (
     <>
       <rect x="3.75" y="5" width="16.5" height="15" rx="2.5" />
