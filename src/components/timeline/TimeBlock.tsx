@@ -124,7 +124,10 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
       style={blockStyle(schedule, placement, category?.color)}
       aria-label={`${task.title}, ${range}, ${group?.name ?? ''} · ${category?.name ?? ''}${sessionLabel}${done ? ', completed' : ''}`}
       aria-describedby="block-help"
-      onPointerDown={(e) => startBlockDrag(e, task, block, 'move', onOpen)}
+      // On touch, holding opens the right-click menu and moving on from the hold drags, like task rows.
+      onPointerDown={(e) =>
+        startBlockDrag(e, task, block, 'move', onOpen, { open: contextMenu.openAt, close: contextMenu.close })
+      }
       onKeyDown={onKeyDown}
       onContextMenu={contextMenu.onContextMenu}
     >

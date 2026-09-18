@@ -67,6 +67,7 @@ interface DragActions {
     block: TimeBlock,
     kind: Exclude<DragKind, 'task'>,
     onTap?: () => void,
+    hold?: HoldHandlers,
   ) => void;
   registerColumn: (id: string, column: Column) => () => void;
   registerShiftTarget: (id: string, target: ShiftTarget) => () => void;
@@ -278,7 +279,8 @@ export function DragProvider({ children }: { children: ReactNode }) {
 
     if (!p) return;
     if (!p.active) {
-      if (commit) p.onTap?.();
+      // A hold opened the menu instead, so letting go isn't a tap.
+      if (commit && !p.touch?.lifted) p.onTap?.();
       commitSession(null);
       return;
     }
@@ -392,7 +394,8 @@ export function DragProvider({ children }: { children: ReactNode }) {
         block,
         onTap,
       };
-      if (kind === 'task' && e.pointerType === 'touch') {
+      // Resize handles stay instant on touch: they're small, deliberate targets that never scroll.
+      if ((kind === 'task' || kind === 'move') && e.pointerType === 'touch') {
         pending.current.touch = { el: e.currentTarget as HTMLElement, lifted: false, hold };
         holdTimer.current = window.setTimeout(() => handlers.current.lift(), HOLD_MS);
         // Must not be passive, or the lifted task can't stop the page from scrolling.
@@ -412,9 +415,9 @@ export function DragProvider({ children }: { children: ReactNode }) {
 
   const actions = useMemo<DragActions>(
     () => ({
-      // On touch, a quick swipe still scrolls the list; the drag starts only after a hold.
+      // On touch, a quick swipe still scrolls the list or the day; a drag starts only after a hold.
       startTaskDrag: (e, task, hold) => begin(e, task, 'task', undefined, undefined, hold),
-      startBlockDrag: (e, task, block, kind, onTap) => begin(e, task, kind, block, onTap),
+      startBlockDrag: (e, task, block, kind, onTap, hold) => begin(e, task, kind, block, onTap, hold),
       registerColumn: (id, column) => {
         columns.current.set(id, column);
         return () => columns.current.delete(id);

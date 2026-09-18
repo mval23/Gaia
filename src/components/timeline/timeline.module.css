@@ -137,10 +137,18 @@
   border: 1px solid color-mix(in srgb, var(--cat) 70%, var(--surface));
   color: var(--text);
   cursor: grab;
-  touch-action: none;
+  /* A swipe across a block scrolls the day; a hold lifts it (see DragProvider). */
+  -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
   transition: box-shadow 0.18s var(--ease), opacity 0.18s var(--ease), transform 0.18s var(--spring);
+}
+
+/* Held on a touch screen: the block rises, ready to be dragged. */
+.block[data-lifted] {
+  z-index: 5;
+  box-shadow: 0 6px 20px rgba(43, 52, 69, 0.18);
+  transform: scale(1.02);
 }
 
 .block:hover {
@@ -238,6 +246,8 @@
   height: 8px;
   cursor: ns-resize;
   z-index: 1;
+  /* Resizing starts on touch straight away, so the page mustn't take the gesture as a scroll. */
+  touch-action: none;
 }
 
 .handleTop {
