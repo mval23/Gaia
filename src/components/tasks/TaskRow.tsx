@@ -1,15 +1,7 @@
 import { useState } from 'react';
 import type { Task } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
-import {
-  blocksOnDate,
-  categoriesInGroup,
-  categoryById,
-  goalById,
-  groupById,
-  nextBlock,
-  sortedGroups,
-} from '../../store/selectors';
+import { blocksOnDate, categoryById, goalById, groupById, nextBlock } from '../../store/selectors';
 import { useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { useDayMoveItems } from '../../hooks/useDayMoveItems';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
@@ -41,7 +33,6 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
   const { openTask } = useTaskEditor();
   const dayMoveItems = useDayMoveItems(task, date);
   const contextMenu = useContextMenu();
-  const [menuView, setMenuView] = useState<'main' | 'move'>('main');
   const [editing, setEditing] = useState(false);
   const done = task.status === 'done';
   const dragging = session?.kind === 'task' && session.taskId === task.id;
@@ -61,9 +52,10 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
     if (!done && date && !onThisDay) notify(`“${task.title}” completed`, previous);
   };
 
-  const mainItems: MenuEntry[] = [
-    ...(dayMoveItems.length ? [...dayMoveItems, { kind: 'separator' as const }] : []),
-    { label: 'Edit details', icon: 'pencil', onSelect: () => openTask(task.id) },
+  // Three groups at most, as Apple's context-menu guidance asks: time first, then the plan, then
+  // the ways a task ends, with Delete last. Category and clearing every session live in Edit details.
+  const timeItems: MenuEntry[] = [
+    ...dayMoveItems,
     // A task can be scheduled many times, so this always adds another session.
     ...(onScheduleNext && !done
       ? [
@@ -74,19 +66,9 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
           },
         ]
       : []),
-    ...(task.blocks.length > onDay.length
-      ? [
-          {
-            label: `Clear all time blocks (${task.blocks.length})`,
-            icon: 'unschedule' as const,
-            onSelect: () => {
-              const previous = state;
-              dispatch({ type: 'task/unschedule', id: task.id });
-              notify(`All time blocks for “${task.title}” removed`, previous);
-            },
-          },
-        ]
-      : []),
+  ];
+
+  const planItems: MenuEntry[] = [
     ...(date && task.plannedFor !== date && !done
       ? [
           {
@@ -111,8 +93,10 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
           },
         ]
       : []),
-    { label: 'Move to category…', icon: 'move', keepOpen: true, onSelect: () => setMenuView('move') },
-    { kind: 'separator' },
+    { label: 'Edit details', icon: 'pencil', onSelect: () => openTask(task.id) },
+  ];
+
+  const endItems: MenuEntry[] = [
     ...(task.status !== 'let-go'
       ? [
           {
@@ -127,7 +111,6 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
           },
         ]
       : []),
-    { kind: 'separator' },
     {
       label: 'Delete task',
       icon: 'trash',
@@ -140,22 +123,9 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
     },
   ];
 
-  const moveItems: MenuEntry[] = [
-    { label: 'Back', icon: 'chevronLeft', keepOpen: true, onSelect: () => setMenuView('main') },
-    ...sortedGroups(state).flatMap<MenuEntry>((g) => [
-      { kind: 'heading', label: g.name },
-      ...categoriesInGroup(state, g.id).map<MenuEntry>((c) => ({
-        label: c.name,
-        swatch: paint(c.color),
-        checked: c.id === task.categoryId,
-        onSelect: () => {
-          if (c.id === task.categoryId) return;
-          dispatch({ type: 'task/update', id: task.id, patch: { categoryId: c.id } });
-          announce(`Moved to ${g.name} · ${c.name}`);
-        },
-      })),
-    ]),
-  ];
+  const menuItems: MenuEntry[] = [timeItems, planItems, endItems]
+    .filter((group) => group.length > 0)
+    .flatMap((group, i) => (i === 0 ? group : [{ kind: 'separator' as const }, ...group]));
 
   // Today's first session (plus how many more), otherwise the next upcoming one.
   const upcoming = date ? nextBlock(task, date) : undefined;
@@ -216,18 +186,14 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
       />
       <Menu
         label={`More options for ${task.title}`}
-        items={menuView === 'main' ? mainItems : moveItems}
-        onOpenChange={(open) => !open && setMenuView('main')}
+        items={menuItems}
         triggerClassName={styles.rowMenu}
       />
       <ContextMenu
         label={`Options for ${task.title}`}
-        items={menuView === 'main' ? mainItems : moveItems}
+        items={menuItems}
         point={contextMenu.point}
-        onClose={() => {
-          contextMenu.close();
-          setMenuView('main');
-        }}
+        onClose={contextMenu.close}
       />
     </li>
   );
