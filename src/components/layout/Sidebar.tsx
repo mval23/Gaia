@@ -8,6 +8,7 @@ import { MOBILE_QUERY, useMediaQuery } from '../../hooks/useMediaQuery';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import logoMark from '../../assets/brand/gaia-logo.webp';
 import { MonetImage } from '../art/MonetAccent';
+import { useAccount } from '../../auth/AuthGate';
 import styles from './Sidebar.module.css';
 
 const NAV: { to: string; label: string; icon: IconName; match: (path: string) => boolean }[] = [
@@ -49,6 +50,7 @@ type Tip = { label: string; top: number; left: number };
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const account = useAccount();
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const [collapsedPref, setCollapsedPref] = useState(readCollapsed);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -288,15 +290,21 @@ export function Sidebar() {
                   </span>
                   <span className={styles.profileText}>
                     <span className={styles.profileName}>Your planner</span>
-                    <span className={styles.profileMeta}>Saved on this device</span>
+                    <span className={styles.profileMeta}>{account ? account.email : 'Saved on this device'}</span>
                   </span>
                   <Icon name="chevronUpDown" size={16} className={styles.profileChevron} />
                 </>
               }
               items={[
-                { kind: 'heading', label: 'Your planner · saved on this device' },
+                { kind: 'heading', label: account ? `Signed in as ${account.email}` : 'Your planner · saved on this device' },
                 { label: 'Groups & categories', icon: 'folder', onSelect: () => navigate('/manage/groups') },
                 { label: 'Support', icon: 'heart', onSelect: () => navigate('/support') },
+                ...(account
+                  ? ([
+                      { kind: 'separator' },
+                      { label: 'Sign out', icon: 'signOut', onSelect: () => void account.signOut() },
+                    ] as const)
+                  : []),
               ]}
             />
           </div>

@@ -109,6 +109,7 @@ const paths = {
   arrowUp: <path d="M12 19V5M6 11l6-6 6 6" />,
   arrowDown: <path d="M12 5v14M6 13l6 6 6-6" />,
   arrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
+  signOut: <path d="M14 4.75h3.25a2 2 0 0 1 2 2v10.5a2 2 0 0 1-2 2H14M10 8l-4 4 4 4M6 12h9.5" />,
   unschedule: (
     <>
       <rect x="3.75" y="5" width="16.5" height="15" rx="2.5" />
