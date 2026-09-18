@@ -291,6 +291,11 @@ painting, drop it in `monet/`, add a crop to the list in
 `scripts/crop-monet.mjs`, run `npm run art`, and register it in
 `src/components/art/MonetAccent.tsx`.
 
+## License
+
+The code is released under the [MIT License](LICENSE). The Monet paintings are
+public domain and are not covered by it.
+
 ---
 
 <p align="center">
