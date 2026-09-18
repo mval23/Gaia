@@ -73,7 +73,10 @@ export function TimeGrid({
       const target = dates.includes(now.date)
         ? Math.max(settings.dayStartHour * 60, now.min - 90)
         : settings.dayStartHour * 60;
-      el.scrollTop = (target / 60) * HOUR_PX;
+      const offset = (target / 60) * HOUR_PX;
+      if (el.scrollHeight > el.clientHeight) el.scrollTop = offset;
+      // Grown to full length (phones): the page scrolls instead, so bring the hour into view there.
+      else window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top + offset - window.innerHeight / 3 });
     };
     apply();
     if (didScroll.current) return;

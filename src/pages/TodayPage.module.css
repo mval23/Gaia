@@ -306,9 +306,10 @@
     margin-top: 12px;
   }
 
+  /* On phones the panels grow to their full length and the page is the only scroller. */
   .panel {
-    height: calc(100vh - var(--nav-h) - 60px);
     min-height: 460px;
+    overflow: visible;
   }
 
   .panelHeader {
@@ -317,6 +318,11 @@
 
   .panelScroll {
     padding: 2px 8px 16px;
+    overflow: visible;
+  }
+
+  .timelineSurface [data-scroll-y] {
+    overflow: visible;
   }
 
   .listAccent {

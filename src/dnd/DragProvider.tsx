@@ -202,13 +202,22 @@ export function DragProvider({ children }: { children: ReactNode }) {
 
     const col = p.kind.startsWith('resize') ? columnForDate(p.block!.date) : columnAt(p.x, p.y);
     const scroller = col ? scrollParent(col.el) : null;
-    if (scroller) {
+    if (scroller && scroller.scrollHeight > scroller.clientHeight) {
       const r = scroller.getBoundingClientRect();
       const edge = 48;
       const before = scroller.scrollTop;
       if (p.y < r.top + edge) scroller.scrollTop -= Math.ceil((r.top + edge - p.y) / 4);
       else if (p.y > r.bottom - edge) scroller.scrollTop += Math.ceil((p.y - (r.bottom - edge)) / 4);
       if (scroller.scrollTop !== before) commitSession(computeSession(p));
+    } else if (scroller) {
+      // The grid has grown to full length (phones), so the page is what scrolls; the top edge
+      // sits below the sticky mobile bar.
+      const top = 72;
+      const edge = 48;
+      const before = window.scrollY;
+      if (p.y < top + edge) window.scrollBy(0, -Math.ceil((top + edge - p.y) / 4));
+      else if (p.y > window.innerHeight - edge) window.scrollBy(0, Math.ceil((p.y - (window.innerHeight - edge)) / 4));
+      if (window.scrollY !== before) commitSession(computeSession(p));
     }
 
     if (ghostRef.current) {
