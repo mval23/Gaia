@@ -5,6 +5,7 @@ import { CalendarPage } from './pages/CalendarPage';
 import { ManageLayout } from './pages/manage/ManageLayout';
 import { GoalsPage } from './pages/GoalsPage';
 import { SupportPage } from './pages/SupportPage';
+import { HelpPage } from './pages/HelpPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ManageTasks } from './pages/manage/ManageTasks';
 import { ManageCategories } from './pages/manage/ManageCategories';
@@ -18,6 +19,7 @@ export function App() {
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="goals" element={<GoalsPage />} />
         <Route path="support" element={<SupportPage />} />
+        <Route path="help" element={<HelpPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="manage" element={<ManageLayout />}>
           <Route index element={<Navigate to="tasks" replace />} />
