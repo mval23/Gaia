@@ -20,6 +20,12 @@ import styles from './drag.module.css';
 
 export const HOUR_PX = 64;
 const THRESHOLD = 4;
+// Touch and hold, as on iPadOS: hold still this long to lift a task, then move to drag it.
+const HOLD_MS = 500;
+// Finger travel allowed before the hold; any more and the press is a scroll.
+const TOUCH_SLOP = 10;
+// Travel after the lift that turns the hold into a drag. Fingers wobble more than a mouse.
+const TOUCH_THRESHOLD = 6;
 const SHIFT_DELAY = 600;
 const SHIFT_REPEAT = 900;
 const DEFAULT_DURATION = 60;
@@ -45,8 +51,16 @@ interface ShiftTarget {
   onShift: () => void;
 }
 
+/** What a touch-and-hold on a task does before (or instead of) a drag. */
+export interface HoldHandlers {
+  /** The finger has held still: show the task's menu at this point. */
+  open: (point: { x: number; y: number }) => void;
+  /** The finger moved after the hold, so the menu gives way to the drag. */
+  close: () => void;
+}
+
 interface DragActions {
-  startTaskDrag: (e: ReactPointerEvent, task: Task, onTap?: () => void) => void;
+  startTaskDrag: (e: ReactPointerEvent, task: Task, hold?: HoldHandlers) => void;
   startBlockDrag: (
     e: ReactPointerEvent,
     task: Task,
@@ -73,6 +87,8 @@ interface Pending {
   /** The session being moved or resized; absent when a task is dragged in from the list. */
   block?: TimeBlock;
   onTap?: () => void;
+  /** Touch presses wait for a hold before they can drag. */
+  touch?: { el: HTMLElement; lifted: boolean; hold?: HoldHandlers };
   x: number;
   y: number;
   hoverShift?: { id: string; since: number; lastFired: number };
@@ -81,6 +97,17 @@ interface Pending {
 function within(el: HTMLElement, x: number, y: number) {
   const r = el.getBoundingClientRect();
   return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+}
+
+/** Eats the click the browser sends after a long press, so it doesn't rename or open the row. */
+function swallowNextClick() {
+  const eat = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  window.addEventListener('click', eat, { capture: true, once: true });
+  // If no click comes (the finger lifted off the row), don't eat a later, real one.
+  window.setTimeout(() => window.removeEventListener('click', eat, { capture: true }), 400);
 }
 
 function scrollParent(el: HTMLElement): HTMLElement | null {
@@ -99,6 +126,7 @@ export function DragProvider({ children }: { children: ReactNode }) {
   const readoutRef = useRef<HTMLDivElement>(null);
   const frame = useRef(0);
   const timer = useRef(0);
+  const holdTimer = useRef(0);
   const sessionRef = useRef<DragSession | null>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -234,12 +262,19 @@ export function DragProvider({ children }: { children: ReactNode }) {
     pending.current = null;
     cancelAnimationFrame(frame.current);
     window.clearInterval(timer.current);
+    window.clearTimeout(holdTimer.current);
+    if (p?.touch) {
+      delete p.touch.el.dataset.lifted;
+      // A hold ends with the finger lifting off the row; that release must not also tap it.
+      if (p.touch.lifted) swallowNextClick();
+    }
     document.body.classList.remove('is-dragging', 'is-resizing');
     for (const t of shiftTargets.current.values()) delete t.el.dataset.dropHover;
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerup', onUp);
     window.removeEventListener('pointercancel', onCancel);
     window.removeEventListener('keydown', onKey, true);
+    window.removeEventListener('touchmove', onTouchMove);
 
     if (!p) return;
     if (!p.active) {
@@ -274,21 +309,37 @@ export function DragProvider({ children }: { children: ReactNode }) {
   // Listeners are stable function identities stored in refs so add/remove match.
   const handlers = useRef({
     move: (_e: PointerEvent) => {},
+    touchMove: (_e: TouchEvent) => {},
     up: (_e: PointerEvent) => {},
     cancel: (_e: PointerEvent) => {},
     key: (_e: KeyboardEvent) => {},
     paint: () => {},
     evaluate: () => {},
+    lift: () => {},
   });
   handlers.current.paint = paint;
   handlers.current.evaluate = evaluate;
+  handlers.current.lift = () => {
+    const t = pending.current?.touch;
+    if (!t) return;
+    t.lifted = true;
+    t.el.dataset.lifted = '';
+    t.hold?.open({ x: pending.current!.x, y: pending.current!.y });
+  };
   handlers.current.move = (e) => {
     const p = pending.current;
     if (!p || e.pointerId !== p.pointerId) return;
     p.x = e.clientX;
     p.y = e.clientY;
-    if (!p.active && Math.hypot(p.x - p.startX, p.y - p.startY) > THRESHOLD) {
+    const travel = Math.hypot(p.x - p.startX, p.y - p.startY);
+    if (p.touch && !p.touch.lifted) {
+      // Moving before the hold is a scroll; let the page have it.
+      if (travel > TOUCH_SLOP) finish(false);
+      return;
+    }
+    if (!p.active && travel > (p.touch ? TOUCH_THRESHOLD : THRESHOLD)) {
       p.active = true;
+      p.touch?.hold?.close();
       document.body.classList.add(p.kind.startsWith('resize') ? 'is-resizing' : 'is-dragging');
       (document.activeElement as HTMLElement | null)?.blur?.();
       frame.current = requestAnimationFrame(() => handlers.current.paint());
@@ -298,6 +349,10 @@ export function DragProvider({ children }: { children: ReactNode }) {
       e.preventDefault();
       evaluate();
     }
+  };
+  // Once a task is lifted the finger drags it, so the page must not scroll underneath.
+  handlers.current.touchMove = (e) => {
+    if (pending.current?.touch?.lifted && e.cancelable) e.preventDefault();
   };
   handlers.current.up = (e) => {
     if (pending.current && e.pointerId === pending.current.pointerId) finish(true);
@@ -314,9 +369,10 @@ export function DragProvider({ children }: { children: ReactNode }) {
   const onUp = useRef((e: PointerEvent) => handlers.current.up(e)).current;
   const onCancel = useRef((e: PointerEvent) => handlers.current.cancel(e)).current;
   const onKey = useRef((e: KeyboardEvent) => handlers.current.key(e)).current;
+  const onTouchMove = useRef((e: TouchEvent) => handlers.current.touchMove(e)).current;
 
   const begin = useCallback(
-    (e: ReactPointerEvent, task: Task, kind: DragKind, block?: TimeBlock, onTap?: () => void) => {
+    (e: ReactPointerEvent, task: Task, kind: DragKind, block?: TimeBlock, onTap?: () => void, hold?: HoldHandlers) => {
       if (e.button !== 0 || pending.current) return;
       let grabOffsetMin = 0;
       if (kind === 'move' && block) {
@@ -336,6 +392,12 @@ export function DragProvider({ children }: { children: ReactNode }) {
         block,
         onTap,
       };
+      if (kind === 'task' && e.pointerType === 'touch') {
+        pending.current.touch = { el: e.currentTarget as HTMLElement, lifted: false, hold };
+        holdTimer.current = window.setTimeout(() => handlers.current.lift(), HOLD_MS);
+        // Must not be passive, or the lifted task can't stop the page from scrolling.
+        window.addEventListener('touchmove', onTouchMove, { passive: false });
+      }
       if (kind !== 'task') e.stopPropagation();
       window.addEventListener('pointermove', onMove, { passive: false });
       window.addEventListener('pointerup', onUp);
@@ -350,11 +412,8 @@ export function DragProvider({ children }: { children: ReactNode }) {
 
   const actions = useMemo<DragActions>(
     () => ({
-      startTaskDrag: (e, task, onTap) => {
-        // Touch devices schedule from the task menu instead; keep native scrolling intact.
-        if (e.pointerType === 'touch') return;
-        begin(e, task, 'task', undefined, onTap);
-      },
+      // On touch, a quick swipe still scrolls the list; the drag starts only after a hold.
+      startTaskDrag: (e, task, hold) => begin(e, task, 'task', undefined, undefined, hold),
       startBlockDrag: (e, task, block, kind, onTap) => begin(e, task, kind, block, onTap),
       registerColumn: (id, column) => {
         columns.current.set(id, column);
