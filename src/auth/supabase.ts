@@ -7,7 +7,8 @@ import { createClient } from '@supabase/supabase-js';
  * everything saved in this browser.
  */
 const url = import.meta.env.VITE_SUPABASE_URL?.trim() ?? '';
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() ?? '';
+// Supabase now calls it the publishable key; either name works.
+const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY)?.trim() ?? '';
 
 export const cloudConfigured = url.length > 0 && anonKey.length > 0;
 
