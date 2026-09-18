@@ -115,7 +115,7 @@ export function ContextMenu({ label, items, point, onClose }: ContextMenuProps) 
   );
 }
 
-/** Opens a ContextMenu on right-click, or with the context-menu key / Shift+F10. */
+/** Opens a ContextMenu on right-click, the context-menu key / Shift+F10, or a touch-and-hold (`openAt`). */
 export function useContextMenu() {
   const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
   const onContextMenu = useCallback((e: MouseEvent) => {
@@ -129,8 +129,9 @@ export function useContextMenu() {
       setPoint({ x: e.clientX, y: e.clientY });
     }
   }, []);
+  const openAt = useCallback((at: { x: number; y: number }) => setPoint(at), []);
   const close = useCallback(() => setPoint(null), []);
-  return { point, onContextMenu, close };
+  return { point, onContextMenu, openAt, close };
 }
 
 interface MenuListProps {

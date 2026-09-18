@@ -175,7 +175,8 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
     <li
       className={`${styles.taskRow} ${done ? styles.taskDone : ''} ${dragging ? styles.taskDragging : ''}`}
       // The completion toggle, name field and menu stop propagation, so other presses can start a drag.
-      onPointerDown={(e) => !editing && startTaskDrag(e, task)}
+      // On touch, holding opens the right-click menu, and moving on from the hold drags, as on iPadOS.
+      onPointerDown={(e) => !editing && startTaskDrag(e, task, { open: contextMenu.openAt, close: contextMenu.close })}
       data-draggable={!editing || undefined}
       onContextMenu={editing ? undefined : contextMenu.onContextMenu}
     >
