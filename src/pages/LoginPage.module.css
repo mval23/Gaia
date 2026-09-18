@@ -2,7 +2,18 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
+  align-content: center;
+  gap: 20px;
   padding: 32px 16px;
+}
+
+.phrase {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--text-secondary);
+  text-align: center;
 }
 
 .card {
@@ -36,6 +47,12 @@
   font-family: var(--font-heading);
   font-size: 18px;
   color: var(--text-secondary);
+}
+
+/* Rounded like the sidebar's logo. */
+.brand img {
+  border-radius: 8px;
+  box-shadow: 0 1px 2px var(--scrim);
 }
 
 .title {

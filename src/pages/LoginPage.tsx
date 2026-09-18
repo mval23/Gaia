@@ -7,18 +7,22 @@ import styles from './LoginPage.module.css';
 type Mode = 'sign-in' | 'sign-up' | 'reset' | 'new-password';
 
 const HEADINGS: Record<Mode, { title: string; lead: string; submit: string }> = {
-  'sign-in': { title: 'Welcome back', lead: 'Sign in to open your planner.', submit: 'Sign in' },
-  'sign-up': { title: 'Make a planner', lead: 'Your own space, saved to your account.', submit: 'Create account' },
-  reset: { title: 'Forgot your password?', lead: "We'll email you a link to choose a new one.", submit: 'Send the link' },
+  'sign-in': { title: 'Welcome back', lead: 'Your planner is here, whenever you’re ready.', submit: 'Sign in' },
+  'sign-up': {
+    title: 'A place for your days',
+    lead: 'Your own planner, kept with your account. Nothing here keeps score.',
+    submit: 'Create account',
+  },
+  reset: { title: 'Forgot your password?', lead: 'That happens. We’ll email you a link to choose a new one.', submit: 'Send the link' },
   'new-password': { title: 'Choose a new password', lead: 'At least 8 characters.', submit: 'Save password' },
 };
 
 /** Supabase's messages, in Gaia's voice where it matters. */
 function explain(message: string): string {
-  if (/invalid login credentials/i.test(message)) return "That email and password don't match an account.";
-  if (/email not confirmed/i.test(message)) return 'Confirm your email first: the link is in your inbox.';
-  if (/already registered/i.test(message)) return 'There is already an account with this email. Try signing in.';
-  if (/rate limit/i.test(message)) return 'Too many tries for now. Please wait a few minutes.';
+  if (/invalid login credentials/i.test(message)) return 'That email and password don’t match an account.';
+  if (/email not confirmed/i.test(message)) return 'One more step first: open the link we emailed you.';
+  if (/already registered/i.test(message)) return 'There’s already an account with this email. You can sign in instead.';
+  if (/rate limit/i.test(message)) return 'Too many tries for now. Take a few minutes, then try again.';
   return message;
 }
 
@@ -57,11 +61,11 @@ export function LoginPage({ mode: initialMode = 'sign-in', onPasswordSet }: Logi
         const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: home } });
         if (error) throw error;
         // With email confirmation on, there's no session until the link is clicked.
-        if (!data.session) setNotice(`Almost there: we sent a link to ${email}. Open it to finish.`);
+        if (!data.session) setNotice(`One more step: open the link we sent to ${email}. There’s no rush.`);
       } else if (mode === 'reset') {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: home });
         if (error) throw error;
-        setNotice(`If ${email} has an account, a link is on its way.`);
+        setNotice(`If ${email} has an account, a link is on its way to it.`);
       } else {
         const { error } = await supabase.auth.updateUser({ password });
         if (error) throw error;
@@ -156,6 +160,7 @@ export function LoginPage({ mode: initialMode = 'sign-in', onPasswordSet }: Logi
           </div>
         </div>
       </div>
+      <p className={styles.phrase}>A quiet day is still a full day.</p>
     </main>
   );
 }
