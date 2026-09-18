@@ -61,6 +61,27 @@
   --glass-strong: color-mix(in srgb, var(--surface) 94%, transparent);
   --glass-blur: saturate(140%) blur(14px);
 
+  /* Category and group colours: each saved hex, tinted toward the painting and,
+     in dark, settled into the ground. See src/lib/swatch.ts. */
+  --swatch-keep: 100%;
+  --swatch-lift: 100%;
+  --swatch-lavender: color-mix(in oklab, color-mix(in oklab, #b3a7d6 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-powder-blue: color-mix(in oklab, color-mix(in oklab, #a9c3e0 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-sage: color-mix(in oklab, color-mix(in oklab, #a3c29d var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-pale-sage: color-mix(in oklab, color-mix(in oklab, #bdd3b0 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-lily-pink: color-mix(in oklab, color-mix(in oklab, #e6bccb var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-eucalyptus: color-mix(in oklab, color-mix(in oklab, #9fd0ba var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-sand: color-mix(in oklab, color-mix(in oklab, #d9cbbe var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-blue-grey: color-mix(in oklab, color-mix(in oklab, #b6c3d6 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-mist: color-mix(in oklab, color-mix(in oklab, #c8c6d0 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-peach: color-mix(in oklab, color-mix(in oklab, #e8c6ae var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-slate: color-mix(in oklab, color-mix(in oklab, #a7b6cc var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-heather: color-mix(in oklab, color-mix(in oklab, #cdb4c3 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-lichen: color-mix(in oklab, color-mix(in oklab, #c3c9be var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-linen: color-mix(in oklab, color-mix(in oklab, #c9bba9 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-seafoam: color-mix(in oklab, color-mix(in oklab, #b4c8c4 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+  --swatch-wisteria: color-mix(in oklab, color-mix(in oklab, #bdb3d2 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
+
   /* Shape */
   --radius-sm: 8px;
   --radius: 10px;
@@ -134,6 +155,9 @@
     --selected: #2b3342;
     --block-ink: #cbd3e0;
     --inverse-surface: #2a3140;
+
+    /* Swatches sink a little into the dark ground, so they glow less. */
+    --swatch-lift: 82%;
   }
 }
 
@@ -183,6 +207,9 @@
   --selected: #2b3342;
   --block-ink: #cbd3e0;
   --inverse-surface: #2a3140;
+
+  /* Swatches sink a little into the dark ground, so they glow less. */
+  --swatch-lift: 82%;
 }
 
 /* ---------- Rouen Cathedral ---------- */
@@ -198,6 +225,7 @@
   --avatar-quiet: #c9bda9;
   --chip-today-bg: rgba(211, 181, 138, 0.32);
   --chip-today-ink: #5d5140;
+  --swatch-keep: 78%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -241,6 +269,7 @@
   --avatar-quiet: #b3c2ae;
   --chip-today-bg: rgba(159, 195, 155, 0.32);
   --chip-today-ink: #3f5140;
+  --swatch-keep: 80%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -284,6 +313,7 @@
   --avatar-quiet: #b8b0c6;
   --chip-today-bg: rgba(200, 169, 196, 0.3);
   --chip-today-ink: #4e4560;
+  --swatch-keep: 80%;
 }
 
 @media (prefers-color-scheme: dark) {

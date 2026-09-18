@@ -133,8 +133,8 @@
   padding: 7px 10px;
   overflow: hidden;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--cat) 38%, #fbfaf7);
-  border: 1px solid color-mix(in srgb, var(--cat) 70%, #fbfaf7);
+  background: color-mix(in srgb, var(--cat) 38%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--cat) 70%, var(--surface));
   color: var(--text);
   cursor: grab;
   touch-action: none;
@@ -210,7 +210,7 @@
 }
 
 .blockDone {
-  background: color-mix(in srgb, var(--cat) 18%, #fbfaf7);
+  background: color-mix(in srgb, var(--cat) 18%, var(--surface));
 }
 
 .blockDone .blockTitle {
@@ -225,8 +225,8 @@
 .blockPreview {
   z-index: 7;
   pointer-events: none;
-  border: 1.5px dashed color-mix(in srgb, var(--cat) 100%, #2b3445 25%);
-  background: color-mix(in srgb, var(--cat) 48%, #fbfaf7);
+  border: 1.5px dashed color-mix(in srgb, var(--cat) 100%, var(--text) 25%);
+  background: color-mix(in srgb, var(--cat) 48%, var(--surface));
   box-shadow: 0 8px 24px var(--scrim);
   transition: top 0.12s var(--ease), height 0.12s var(--ease);
 }
@@ -256,7 +256,7 @@
   height: 3px;
   margin-left: -12px;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--cat) 100%, #2b3445 30%);
+  background: color-mix(in srgb, var(--cat) 100%, var(--text) 30%);
   opacity: 0;
   transition: opacity 0.15s var(--ease);
 }
@@ -322,4 +322,17 @@
 
 .blockSuggested:hover {
   background: color-mix(in srgb, var(--cat) 10%, transparent);
+}
+
+/* An Outlook meeting: the group's colour as an edge, not a fill, and never draggable. */
+.blockOutlook {
+  background: color-mix(in srgb, var(--cat) 14%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--cat) 55%, var(--border-strong));
+  border-left-width: 3px;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.blockOutlook .blockMeta {
+  color: var(--text-tertiary);
 }

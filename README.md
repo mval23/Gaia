@@ -3,17 +3,23 @@
 A calm daily planner. Tasks and time-blocking, with goals and habits layered on
 top in a way that is meant to support you rather than keep score.
 
-Gaia runs entirely in your browser. There is no account, nothing is uploaded,
-and your planner is saved on the device you use it on.
+Run on your own computer, Gaia works entirely in your browser: nothing is
+uploaded, and your planner is saved on the device you use it on. Put online
+(see [Accounts and Vercel](#accounts-and-vercel)), everyone signs in and gets
+their own planner, saved to their account. Either way, a group you link to an
+Outlook calendar sends its scheduled tasks there.
 
 ![Monet, Water Lilies](src/assets/monet/lilies-strip.webp)
 
 ## Run it
 
-**Easiest:** double-click **Gaia** on your desktop (or `Start Gaia.bat` in this
+**Easiest:** double-click **Gaia** on your desktop (or `Start Gaia.vbs` in this
 folder). It installs what it needs the first time, starts the app, and opens it
-in your browser. Keep the small terminal window open while you use Gaia; close
-it to stop.
+in your browser. Nothing else appears: Gaia runs out of sight, so double-click
+**Stop Gaia.bat** when you want it to stop.
+
+`Start Gaia.bat` does the same thing with a terminal window you can watch, which
+is the one to use if a start ever goes wrong.
 
 **From a terminal:**
 
@@ -119,12 +125,76 @@ A few conventions worth knowing before you change things:
 
 ## Your data
 
-It lives in `localStorage` under the key `gaia:v1`, on this device only.
-Clearing your browser data erases it. Settings ▸ Your data can export
-everything as JSON, restore the sample data, or delete the lot (with one undo).
+Without accounts it lives in `localStorage` under the key `gaia:v1`, on this
+device only, and clearing your browser data erases it. With accounts it lives
+in the `planners` table in Supabase, one row per person, with a copy in the
+browser (`gaia:v1:<user id>`) so Gaia still opens offline; edits made offline
+are sent once the connection is back. Settings ▸ Your data can export
+everything as JSON, import such a file, restore the sample data, or delete the
+lot (with one undo).
 
 Saves written by older versions still load: `migrateState` fills in anything
 that did not exist when they were written, and existing data always wins.
+
+## Accounts and Vercel
+
+Sign-in and cloud saving use [Supabase](https://supabase.com) (email and
+password). They switch on when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+are set; without them Gaia runs as before, with no sign-in.
+
+1. **Supabase:** create a project. In *SQL Editor*, run `supabase/schema.sql`.
+   From *Project Settings ▸ API*, copy the project URL and the `anon` public
+   key. Its row-level security is what keeps each planner private, so the key
+   is safe to ship in the app.
+2. **Vercel:** *Add New ▸ Project*, import this GitHub repo (Vercel reads
+   `vercel.json`). Under *Environment Variables* add the two values above, plus
+   `VITE_MS_CLIENT_ID` / `VITE_MS_TENANT_ID` if you use Outlook, then deploy.
+3. **Back in Supabase**, *Authentication ▸ URL Configuration*: set *Site URL*
+   to your Vercel address (e.g. `https://gaia-xyz.vercel.app`) and add it under
+   *Redirect URLs*, so confirmation and password-reset emails link back to it.
+4. **Outlook, if used:** add `https://<your vercel address>/auth-redirect.html`
+   as another *Single-page application* redirect URI in the Entra app.
+
+The first time someone signs in, if that browser already holds a planner from
+before accounts (`gaia:v1`), Gaia asks whether to use it for the account or
+start with the sample data. To bring over a planner from another address (such
+as `localhost` to Vercel): Settings ▸ Export your data there, then Settings ▸
+Import from a file on the site once you have signed in.
+
+Environment variable changes only take effect after a new deploy.
+`.env.example` lists them all.
+
+## Microsoft sign-in
+
+Settings ▸ Microsoft account signs in with a work or school account
+(`User.Read`, `Calendars.ReadWrite`). Then, in Manage ▸ Groups, the calendar
+button on a group links it to one of your Outlook calendars:
+
+- that calendar's meetings appear on the Plan timeline and in Calendar, in the
+  group's colour, read-only (all-day events are not shown);
+- the group's time blocks from today on are created there as events, and kept
+  up to date when they move, change, or are removed. Unlinking removes them.
+
+Changes made to those events in Outlook are not copied back. What Gaia has put
+in Outlook is tracked in `localStorage` under `gaia:outlook:<account>`.
+
+To turn it on, register an app once in the
+[Microsoft Entra admin center](https://entra.microsoft.com) (App registrations
+▸ New registration):
+
+1. **Supported account types:** accounts in this organizational directory only.
+2. **Redirect URI:** platform *Single-page application*,
+   `http://localhost:5173/auth-redirect.html`.
+3. Copy the *Application (client) ID* and *Directory (tenant) ID* into
+   `.env.local` in this folder, then restart Gaia:
+
+```
+VITE_MS_CLIENT_ID=<application id>
+VITE_MS_TENANT_ID=<directory id>
+```
+
+`.env.local` is git-ignored. If your organization blocks users from registering
+apps or consenting to them, an IT admin has to do step 1 or grant consent.
 
 ## The paintings
 

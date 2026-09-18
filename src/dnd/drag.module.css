@@ -44,7 +44,7 @@
   padding: 1px 8px;
   border-radius: var(--radius-pill);
   background: var(--navy);
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 12px;
 }
 
@@ -57,7 +57,7 @@
   flex-direction: column;
   padding: 6px 10px;
   border-radius: var(--radius);
-  background: var(--navy);
+  background: var(--inverse-surface);
   color: #fff;
   font-size: 13px;
   line-height: 1.3;

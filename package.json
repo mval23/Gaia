@@ -11,6 +11,8 @@
     "art": "node scripts/crop-monet.mjs && node scripts/brand-assets.mjs"
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.22.0",
+    "@supabase/supabase-js": "^2.116.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"

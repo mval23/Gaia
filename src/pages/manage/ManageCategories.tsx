@@ -2,7 +2,7 @@ import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import type { Category } from '../../types';
 import { uid, useFeedback, useGaia } from '../../store/GaiaProvider';
 import { categoriesInGroup, sortedGroups } from '../../store/selectors';
-import { CATEGORY_PALETTE } from '../../data/seed';
+import { CATEGORY_PALETTE, paint } from '../../lib/swatch';
 import { Icon } from '../../components/ui/Icon';
 import { Menu } from '../../components/ui/Menu';
 import { Select } from '../../components/ui/Select';
@@ -89,7 +89,7 @@ export function ManageCategories() {
             }}
           >
             <h2 id={`cat-group-${group.id}`} className={styles.sectionHeading}>
-              <span className={styles.groupDot} style={{ background: group.color }} aria-hidden="true" />
+              <span className={styles.groupDot} style={{ background: paint(group.color) }} aria-hidden="true" />
               <span className={styles.sectionName}>{group.name}</span>
               <span className={styles.sectionCount}>· {cats.length}</span>
             </h2>
@@ -161,12 +161,12 @@ function CategoryRow({ category, showIndicator, dragging, onGripDown, onKeyMove 
           label={`Color for ${category.name}`}
           align="start"
           triggerClassName={styles.swatchButton}
-          trigger={<span className={styles.swatch} style={{ background: category.color }} />}
+          trigger={<span className={styles.swatch} style={{ background: paint(category.color) }} />}
           items={[
             { kind: 'heading', label: 'Category color' },
             ...CATEGORY_PALETTE.map((c) => ({
               label: c.name,
-              swatch: c.value,
+              swatch: paint(c.value),
               checked: c.value === category.color,
               onSelect: () => dispatch({ type: 'category/update', id: category.id, patch: { color: c.value } }),
             })),

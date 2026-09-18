@@ -337,7 +337,7 @@
 }
 
 .completeDone:hover {
-  color: #fff;
+  color: var(--text-inverse);
   border-color: var(--navy);
   background: var(--navy);
 }
@@ -369,7 +369,7 @@
   max-width: calc(100vw - 32px);
   padding: 8px 8px 8px 16px;
   border-radius: var(--radius-md);
-  background: var(--navy);
+  background: var(--inverse-surface);
   color: #fff;
   font-size: 14px;
   box-shadow: var(--shadow-lg);

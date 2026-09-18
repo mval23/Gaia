@@ -1,13 +1,15 @@
 import type { KeyboardEvent, CSSProperties } from 'react';
 import type { Habit, Schedule, Task, TimeBlock as Block } from '../../types';
 import type { Placement } from '../../lib/layout';
+import type { OutlookEvent } from '../../integrations/outlook/events';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
-import { categoryById, groupOfTask } from '../../store/selectors';
+import { categoryById, groupById, groupOfTask } from '../../store/selectors';
 import { HOUR_PX, useDragActions } from '../../dnd/DragProvider';
 import { DAY_MIN, MIN_DURATION, SNAP_MIN, formatClock, formatDuration, formatRange } from '../../lib/time';
 import { useDayMoveItems } from '../../hooks/useDayMoveItems';
 import { CompleteToggle } from '../ui/CompleteToggle';
 import { ContextMenu, useContextMenu, type MenuEntry } from '../ui/Menu';
+import { paint } from '../../lib/swatch';
 import styles from './timeline.module.css';
 
 interface TimeBlockProps {
@@ -30,13 +32,13 @@ function blockStyle(schedule: Schedule, placement: Placement, color?: string): C
     height,
     left: `calc(${placement.lane * width}% + 4px)`,
     width: `calc(${width}% - 8px)`,
-    ['--cat' as string]: color ?? '#C8C6D0',
+    ['--cat' as string]: paint(color) ?? 'var(--swatch-mist)',
   };
 }
 
 export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }: TimeBlockProps) {
   const { state, dispatch } = useGaia();
-  const { announce } = useFeedback();
+  const { announce, notify } = useFeedback();
   const { startBlockDrag } = useDragActions();
   const schedule: Schedule = block;
   const sessionIndex = task.blocks.findIndex((b) => b.id === block.id);
@@ -55,17 +57,36 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
     announce(done ? `${task.title} marked not done` : `${task.title} completed`);
   };
 
-  const menuItems: MenuEntry[] = [
-    ...dayMoveItems,
-    { kind: 'separator' },
-    { label: 'Edit details', icon: 'pencil', onSelect: onOpen },
-    { label: done ? 'Mark not done' : 'Complete', icon: 'check', onSelect: toggle },
-  ];
-
   const update = (next: Schedule, message: string) => {
     dispatch({ type: 'block/update', taskId: task.id, blockId: block.id, schedule: next });
     announce(message);
   };
+
+  // A session shrunk to the smallest slot the grid holds: the errand that needs
+  // a place in the day, not a share of it. Undoable, since it drops the plan.
+  const makeQuick = () => {
+    const previous = state;
+    dispatch({
+      type: 'block/update',
+      taskId: task.id,
+      blockId: block.id,
+      schedule: { date: block.date, startMin: schedule.startMin, durationMin: MIN_DURATION },
+    });
+    notify(`“${task.title}” is now ${formatDuration(MIN_DURATION)}`, previous);
+  };
+
+  const menuItems: MenuEntry[] = [
+    ...dayMoveItems,
+    {
+      label: 'Quick task',
+      icon: 'clock',
+      disabled: schedule.durationMin === MIN_DURATION,
+      onSelect: makeQuick,
+    },
+    { kind: 'separator' },
+    { label: 'Edit details', icon: 'pencil', onSelect: onOpen },
+    { label: done ? 'Mark not done' : 'Complete', icon: 'check', onSelect: toggle },
+  ];
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const { startMin, durationMin } = schedule;
@@ -224,6 +245,43 @@ export function SuggestedBlock({
       <div className={styles.blockText}>
         <span className={styles.blockTitle}>{habit.title}</span>
         <span className={styles.blockMeta}>{logged ? 'logged' : formatClock(startMin, fmt)}</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A meeting from a linked Outlook calendar. It belongs to Outlook, so it can't
+ * be dragged or edited here; opening it goes to the event in Outlook.
+ */
+export function OutlookBlock({ event, placement }: { event: OutlookEvent; placement: Placement }) {
+  const { state } = useGaia();
+  const group = groupById(state, event.groupId);
+  const fmt = state.settings.timeFormat;
+  const range = formatRange(event.startMin, event.durationMin, fmt);
+  const open = () => {
+    if (event.webLink) window.open(event.webLink, '_blank', 'noopener');
+  };
+
+  return (
+    <div
+      className={`${styles.block} ${styles.blockOutlook} ${event.durationMin < 45 ? styles.blockCompact : ''}`}
+      style={blockStyle(event, placement, group?.color)}
+      role="button"
+      tabIndex={0}
+      aria-label={`${event.subject}, ${range}, Outlook event in ${group?.name ?? 'a linked calendar'}`}
+      title={`${event.subject} · ${range} · Outlook`}
+      onClick={open}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          open();
+        }
+      }}
+    >
+      <div className={styles.blockText}>
+        <span className={styles.blockTitle}>{event.subject}</span>
+        <span className={styles.blockMeta}>{range} · Outlook</span>
       </div>
     </div>
   );

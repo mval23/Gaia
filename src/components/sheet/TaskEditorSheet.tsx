@@ -12,6 +12,7 @@ import { DAY_MIN, formatClock, formatDuration, formatRange, nowMinutes } from '.
 import { Icon, type IconName } from '../ui/Icon';
 import { Select } from '../ui/Select';
 import { SegmentedControl } from '../ui/SegmentedControl';
+import { paint } from '../../lib/swatch';
 import ui from '../ui/ui.module.css';
 import styles from './TaskEditorSheet.module.css';
 
@@ -106,7 +107,7 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
       >
         <div className={styles.head}>
           <p className={styles.crumb}>
-            <span className={styles.crumbDot} style={{ background: category?.color }} aria-hidden="true" />
+            <span className={styles.crumbDot} style={{ background: paint(category?.color) }} aria-hidden="true" />
             {group?.name} · {category?.name}
           </p>
           <button type="button" className={ui.iconButton} onClick={onClose} aria-label="Close editor">

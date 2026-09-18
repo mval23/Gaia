@@ -117,7 +117,7 @@
 }
 
 .cell:hover {
-  background: #f2efea;
+  background: color-mix(in srgb, var(--text) 4%, var(--panel));
 }
 
 .cell:focus-visible {
@@ -144,7 +144,7 @@
   margin: -4px 0 0 -6px;
   border-radius: 13px;
   background: var(--navy);
-  color: #fff;
+  color: var(--text-inverse);
   font-weight: 600;
 }
 
@@ -239,7 +239,7 @@
   height: 30px;
   border-radius: 15px;
   background: var(--navy);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 @media (max-width: 1279px) {

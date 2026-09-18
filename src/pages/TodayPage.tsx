@@ -22,6 +22,7 @@ import { LaterSection } from '../components/plan/LaterSection';
 import { CalendarLinks } from '../components/plan/CalendarLinks';
 import { WeeklyReflection } from '../components/plan/WeeklyReflection';
 import { TimeGrid, type Suggestion } from '../components/timeline/TimeGrid';
+import { useOutlookEvents } from '../integrations/outlook/OutlookProvider';
 import { SplitHandle } from '../components/ui/SplitHandle';
 import { useStoredNumber } from '../hooks/useStoredNumber';
 import ui from '../components/ui/ui.module.css';
@@ -77,6 +78,7 @@ export function TodayPage() {
   };
   const full = windowMin > 0 && summary.plannedMin > windowMin * FULL_DAY_RATIO;
   const blocksByDate = useMemo(() => new Map([[date, blocks]]), [date, blocks]);
+  const eventsByDate = useOutlookEvents([date], groupFilter);
   const moveDay = useMoveBlockDay();
 
   const { today: todayTasks, later: laterTasks } = useMemo(
@@ -297,6 +299,7 @@ export function TodayPage() {
               dates={[date]}
               blocksByDate={blocksByDate}
               suggestionsByDate={suggestionsByDate}
+              eventsByDate={eventsByDate}
               onOpenTask={openTask}
               onOpenHabit={openHabit}
               onMoveDay={moveDay}

@@ -24,7 +24,7 @@
   padding: 8px 14px;
   border-radius: var(--radius);
   background: var(--navy);
-  color: #fff;
+  color: var(--text-inverse);
   transform: translateY(-150%);
   transition: transform 0.15s var(--ease);
 }

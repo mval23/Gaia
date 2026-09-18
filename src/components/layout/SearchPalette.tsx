@@ -7,6 +7,7 @@ import { useGoalEditor, useHabitEditor } from '../../hooks/useSheetParam';
 import { rhythmLabel } from '../../lib/rhythm';
 import { Icon } from '../ui/Icon';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { paint } from '../../lib/swatch';
 import styles from './SearchPalette.module.css';
 
 export function SearchPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -143,7 +144,7 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
               onPointerMove={() => setActive(i)}
               onClick={() => choose(result)}
             >
-              <span className={styles.dot} style={{ background: result.color }} />
+              <span className={styles.dot} style={{ background: paint(result.color) }} />
               <span className={`${styles.title} ${result.struck ? styles.done : ''}`}>{result.title}</span>
               <span className={styles.meta}>{result.meta}</span>
             </li>

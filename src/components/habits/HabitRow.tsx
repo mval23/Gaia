@@ -5,6 +5,7 @@ import { categoryById, checkInKey, goalById, isQuiet, weekCount } from '../../st
 import { rhythmLabel, weeklyTarget } from '../../lib/rhythm';
 import { formatClock } from '../../lib/time';
 import { Menu } from '../ui/Menu';
+import { paint } from '../../lib/swatch';
 import { HabitToggle } from './HabitToggle';
 import styles from './habits.module.css';
 
@@ -65,7 +66,7 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
     <li
       className={styles.card}
       data-kind={value ?? undefined}
-      style={{ ['--cat' as string]: category?.color ?? 'var(--border-strong)' }}
+      style={{ ['--cat' as string]: paint(category?.color) ?? 'var(--border-strong)' }}
     >
       <HabitToggle
         title={habit.title}

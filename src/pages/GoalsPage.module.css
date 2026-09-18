@@ -1,6 +1,5 @@
 .page {
-  max-width: 1180px;
-  padding: 28px var(--gutter) 64px;
+  padding: 28px 0 64px;
   display: grid;
   gap: 16px;
   align-content: start;

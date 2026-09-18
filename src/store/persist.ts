@@ -105,22 +105,29 @@ export function migrateState(parsed: GaiaState, seed: GaiaState = createSeed()):
   };
 }
 
-export function loadState(): GaiaState {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (isState(parsed)) return migrateState(parsed);
-    }
-  } catch {
-    // Storage unavailable or corrupt: fall back to sample data.
-  }
-  return createSeed();
+/** A saved planner brought up to the current shape, or null if it isn't one. */
+export function parseState(value: unknown): GaiaState | null {
+  return isState(value) ? migrateState(value) : null;
 }
 
-export function saveState(state: GaiaState): void {
+/** The planner saved under `key` in this browser, or null if there isn't a usable one. */
+export function readState(key = KEY): GaiaState | null {
   try {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    const raw = localStorage.getItem(key);
+    if (raw) return parseState(JSON.parse(raw));
+  } catch {
+    // Storage unavailable or corrupt.
+  }
+  return null;
+}
+
+export function loadState(): GaiaState {
+  return readState() ?? createSeed();
+}
+
+export function saveState(state: GaiaState, key = KEY): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(state));
   } catch {
     // Ignore quota / privacy-mode failures; the app keeps working in memory.
   }

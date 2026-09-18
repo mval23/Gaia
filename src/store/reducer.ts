@@ -38,7 +38,7 @@ export type Action =
   | { type: 'category/move'; id: string; groupId: string; index: number }
   | { type: 'category/delete'; id: string }
   | { type: 'group/add'; id: string; name: string; color: string }
-  | { type: 'group/update'; id: string; patch: Partial<Pick<Group, 'name' | 'color'>> }
+  | { type: 'group/update'; id: string; patch: Partial<Pick<Group, 'name' | 'color' | 'calendar'>> }
   | { type: 'group/move'; id: string; index: number }
   | { type: 'group/delete'; id: string; moveCategoriesTo: string }
   | { type: 'goal/add'; id: string; title: string; kind: GoalKind; categoryId?: string }

@@ -1,19 +1,6 @@
 import type { Category, CheckIn, CheckInKind, GaiaState, Goal, Group, Habit, Settings, Task } from '../types';
 import { addDays, todayISO } from '../lib/dates';
 
-export const CATEGORY_PALETTE = [
-  { name: 'Dusty lavender', value: '#B3A7D6' },
-  { name: 'Powder blue', value: '#A9C3E0' },
-  { name: 'Muted sage', value: '#A3C29D' },
-  { name: 'Pale sage', value: '#BDD3B0' },
-  { name: 'Water-lily pink', value: '#E6BCCB' },
-  { name: 'Eucalyptus', value: '#9FD0BA' },
-  { name: 'Sand', value: '#D9CBBE' },
-  { name: 'Blue-grey', value: '#B6C3D6' },
-  { name: 'Mist', value: '#C8C6D0' },
-  { name: 'Peach', value: '#E8C6AE' },
-];
-
 const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   palette: 'lilies',

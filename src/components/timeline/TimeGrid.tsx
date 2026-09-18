@@ -7,7 +7,8 @@ import { HOUR_PX, useDragActions, useDragSession } from '../../dnd/DragProvider'
 import { layoutLanes } from '../../lib/layout';
 import { formatClock, nowMinutes } from '../../lib/time';
 import { todayISO } from '../../lib/dates';
-import { TimeBlock, PreviewBlock, SuggestedBlock } from './TimeBlock';
+import type { OutlookEvent } from '../../integrations/outlook/events';
+import { TimeBlock, PreviewBlock, SuggestedBlock, OutlookBlock } from './TimeBlock';
 import styles from './timeline.module.css';
 
 /** A habit's preferred time, drawn as a suggestion rather than a commitment. */
@@ -21,6 +22,8 @@ interface TimeGridProps {
   dates: string[];
   blocksByDate: Map<string, ScheduledBlock[]>;
   suggestionsByDate?: Map<string, Suggestion[]>;
+  /** Read-only events from linked Outlook calendars. */
+  eventsByDate?: Map<string, OutlookEvent[]>;
   onOpenTask: (id: string) => void;
   onOpenHabit?: (id: string) => void;
   onMoveDay?: (taskId: string, blockId: string, delta: number) => void;
@@ -39,11 +42,13 @@ function useNow() {
 }
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
+const NO_EVENTS: OutlookEvent[] = [];
 
 export function TimeGrid({
   dates,
   blocksByDate,
   suggestionsByDate,
+  eventsByDate,
   onOpenTask,
   onOpenHabit,
   onMoveDay,
@@ -121,6 +126,7 @@ export function TimeGrid({
                 date={date}
                 items={blocksByDate.get(date) ?? []}
                 suggestions={suggestionsByDate?.get(date) ?? []}
+                events={eventsByDate?.get(date) ?? NO_EVENTS}
                 onOpenTask={onOpenTask}
                 onOpenHabit={onOpenHabit}
                 onMoveDay={onMoveDay}
@@ -138,13 +144,14 @@ interface DayColumnProps {
   date: string;
   items: ScheduledBlock[];
   suggestions: Suggestion[];
+  events: OutlookEvent[];
   onOpenTask: (id: string) => void;
   onOpenHabit?: (id: string) => void;
   onMoveDay?: (taskId: string, blockId: string, delta: number) => void;
   nowMin: number | null;
 }
 
-function DayColumn({ date, items, suggestions, onOpenTask, onOpenHabit, onMoveDay, nowMin }: DayColumnProps) {
+function DayColumn({ date, items, suggestions, events, onOpenTask, onOpenHabit, onMoveDay, nowMin }: DayColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
   const { registerColumn } = useDragActions();
@@ -161,10 +168,11 @@ function DayColumn({ date, items, suggestions, onOpenTask, onOpenHabit, onMoveDa
     () =>
       layoutLanes([
         ...items.map(({ block }) => ({ id: block.id, startMin: block.startMin, durationMin: block.durationMin })),
+        ...events.map((e) => ({ id: `ev-${e.key}`, startMin: e.startMin, durationMin: e.durationMin })),
         // Suggestions share the lane maths so they never sit on top of real time.
         ...suggestions.map((s) => ({ id: `sug-${s.habit.id}`, startMin: s.startMin, durationMin: s.durationMin })),
       ]),
-    [items, suggestions],
+    [items, suggestions, events],
   );
 
   const preview = session?.preview?.date === date ? session.preview : null;
@@ -185,6 +193,13 @@ function DayColumn({ date, items, suggestions, onOpenTask, onOpenHabit, onMoveDa
           dimmed={session?.blockId === block.id}
           onOpen={() => onOpenTask(task.id)}
           onMoveDay={onMoveDay}
+        />
+      ))}
+      {events.map((event) => (
+        <OutlookBlock
+          key={event.key}
+          event={event}
+          placement={placements.get(`ev-${event.key}`) ?? { lane: 0, lanes: 1 }}
         />
       ))}
       {suggestions.map(({ habit, startMin, durationMin }) => {

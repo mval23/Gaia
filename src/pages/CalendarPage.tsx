@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef } from 'react';
 import { useGaia } from '../store/GaiaProvider';
-import { blocksByDate, categoryById, type ScheduledBlock } from '../store/selectors';
+import { blocksByDate, categoryById, groupById, type ScheduledBlock } from '../store/selectors';
 import { useMoveBlockDay } from '../hooks/useMoveBlockDay';
 import { useDateParam, useParam, useSetParams } from '../hooks/useDateParam';
 import { useTaskEditor } from '../hooks/useTaskEditor';
@@ -21,6 +21,9 @@ import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { Icon } from '../components/ui/Icon';
 import { MonetAccent } from '../components/art/MonetAccent';
 import { TimeGrid } from '../components/timeline/TimeGrid';
+import { paint } from '../lib/swatch';
+import { useOutlookEvents } from '../integrations/outlook/OutlookProvider';
+import type { OutlookEvent } from '../integrations/outlook/events';
 import ui from '../components/ui/ui.module.css';
 import styles from './CalendarPage.module.css';
 
@@ -58,6 +61,8 @@ export function CalendarPage() {
 
   const dates = view === 'week' ? weekDates(date, state.settings.weekStart) : [date];
   const byDate = useMemo(() => blocksByDate(state), [state]);
+  const visibleDates = view === 'month' ? monthGrid(date, state.settings.weekStart).map((c) => c.date) : dates;
+  const eventsByDate = useOutlookEvents(visibleDates);
   const moveDay = useMoveBlockDay();
 
   const openDay = (d: string) => setParams({ date: d === today ? null : d, view: 'day' });
@@ -106,6 +111,7 @@ export function CalendarPage() {
           date={date}
           today={today}
           blocksByDate={byDate}
+          eventsByDate={eventsByDate}
           onPick={openDay}
         />
       ) : (
@@ -114,6 +120,7 @@ export function CalendarPage() {
             label={view === 'week' ? `Week of ${formatLongDate(dates[0])}` : `Timeline for ${formatLongDate(date)}`}
             dates={dates}
             blocksByDate={byDate}
+            eventsByDate={eventsByDate}
             onOpenTask={openTask}
             onMoveDay={moveDay}
             header={
@@ -144,12 +151,13 @@ interface MonthGridProps {
   date: string;
   today: string;
   blocksByDate: Map<string, ScheduledBlock[]>;
+  eventsByDate: Map<string, OutlookEvent[]>;
   onPick: (date: string) => void;
 }
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-function MonthGrid({ date, today, blocksByDate, onPick }: MonthGridProps) {
+function MonthGrid({ date, today, blocksByDate, eventsByDate, onPick }: MonthGridProps) {
   const { state } = useGaia();
   const weekStart = state.settings.weekStart;
   const cells = monthGrid(date, weekStart);
@@ -163,7 +171,23 @@ function MonthGrid({ date, today, blocksByDate, onPick }: MonthGridProps) {
       </div>
       <div className={styles.month} style={{ gridTemplateRows: `repeat(${cells.length / 7}, minmax(0, 1fr))` }}>
         {cells.map(({ date: d, inMonth }) => {
-          const items = blocksByDate.get(d) ?? [];
+          // Tasks and Outlook events share one list, in time order, each with its colour.
+          const items = [
+            ...(blocksByDate.get(d) ?? []).map(({ task: t, block }) => ({
+              key: block.id,
+              startMin: block.startMin,
+              title: t.title,
+              done: t.status === 'done',
+              color: categoryById(state, t.categoryId)?.color,
+            })),
+            ...(eventsByDate.get(d) ?? []).map((e) => ({
+              key: e.key,
+              startMin: e.startMin,
+              title: e.subject,
+              done: false,
+              color: groupById(state, e.groupId)?.color,
+            })),
+          ].sort((a, b) => a.startMin - b.startMin);
           const shown = items.slice(0, 4);
           return (
             <button
@@ -178,16 +202,16 @@ function MonthGrid({ date, today, blocksByDate, onPick }: MonthGridProps) {
               {items.length > 0 && (
                 <>
                   <span className={styles.dots} aria-hidden="true">
-                    {shown.map(({ task: t, block }) => (
-                      <span key={block.id} className={styles.dotItem} style={{ background: categoryById(state, t.categoryId)?.color }} />
+                    {shown.map((item) => (
+                      <span key={item.key} className={styles.dotItem} style={{ background: paint(item.color) }} />
                     ))}
                     {items.length > shown.length && <span className={styles.more}>+{items.length - shown.length}</span>}
                   </span>
                   <span className={styles.cellTasks} aria-hidden="true">
-                    {items.slice(0, 2).map(({ task: t, block }) => (
-                      <span key={block.id} className={`${styles.cellTask} ${t.status === 'done' ? styles.cellTaskDone : ''}`}>
-                        <span className={styles.dotItem} style={{ background: categoryById(state, t.categoryId)?.color }} />
-                        {t.title}
+                    {items.slice(0, 2).map((item) => (
+                      <span key={item.key} className={`${styles.cellTask} ${item.done ? styles.cellTaskDone : ''}`}>
+                        <span className={styles.dotItem} style={{ background: paint(item.color) }} />
+                        {item.title}
                       </span>
                     ))}
                     {items.length > 2 && <span className={styles.more}>+{items.length - 2} more</span>}

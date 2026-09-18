@@ -33,8 +33,16 @@ export function uid(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export function GaiaProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, undefined, loadState);
+interface GaiaProviderProps {
+  children: ReactNode;
+  /** The planner to start from. Defaults to the one saved in this browser. */
+  initial?: GaiaState;
+  /** Where changes are kept. Defaults to this browser's storage. */
+  persist?: (state: GaiaState) => void;
+}
+
+export function GaiaProvider({ children, initial, persist = saveState }: GaiaProviderProps) {
+  const [state, dispatch] = useReducer(reducer, initial, (start) => start ?? loadState());
   const [toast, setToast] = useState<{ id: number; message: string; undo?: GaiaState } | null>(null);
   const [liveMessage, setLiveMessage] = useState('');
   const toastSeq = useRef(0);
@@ -48,9 +56,9 @@ export function GaiaProvider({ children }: { children: ReactNode }) {
     root.setAttribute('data-palette', palette ?? 'lilies');
   }, [state.settings.theme, state.settings.palette]);
   useEffect(() => {
-    const handle = window.setTimeout(() => saveState(state), 150);
+    const handle = window.setTimeout(() => persist(state), 150);
     return () => window.clearTimeout(handle);
-  }, [state]);
+  }, [state, persist]);
 
   const notify = useCallback((message: string, undo?: GaiaState) => {
     toastSeq.current += 1;

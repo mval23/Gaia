@@ -19,6 +19,7 @@ import { HabitsColumn } from '../components/habits/HabitsColumn';
 import { SplitHandle } from '../components/ui/SplitHandle';
 import { useStoredNumber } from '../hooks/useStoredNumber';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { paint } from '../lib/swatch';
 import ui from '../components/ui/ui.module.css';
 import styles from './GoalsPage.module.css';
 
@@ -213,7 +214,7 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
       className={styles.card}
       data-status={goal.status}
       // The top edge carries the colour, so the card body stays quiet.
-      style={{ ['--cat' as string]: category?.color ?? 'var(--border-strong)' }}
+      style={{ ['--cat' as string]: paint(category?.color) ?? 'var(--border-strong)' }}
     >
       <div className={styles.cardHead}>
         <div className={styles.cardTitleBlock}>

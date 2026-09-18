@@ -1,13 +1,15 @@
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { Group } from '../../types';
 import { uid, useFeedback, useGaia } from '../../store/GaiaProvider';
 import { categoriesInGroup, sortedGroups } from '../../store/selectors';
 import { useCollapsed } from '../../hooks/useCollapsed';
 import { Icon } from '../../components/ui/Icon';
 import { Menu, type MenuEntry } from '../../components/ui/Menu';
+import { GROUP_PALETTE, paint } from '../../lib/swatch';
+import { useOutlook } from '../../integrations/outlook/OutlookProvider';
 import ui from '../../components/ui/ui.module.css';
 import styles from './manage.module.css';
-
-const GROUP_COLORS = ['#A7B6CC', '#CDB4C3', '#C3C9BE', '#C9BBA9', '#B4C8C4', '#BDB3D2'];
 
 export function ManageGroups() {
   const { state, dispatch } = useGaia();
@@ -58,14 +60,14 @@ export function ManageGroups() {
                   label={`Color for ${group.name}`}
                   align="start"
                   triggerClassName={styles.groupAvatarButton}
-                  trigger={<span className={styles.groupAvatar} style={{ background: group.color }} />}
+                  trigger={<span className={styles.groupAvatar} style={{ background: paint(group.color) }} />}
                   items={[
                     { kind: 'heading', label: 'Group color' },
-                    ...GROUP_COLORS.map((c, ci) => ({
-                      label: `Tone ${ci + 1}`,
-                      swatch: c,
-                      checked: c === group.color,
-                      onSelect: () => dispatch({ type: 'group/update', id: group.id, patch: { color: c } }),
+                    ...GROUP_PALETTE.map((c) => ({
+                      label: c.name,
+                      swatch: paint(c.value),
+                      checked: c.value === group.color,
+                      onSelect: () => dispatch({ type: 'group/update', id: group.id, patch: { color: c.value } }),
                     })),
                   ]}
                 />
@@ -89,8 +91,10 @@ export function ManageGroups() {
                 />
                 <span className={styles.rowMeta}>
                   {cats.length} {cats.length === 1 ? 'category' : 'categories'} · {active} active
+                  {group.calendar && ` · Outlook: ${group.calendar.name}`}
                 </span>
                 <div className={styles.groupActions}>
+                  <CalendarMenu group={group} />
                   <button
                     type="button"
                     className={`${ui.iconButton} ${ui.iconButtonSm}`}
@@ -125,7 +129,7 @@ export function ManageGroups() {
                   {cats.length === 0 && <li className={styles.chipEmpty}>No categories yet</li>}
                   {cats.map((c) => (
                     <li key={c.id} className={styles.chip}>
-                      <span className={styles.dot} style={{ background: c.color }} aria-hidden="true" />
+                      <span className={styles.dot} style={{ background: paint(c.color) }} aria-hidden="true" />
                       {c.name}
                     </li>
                   ))}
@@ -153,7 +157,7 @@ export function ManageGroups() {
             onBlur={(e) => {
               const name = e.currentTarget.value.trim();
               if (name) {
-                dispatch({ type: 'group/add', id: uid('g'), name, color: GROUP_COLORS[groups.length % GROUP_COLORS.length] });
+                dispatch({ type: 'group/add', id: uid('g'), name, color: GROUP_PALETTE[groups.length % GROUP_PALETTE.length].value });
                 announce(`Group ${name} added`);
               }
               setAdding(false);
@@ -174,5 +178,67 @@ export function ManageGroups() {
         </button>
       )}
     </section>
+  );
+}
+
+/** Links a group to one Outlook calendar, or unlinks it. */
+function CalendarMenu({ group }: { group: Group }) {
+  const { state, dispatch } = useGaia();
+  const { notify } = useFeedback();
+  const { access, calendars, allowAccess } = useOutlook();
+  const navigate = useNavigate();
+
+  const link = (calendar: Group['calendar']) => {
+    const previous = state;
+    dispatch({ type: 'group/update', id: group.id, patch: { calendar } });
+    notify(
+      calendar
+        ? `${group.name} is linked to ${calendar.name}. Its events show here, and its time blocks from today on go there.`
+        : `${group.name} is unlinked. The events Gaia added to ${group.calendar?.name ?? 'Outlook'} will be removed.`,
+      previous,
+    );
+  };
+
+  let items: MenuEntry[];
+  if (access === 'ready') {
+    const editable = (calendars ?? []).filter((c) => c.canEdit);
+    items = [
+      { kind: 'heading', label: 'Outlook calendar' },
+      ...(calendars === null
+        ? [{ label: 'Loading calendars…', disabled: true, onSelect: () => {} }]
+        : editable.map<MenuEntry>((c) => ({
+            label: c.name,
+            icon: 'calendar',
+            checked: group.calendar?.id === c.id,
+            onSelect: () => group.calendar?.id !== c.id && link({ id: c.id, name: c.name }),
+          }))),
+      { kind: 'separator' },
+      { label: 'Not linked', checked: !group.calendar, onSelect: () => group.calendar && link(undefined) },
+    ];
+  } else if (access === 'needs-consent') {
+    items = [
+      { kind: 'heading', label: 'Outlook calendar' },
+      {
+        label: 'Allow calendar access',
+        icon: 'calendar',
+        onSelect: () => {
+          allowAccess().catch(() => notify('Calendar access was not granted.'));
+        },
+      },
+    ];
+  } else {
+    items = [
+      { kind: 'heading', label: 'Outlook calendar' },
+      { label: 'Sign in to Microsoft', icon: 'settings', onSelect: () => navigate('/settings') },
+    ];
+  }
+
+  return (
+    <Menu
+      label={group.calendar ? `${group.name}: linked to ${group.calendar.name}` : `Link ${group.name} to an Outlook calendar`}
+      icon="calendar"
+      items={items}
+      triggerClassName={group.calendar ? styles.linked : undefined}
+    />
   );
 }

@@ -15,6 +15,7 @@ import { uid, useFeedback, useGaia } from '../store/GaiaProvider';
 import { categoryById } from '../store/selectors';
 import { DAY_MIN, MIN_DURATION, SNAP_MIN, clamp, formatDuration, formatRange, snap } from '../lib/time';
 import { formatShortDate } from '../lib/dates';
+import { paint as paintSwatch } from '../lib/swatch';
 import styles from './drag.module.css';
 
 export const HOUR_PX = 64;
@@ -363,7 +364,7 @@ export function DragProvider({ children }: { children: ReactNode }) {
   );
 
   const draggedTask = session ? state.tasks.find((t) => t.id === session.taskId) : undefined;
-  const color = draggedTask ? categoryById(state, draggedTask.categoryId)?.color : undefined;
+  const color = draggedTask ? paintSwatch(categoryById(state, draggedTask.categoryId)?.color) : undefined;
   const fmt = state.settings.timeFormat;
   const showGhost = session && (session.kind === 'task' || session.kind === 'move') && !session.preview;
 

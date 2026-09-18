@@ -19,6 +19,7 @@ import { MANY_NEW_HABITS, MANY_NEW_HABITS_NOTE } from '../../lib/sensitive';
 import { DotHistory } from './DotHistory';
 import { Icon } from '../ui/Icon';
 import { MonetAccent } from '../art/MonetAccent';
+import { paint } from '../../lib/swatch';
 import ui from '../ui/ui.module.css';
 import styles from '../../pages/GoalsPage.module.css';
 
@@ -81,7 +82,7 @@ export function HabitsColumn() {
                 key={habit.id}
                 className={styles.habitRow}
                 data-muted={resting || undefined}
-                style={{ ['--cat' as string]: cat?.color ?? 'var(--border-strong)' }}
+                style={{ ['--cat' as string]: paint(cat?.color) ?? 'var(--border-strong)' }}
               >
                 <div className={styles.habitHead}>
                   <span className={styles.habitDot} aria-hidden="true" />

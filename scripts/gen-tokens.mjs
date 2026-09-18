@@ -24,6 +24,41 @@ export const palettes = {
   },
 };
 
+// Category and group colours. Saved data keeps the hex a colour was picked as;
+// src/lib/swatch.ts paints each one through its token here, so it follows the
+// palette and the theme. Keep the two lists in step (a test checks).
+export const swatches = {
+  // Categories
+  lavender: '#b3a7d6',
+  'powder-blue': '#a9c3e0',
+  sage: '#a3c29d',
+  'pale-sage': '#bdd3b0',
+  'lily-pink': '#e6bccb',
+  eucalyptus: '#9fd0ba',
+  sand: '#d9cbbe',
+  'blue-grey': '#b6c3d6',
+  mist: '#c8c6d0',
+  peach: '#e8c6ae',
+  // Groups
+  slate: '#a7b6cc',
+  heather: '#cdb4c3',
+  lichen: '#c3c9be',
+  linen: '#c9bba9',
+  seafoam: '#b4c8c4',
+  wisteria: '#bdb3d2',
+};
+
+// How much of each swatch's own hue survives; the rest is the painting's --avatar.
+// Water Lilies is where the swatches were picked, so it keeps them as they are.
+const swatchKeep = { lilies: '100%', rouen: '78%', giverny: '80%', waterloo: '80%' };
+
+const swatchTokens = Object.entries(swatches)
+  .map(
+    ([name, hex]) =>
+      `  --swatch-${name}: color-mix(in oklab, color-mix(in oklab, ${hex} var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));`,
+  )
+  .join('\n');
+
 const shared = `
   /* Text */
   --text: #2b3445;
@@ -62,7 +97,13 @@ const shared = `
      follows both the theme and the palette without being restated. */
   --glass: color-mix(in srgb, var(--surface) 86%, transparent);
   --glass-strong: color-mix(in srgb, var(--surface) 94%, transparent);
-  --glass-blur: saturate(140%) blur(14px);`;
+  --glass-blur: saturate(140%) blur(14px);
+
+  /* Category and group colours: each saved hex, tinted toward the painting and,
+     in dark, settled into the ground. See src/lib/swatch.ts. */
+  --swatch-keep: ${swatchKeep.lilies};
+  --swatch-lift: 100%;
+${swatchTokens}`;
 
 const sharedDark = `
   /* Text */
@@ -96,7 +137,10 @@ const sharedDark = `
   --focus: #e6e9ef;
   --selected: #2b3342;
   --block-ink: #cbd3e0;
-  --inverse-surface: #2a3140;`;
+  --inverse-surface: #2a3140;
+
+  /* Swatches sink a little into the dark ground, so they glow less. */
+  --swatch-lift: 82%;`;
 
 const shape = `
   /* Shape */
@@ -173,6 +217,7 @@ for (const [name, p] of Object.entries(palettes)) {
 
 :root[data-palette='${name}'] {
 ${vars(p.light, '  ')}
+  --swatch-keep: ${swatchKeep[name]};
 }
 
 @media (prefers-color-scheme: dark) {

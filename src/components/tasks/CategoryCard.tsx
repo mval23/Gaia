@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import type { Category, Group, Task } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { useCollapsed } from '../../hooks/useCollapsed';
-import { CATEGORY_PALETTE } from '../../data/seed';
+import { CATEGORY_PALETTE, paint } from '../../lib/swatch';
 import { Icon } from '../ui/Icon';
 import { Menu, type MenuEntry } from '../ui/Menu';
 import { TaskRow } from './TaskRow';
@@ -63,7 +63,7 @@ export function CategoryCard({ category, group, tasks, date, onScheduleNext }: C
           { kind: 'heading', label: 'Category color' },
           ...CATEGORY_PALETTE.map<MenuEntry>((c) => ({
             label: c.name,
-            swatch: c.value,
+            swatch: paint(c.value),
             checked: c.value === category.color,
             onSelect: () => dispatch({ type: 'category/update', id: category.id, patch: { color: c.value } }),
           })),
@@ -75,7 +75,7 @@ export function CategoryCard({ category, group, tasks, date, onScheduleNext }: C
         {renaming ? (
           <div className={styles.cardToggle}>
             <Icon name="chevronDown" size={16} className={styles.chevron} />
-            <span className={styles.dot} style={{ background: category.color }} aria-hidden="true" />
+            <span className={styles.dot} style={{ background: paint(category.color) }} aria-hidden="true" />
             <input
               ref={nameRef}
               className={styles.renameInput}
@@ -106,7 +106,7 @@ export function CategoryCard({ category, group, tasks, date, onScheduleNext }: C
             onClick={() => toggle(key)}
           >
             <Icon name="chevronDown" size={16} className={`${styles.chevron} ${collapsed ? styles.chevronClosed : ''}`} />
-            <span className={styles.dot} style={{ background: category.color }} aria-hidden="true" />
+            <span className={styles.dot} style={{ background: paint(category.color) }} aria-hidden="true" />
             <span className={styles.cardName}>{category.name}</span>
             <span className={styles.count} aria-label={`${active} active`}>
               {active}

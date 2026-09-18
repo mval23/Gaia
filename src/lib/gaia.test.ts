@@ -6,6 +6,8 @@ import { DEFAULT_RHYTHM, isOnRhythm, normalizeRhythm, rhythmLabel, weeklyTarget 
 import { createEmpty } from '../data/seed';
 import { mentionsBodyOrFood } from './sensitive';
 import { isState, migrateState } from '../store/persist';
+import tokens from '../styles/tokens.css?raw';
+import { CATEGORY_PALETTE, GROUP_PALETTE, paint } from './swatch';
 import type { CheckIn, GaiaState, Rhythm } from '../types';
 import { createSeed } from '../data/seed';
 import { reducer } from '../store/reducer';
@@ -612,5 +614,24 @@ describe('week start', () => {
     expect(weekCount(mondayStart, 'h-week', '2026-09-13')).toBe(1);
     // The lifetime total never depends on where the week begins.
     expect(totalCount(mondayStart, 'h-week')).toBe(1);
+  });
+});
+
+describe('swatches', () => {
+  it('has a generated token, with the same hex, for every colour Gaia offers', () => {
+    for (const s of [...CATEGORY_PALETTE, ...GROUP_PALETTE]) {
+      expect(tokens).toContain(`--swatch-${s.token}: color-mix(in oklab, color-mix(in oklab, ${s.value.toLowerCase()} `);
+    }
+  });
+
+  it('paints every seeded colour through the palette', () => {
+    const seed = createSeed('2026-09-16');
+    for (const { color } of [...seed.groups, ...seed.categories]) expect(paint(color)).toMatch(/^var\(--swatch-/);
+  });
+
+  it('matches saved hex in any case, and leaves unknown colours alone', () => {
+    expect(paint('#b3a7d6')).toBe('var(--swatch-lavender, #b3a7d6)');
+    expect(paint('#123456')).toBe('#123456');
+    expect(paint(undefined)).toBeUndefined();
   });
 });

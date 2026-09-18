@@ -18,6 +18,7 @@ import { formatClock, formatRange } from '../../lib/time';
 import { CompleteToggle } from '../ui/CompleteToggle';
 import { Icon } from '../ui/Icon';
 import { ContextMenu, Menu, useContextMenu, type MenuEntry } from '../ui/Menu';
+import { paint } from '../../lib/swatch';
 import { InlineTitle } from './InlineTitle';
 import styles from './tasks.module.css';
 
@@ -145,7 +146,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
       { kind: 'heading', label: g.name },
       ...categoriesInGroup(state, g.id).map<MenuEntry>((c) => ({
         label: c.name,
-        swatch: c.color,
+        swatch: paint(c.color),
         checked: c.id === task.categoryId,
         onSelect: () => {
           if (c.id === task.categoryId) return;
@@ -196,7 +197,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
       {!editing && goal && <span className={styles.goalChip}>{goal.title}</span>}
       {!editing && showContext && category && (
         <span className={styles.rowContext}>
-          <span className={styles.contextDot} style={{ background: category.color }} aria-hidden="true" />
+          <span className={styles.contextDot} style={{ background: paint(category.color) }} aria-hidden="true" />
           <span className={styles.contextName}>{group ? `${group.name} · ${category.name}` : category.name}</span>
         </span>
       )}

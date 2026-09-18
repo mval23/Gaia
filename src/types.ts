@@ -1,10 +1,17 @@
 export type ID = string;
 
+/** An Outlook calendar a group mirrors: its time blocks go there, its events show here. */
+export interface CalendarLink {
+  id: string;
+  name: string;
+}
+
 export interface Group {
   id: ID;
   name: string;
   color: string;
   order: number;
+  calendar?: CalendarLink;
 }
 
 export interface Category {
