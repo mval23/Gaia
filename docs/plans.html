@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Gaia Plans</title>
+  <meta name="description" content="Where Gaia is going: the Compass and Life Hub sketches folded into Gaia, in four seasons." />
+  <link rel="icon" type="image/png" href="assets/favicon-64.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+:root {
+  --bg: #f5f2ed;
+  --surface: #fbfaf7;
+  --surface-strong: #ffffff;
+  --panel: #f8f6f2;
+  --panel-inset: #f3f1ed;
+  --primary: #5b6679;
+  --avatar: #ab9dce;
+  --text: #2b3445;
+  --text-secondary: #5f6a7d;
+  --text-tertiary: #7c8698;
+  --border: rgba(43, 52, 69, 0.08);
+  --border-strong: rgba(43, 52, 69, 0.22);
+  --tint-weak: rgba(43, 52, 69, 0.05);
+  --tint: rgba(43, 52, 69, 0.1);
+  --shadow: 0 1px 2px rgba(43, 52, 69, 0.04), 0 8px 24px rgba(43, 52, 69, 0.05);
+  --focus: #2b3445;
+  --now: #e06c75;
+  --block-ink: #4c5669;
+
+  --sage: #a3c29d;
+  --blue: #a9c3e0;
+  --lav: #b3a7d6;
+  --peach: #e8c6ae;
+  --mist: #c8c6d0;
+  --pink: #e6bccb;
+
+  --chip-have-bg: color-mix(in oklab, var(--sage) 38%, var(--surface));
+  --chip-extend-bg: color-mix(in oklab, var(--blue) 42%, var(--surface));
+  --chip-new-bg: color-mix(in oklab, var(--lav) 40%, var(--surface));
+  --chip-reshape-bg: color-mix(in oklab, var(--peach) 48%, var(--surface));
+  --chip-decline-bg: color-mix(in oklab, var(--mist) 45%, var(--surface));
+  --chip-ink: #3a4456;
+
+  --block-focus: color-mix(in oklab, var(--blue) 55%, var(--surface));
+  --block-habit: color-mix(in oklab, var(--sage) 45%, var(--surface));
+  --block-rest: color-mix(in oklab, var(--pink) 45%, var(--surface));
+  --block-open: transparent;
+
+  --serif: 'Playfair Display', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --sans: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141922;
+    --surface: #1b212d;
+    --surface-strong: #212936;
+    --panel: #222938;
+    --panel-inset: #1e2430;
+    --primary: #8fa0bd;
+    --avatar: #a99cd0;
+    --text: #e6e9ef;
+    --text-secondary: #b3bbc9;
+    --text-tertiary: #8f98a9;
+    --border: rgba(230, 233, 239, 0.12);
+    --border-strong: rgba(230, 233, 239, 0.26);
+    --tint-weak: rgba(230, 233, 239, 0.06);
+    --tint: rgba(230, 233, 239, 0.12);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --focus: #e6e9ef;
+    --now: #e8848c;
+    --block-ink: #dfe4ec;
+    --chip-have-bg: color-mix(in oklab, var(--sage) 26%, var(--surface));
+    --chip-extend-bg: color-mix(in oklab, var(--blue) 26%, var(--surface));
+    --chip-new-bg: color-mix(in oklab, var(--lav) 28%, var(--surface));
+    --chip-reshape-bg: color-mix(in oklab, var(--peach) 26%, var(--surface));
+    --chip-decline-bg: color-mix(in oklab, var(--mist) 18%, var(--surface));
+    --chip-ink: #e6e9ef;
+    --block-focus: color-mix(in oklab, var(--blue) 30%, var(--surface));
+    --block-habit: color-mix(in oklab, var(--sage) 28%, var(--surface));
+    --block-rest: color-mix(in oklab, var(--pink) 26%, var(--surface));
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141922;
+  --surface: #1b212d;
+  --surface-strong: #212936;
+  --panel: #222938;
+  --panel-inset: #1e2430;
+  --primary: #8fa0bd;
+  --avatar: #a99cd0;
+  --text: #e6e9ef;
+  --text-secondary: #b3bbc9;
+  --text-tertiary: #8f98a9;
+  --border: rgba(230, 233, 239, 0.12);
+  --border-strong: rgba(230, 233, 239, 0.26);
+  --tint-weak: rgba(230, 233, 239, 0.06);
+  --tint: rgba(230, 233, 239, 0.12);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --focus: #e6e9ef;
+  --now: #e8848c;
+  --block-ink: #dfe4ec;
+  --chip-have-bg: color-mix(in oklab, var(--sage) 26%, var(--surface));
+  --chip-extend-bg: color-mix(in oklab, var(--blue) 26%, var(--surface));
+  --chip-new-bg: color-mix(in oklab, var(--lav) 28%, var(--surface));
+  --chip-reshape-bg: color-mix(in oklab, var(--peach) 26%, var(--surface));
+  --chip-decline-bg: color-mix(in oklab, var(--mist) 18%, var(--surface));
+  --chip-ink: #e6e9ef;
+  --block-focus: color-mix(in oklab, var(--blue) 30%, var(--surface));
+  --block-habit: color-mix(in oklab, var(--sage) 28%, var(--surface));
+  --block-rest: color-mix(in oklab, var(--pink) 26%, var(--surface));
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; }
+.prose { max-width: 680px; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 400; text-wrap: balance; margin: 0; color: var(--text); }
+h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.05; letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.1rem); line-height: 1.15; }
+h3 { font-size: 1.2rem; line-height: 1.3; }
+p { margin: 0; }
+em.s { font-family: var(--serif); font-style: italic; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); font-weight: 500; }
+.lede { font-size: 1.12rem; color: var(--text-secondary); line-height: 1.65; }
+.muted { color: var(--text-secondary); }
+.small { font-size: 0.86rem; }
+a { color: var(--primary); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 0.86em; background: var(--tint-weak); padding: 1px 5px; border-radius: 5px; }
+
+/* Header */
+.top { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+.top img { width: 30px; height: 30px; border-radius: 8px; }
+.top span { font-family: var(--serif); font-size: 1.15rem; }
+.top .date { margin-left: auto; font-size: 0.82rem; color: var(--text-tertiary); }
+
+.hero { display: grid; gap: 22px; }
+.strip { height: clamp(140px, 22vw, 220px); border-radius: 18px; background-size: cover; background-position: center 40%; box-shadow: var(--shadow); }
+.strip.lilies { background-image: url("assets/lilies-wide.webp"); }
+.strip.rouen { background-image: url("assets/rouen-wide.webp"); background-position: center 30%; height: clamp(120px, 18vw, 180px); }
+.strip.garden { background-image: url("assets/garden-wide.webp"); height: clamp(110px, 16vw, 160px); }
+.hero .text { display: grid; gap: 14px; }
+.promise { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: stretch; margin-top: 8px; }
+.promise > div { padding: 16px 18px; border-radius: 14px; }
+.promise .was { border: 1px dashed var(--border-strong); }
+.promise .is { background: var(--surface); box-shadow: var(--shadow); }
+.promise .arrow { align-self: center; color: var(--text-tertiary); font-size: 1.3rem; }
+.promise q { font-family: var(--serif); font-size: 1.12rem; line-height: 1.4; display: block; margin-top: 6px; quotes: "“" "”"; }
+@media (max-width: 640px) { .promise { grid-template-columns: 1fr; } .promise .arrow { transform: rotate(90deg); justify-self: center; } }
+
+section { margin-top: 72px; display: grid; gap: 18px; }
+.sec-head { display: grid; gap: 8px; }
+
+/* Short answer */
+.answer { background: var(--surface); border-radius: 18px; padding: 24px 26px; box-shadow: var(--shadow); display: grid; gap: 14px; }
+.answer ol { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
+.answer li::marker { color: var(--text-tertiary); }
+
+/* Tests */
+.tests { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.test { border-top: 1px solid var(--border-strong); padding-top: 14px; display: grid; gap: 6px; }
+.test h3 { font-size: 1.08rem; }
+@media (max-width: 760px) { .tests { grid-template-columns: 1fr; } }
+
+/* Chips */
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.02em; padding: 3px 9px; border-radius: 999px; color: var(--chip-ink); white-space: nowrap; }
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.55; }
+.have { background: var(--chip-have-bg); }
+.extend { background: var(--chip-extend-bg); }
+.new { background: var(--chip-new-bg); }
+.reshape { background: var(--chip-reshape-bg); }
+.decline { background: var(--chip-decline-bg); }
+
+/* Map */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filters button { font: inherit; font-size: 0.8rem; border: 1px solid var(--border-strong); background: transparent; color: var(--text-secondary); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.map { display: grid; gap: 0; background: var(--surface); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+.row { display: grid; grid-template-columns: 170px 1fr 1.35fr; gap: 20px; padding: 18px 22px; border-top: 1px solid var(--border); }
+.row:first-child { border-top: 0; }
+.row.head { background: var(--panel-inset); padding-block: 10px; }
+.row.head div { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); font-weight: 500; }
+.row .layer { font-family: var(--serif); font-size: 1.08rem; line-height: 1.3; }
+.row .layer small { display: block; font-family: var(--sans); font-size: 0.76rem; color: var(--text-tertiary); margin-top: 4px; line-height: 1.4; }
+.row .gaia { color: var(--text-secondary); font-size: 0.9rem; }
+.row .prop { display: grid; gap: 8px; font-size: 0.92rem; }
+.row .prop .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.row[hidden] { display: none !important; }
+@media (max-width: 760px) {
+  .row { grid-template-columns: 1fr; gap: 8px; }
+  .row.head { display: none; }
+  .row .gaia::before { content: "In Gaia today · "; color: var(--text-tertiary); }
+}
+
+/* Language */
+.lang { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 34px; }
+.pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.pair .from { color: var(--text-tertiary); text-decoration: line-through; text-decoration-color: var(--border-strong); }
+.pair .to { font-family: var(--serif); font-size: 1.04rem; }
+.pair .arr { color: var(--text-tertiary); font-size: 0.8rem; }
+@media (max-width: 760px) { .lang { grid-template-columns: 1fr; } }
+
+/* Light check-in */
+.light { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+@media (max-width: 820px) { .light { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border-radius: 18px; box-shadow: var(--shadow); padding: 20px 22px; display: grid; gap: 14px; }
+.card .ctitle { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.card .ctitle h3 { font-size: 1.15rem; }
+.q { display: grid; gap: 7px; }
+.q label, .q .ql { font-size: 0.8rem; color: var(--text-secondary); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { font: inherit; font-size: 0.84rem; padding: 6px 13px; border-radius: 999px; border: 1px solid var(--border-strong); background: transparent; color: var(--text); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-new-bg); border-color: transparent; }
+.shape { border-radius: 12px; background: var(--panel-inset); padding: 12px 14px; display: grid; gap: 4px; font-size: 0.9rem; }
+.shape strong { font-family: var(--serif); font-weight: 400; font-size: 1.05rem; }
+
+/* Sketches */
+.sketches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.sk { border: 1px dashed var(--border-strong); border-radius: 14px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.sk.gaia-sk { border: 0; background: var(--surface); box-shadow: var(--shadow); }
+@media (max-width: 760px) { .sketches { grid-template-columns: 1fr; } }
+
+/* Goal card */
+.milestone { display: grid; gap: 6px; }
+.ms-bar { height: 6px; border-radius: 999px; background: var(--tint); overflow: hidden; }
+.ms-bar i { display: block; height: 100%; background: color-mix(in oklab, var(--sage) 75%, var(--text)); border-radius: 999px; }
+.gtl { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--border); }
+.gtl li { display: grid; grid-template-columns: 52px auto 1fr; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.gtl .d { font-size: 0.76rem; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.question-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); padding: 18px 20px; display: grid; gap: 12px; border: 1px solid var(--border); }
+.question-card .ask { font-family: var(--serif); font-size: 1.12rem; line-height: 1.4; }
+.question-card textarea { font: inherit; font-size: 0.9rem; width: 100%; min-height: 64px; resize: vertical; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--panel-inset); color: var(--text); padding: 10px 12px; }
+
+/* Habits */
+.habits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 900px) { .habits { grid-template-columns: 1fr; } }
+.habit { background: var(--surface); border-radius: 18px; box-shadow: var(--shadow); padding: 20px; display: grid; gap: 12px; align-content: start; }
+.habit h3 { font-size: 1.2rem; }
+.habit .rhythm { display: flex; gap: 5px; }
+.habit .rhythm span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 0.66rem; color: var(--text-tertiary); border: 1px solid var(--border-strong); }
+.habit .rhythm span.on { background: var(--block-habit); border-color: transparent; color: var(--chip-ink); }
+.habit dl { margin: 0; display: grid; gap: 9px; }
+.habit dt { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); }
+.habit dd { margin: 2px 0 0; font-size: 0.9rem; }
+.habit dd.tiny { font-family: var(--serif); font-style: italic; font-size: 0.98rem; }
+.habit .newfield { position: relative; }
+.habit .newfield dt::after { content: " · new field"; color: var(--avatar); letter-spacing: 0.04em; text-transform: none; }
+
+/* Timeline */
+.tl-wrap { overflow-x: auto; background: var(--surface); border-radius: 18px; box-shadow: var(--shadow); padding: 20px 22px 16px; }
+.tl { min-width: 760px; display: grid; gap: 8px; }
+.tl-hours { position: relative; height: 18px; font-size: 0.7rem; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.tl-hours span { position: absolute; transform: translateX(-50%); }
+.tl-track { position: relative; height: 92px; border-radius: 12px; background: repeating-linear-gradient(90deg, var(--tint-weak) 0 1px, transparent 1px calc(100% / 16)); border: 1px solid var(--border); }
+.blk { position: absolute; top: 10px; bottom: 10px; border-radius: 9px; padding: 6px 8px; font-size: 0.72rem; line-height: 1.25; color: var(--block-ink); overflow: hidden; }
+.blk b { display: block; font-weight: 600; }
+.blk.focus { background: var(--block-focus); }
+.blk.habit { background: var(--block-habit); }
+.blk.sugg { background: transparent; border: 1.5px dashed color-mix(in oklab, var(--sage) 80%, var(--text)); }
+.blk.rest { background: var(--block-rest); }
+.blk.anchor { top: 0; bottom: 0; width: 2px; padding: 0; border-radius: 0; background: var(--now); overflow: visible; }
+.blk.anchor i { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 0.66rem; color: var(--now); white-space: nowrap; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.78rem; color: var(--text-secondary); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.legend i { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
+
+/* Companion */
+.arch-wrap { overflow-x: auto; }
+.arch { display: flex; align-items: stretch; gap: 0; min-width: 640px; }
+.node { flex: 1; background: var(--surface); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); display: grid; gap: 4px; align-content: start; }
+.node b { font-family: var(--serif); font-weight: 400; font-size: 1.05rem; }
+.node span { font-size: 0.8rem; color: var(--text-secondary); }
+.link { flex: 0 0 34px; display: grid; place-items: center; color: var(--text-tertiary); }
+.boundary { border: 1px dashed var(--border-strong); border-radius: 18px; padding: 16px; display: grid; gap: 10px; }
+.boundary .cap { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+@media (max-width: 820px) { .two { grid-template-columns: 1fr; } }
+.proposal { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); padding: 18px 20px; display: grid; gap: 12px; border: 1px solid var(--border); }
+.proposal .from { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-tertiary); }
+.proposal .dot { width: 22px; height: 22px; border-radius: 50%; background: color-mix(in oklab, var(--lav) 60%, var(--surface)); }
+.proposal .body { font-size: 0.95rem; }
+.proposal .change { font-size: 0.85rem; background: var(--panel-inset); padding: 10px 12px; border-radius: 10px; color: var(--text-secondary); }
+.proposal .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { font: inherit; font-size: 0.84rem; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border-strong); background: transparent; color: var(--text); cursor: pointer; }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.proposal .status { font-size: 0.84rem; color: var(--text-secondary); }
+.scopes { display: flex; flex-wrap: wrap; gap: 6px; }
+.scope { font-size: 0.78rem; padding: 4px 10px; border-radius: 999px; background: var(--tint-weak); color: var(--text-secondary); }
+.scope.on { background: var(--chip-have-bg); color: var(--chip-ink); }
+.list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.list li { padding-left: 18px; position: relative; font-size: 0.92rem; }
+.list li::before { content: ""; position: absolute; left: 2px; top: 0.62em; width: 6px; height: 6px; border-radius: 50%; background: var(--avatar); }
+.list.no li::before { background: transparent; border: 1.5px solid var(--text-tertiary); width: 5px; height: 5px; }
+
+/* Evidence */
+.ev { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 820px) { .ev { grid-template-columns: 1fr; } }
+.evc { border-radius: 16px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.evc.src { background: var(--surface); box-shadow: var(--shadow); }
+.evc.obs { background: transparent; border: 1px solid var(--border-strong); }
+.evc.read { background: transparent; border: 1.5px dashed color-mix(in oklab, var(--lav) 70%, var(--text-tertiary)); }
+.evc h3 { font-size: 1.05rem; }
+.evc .ex { font-size: 0.86rem; color: var(--text-secondary); border-top: 1px solid var(--border); padding-top: 10px; }
+.evc .ex q { font-family: var(--serif); font-style: italic; color: var(--text); }
+
+/* Nav */
+.navs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 760px) { .navs { grid-template-columns: 1fr; } }
+.side { background: var(--panel); border-radius: 18px; padding: 18px; display: grid; gap: 4px; align-content: start; border: 1px solid var(--border); }
+.side .cap { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+.side .it { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 9px; font-size: 0.92rem; }
+.side .it.added { background: var(--surface); box-shadow: var(--shadow); }
+.side .it small { font-size: 0.74rem; color: var(--text-tertiary); }
+.side hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
+
+/* Phases */
+.phases { display: grid; gap: 0; }
+.phase { display: grid; grid-template-columns: 150px 1fr; gap: 24px; padding: 22px 0; border-top: 1px solid var(--border-strong); }
+.phase:last-child { border-bottom: 1px solid var(--border-strong); }
+.phase .ph { display: grid; gap: 4px; align-content: start; }
+.phase .ph b { font-family: var(--serif); font-weight: 400; font-size: 1.35rem; }
+.phase .ph span { font-size: 0.8rem; color: var(--text-tertiary); }
+.phase .pb { display: grid; gap: 12px; }
+.gate { font-size: 0.86rem; color: var(--text-secondary); background: var(--panel-inset); border-radius: 10px; padding: 10px 12px; }
+.gate b { color: var(--text); font-weight: 500; }
+@media (max-width: 640px) { .phase { grid-template-columns: 1fr; gap: 10px; } }
+
+pre.code { margin: 0; overflow-x: auto; background: var(--panel-inset); border-radius: 14px; padding: 16px 18px; font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 0.8rem; line-height: 1.6; color: var(--text); border: 1px solid var(--border); }
+pre.code .c { color: var(--text-tertiary); }
+
+.decline-list { display: grid; gap: 0; }
+.dl { display: grid; grid-template-columns: 220px 1fr; gap: 22px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.dl b { font-family: var(--serif); font-weight: 400; font-size: 1.05rem; }
+@media (max-width: 640px) { .dl { grid-template-columns: 1fr; gap: 4px; } }
+
+.questions { display: grid; gap: 12px; counter-reset: q; }
+.question { background: var(--surface); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); display: grid; gap: 6px; }
+.question b { font-weight: 600; }
+
+footer { margin-top: 80px; display: grid; gap: 16px; text-align: center; }
+footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-secondary); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .seg button, .btn, .filters button { transition: background 160ms ease, color 160ms ease; }
+}
+</style>
+</head>
+<body>
+<!-- The notes Claude reads for this roadmap live in docs/plans.md. Keep the two in step. -->
+
+<div class="page">
+
+  <div class="top">
+    <img src="assets/gaia-logo.webp" alt="">
+    <span>Gaia</span>
+    <span class="date"><a href="index.html">Docs</a> · Plans · a proposal, 18 September 2026</span>
+  </div>
+
+  <header class="hero">
+    <div class="strip lilies" role="img" aria-label="Claude Monet, Water Lilies"></div>
+    <div class="text prose">
+      <p class="eyebrow">Two early sketches, one Gaia</p>
+      <h1>Gaia's Compass</h1>
+      <p class="lede">Before Gaia there were two plans. <b>Compass</b> was a life operating system that wanted to steer every hour. The <b>Life Hub</b> was a quieter plan: a two-minute morning check-in, a home for forgotten goals, and reviews that make you pause. Gaia is what both turned into once they learned to be kind. This proposal brings the best of each into Gaia and leaves the scoreboard behind.</p>
+    </div>
+    <div class="sketches">
+      <div class="sk">
+        <p class="eyebrow">Compass</p>
+        <p class="small">Direction → priorities → projects → time blocks → habits → reviews. Six layers, fourteen screens, a local AI that proposes changes.</p>
+        <p class="small muted">Brings: <em>why</em> things matter, flexible anchors, minimum versions, evidence.</p>
+      </div>
+      <div class="sk">
+        <p class="eyebrow">Life Hub</p>
+        <p class="small">Check-in, tasks, habits, goals, reviews, dashboard. Built to be opened every morning in two minutes, with an Ollama companion that only asks questions.</p>
+        <p class="small muted">Brings: goal momentum, backfilling, a Socratic companion, phases gated by real use.</p>
+      </div>
+      <div class="sk gaia-sk">
+        <p class="eyebrow">Gaia today</p>
+        <p class="small">Plan, Calendar, Goals &amp; habits, Manage. Tiny versions, rhythms instead of streaks, <em>let go</em>, a weekly reflection, four Monet palettes.</p>
+        <p class="small muted">Keeps: the tone, and the rule that nothing counts what didn't happen.</p>
+      </div>
+    </div>
+    <div class="promise">
+      <div class="was">
+        <p class="eyebrow">Compass promised</p>
+        <q>Compass helps you turn what matters into how you spend your day.</q>
+      </div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="is">
+        <p class="eyebrow">Gaia keeps the promise, gently</p>
+        <q>Know what matters, then give it a place in the day. Leave the rest of the day open.</q>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">The short answer</p>
+      <h2>Don't build Compass beside Gaia. Let it become Gaia's sense of direction.</h2>
+    </div>
+    <div class="answer prose">
+      <p>Gaia already does the middle of both plans: tasks, time blocks, habits with tiny versions and goal links, a weekly reflection. What it doesn't have yet is the top (<em class="s">why</em> any of it matters), the moment of looking back, and a few quiet tools around the day itself. The two sketches fill different parts of that gap, and where they overlap they mostly agree. The proposal:</p>
+      <ol>
+        <li><b>Compass lives on as a name.</b> The new Direction section (values, roles, one provisional sentence) is called <em class="s">Compass</em>. Gaia is the garden, and the compass tells you which way to walk.</li>
+        <li><b>Everything becomes three moves:</b> <em class="s">know what matters → give it a place → look back kindly.</em> Every idea from both plans fits under one of these.</li>
+        <li><b>The Life Hub sets the pace.</b> Its two-minute rule shapes the morning check-in, its momentum tags give goals an honest sense of progress, and its companion asks questions instead of handing you conclusions.</li>
+        <li><b>Every new feature passes Gaia's three tests</b> (below). Some ideas come in as they are, most are reshaped, and a few are left out, each with a reason.</li>
+        <li><b>It ships in four small seasons</b>, each one gated by real use, as the Life Hub roadmap suggested: the next season starts when the last one has become part of your week, not on a date.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">The filter</p>
+      <h2>Three questions every Compass idea has to answer</h2>
+      <p class="muted">These come straight from Gaia's conventions: the copy rules in <code>src/lib/copy.ts</code>, the positive-only <code>CheckIn</code> type, and the reason closing the day was removed on 15 September.</p>
+    </div>
+    <div class="tests">
+      <div class="test">
+        <h3>Does it count what didn't happen?</h3>
+        <p class="muted small">Gaia stores only <em>done</em>, <em>tiny</em> and <em>rest</em>. There is deliberately no value for “missed”. A feature that needs one is reshaped until it doesn't.</p>
+      </div>
+      <div class="test">
+        <h3>Does it follow you from yesterday?</h3>
+        <p class="muted small">A day is chosen, not inherited. Nothing new may carry an unfinished pile into a fresh morning, or show one in the evening when it is least welcome.</p>
+      </div>
+      <div class="test">
+        <h3>Can you ignore it and lose nothing?</h3>
+        <p class="muted small">Values, check-ins, the companion: all optional. Gaia has to work fully for someone who never opens them, and never nag them to.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">The map</p>
+      <h2>Compass's layers, one by one</h2>
+      <p class="muted">What Gaia already has, and what this proposal does with each Compass layer.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Filter Compass layers by proposal type" data-for="map">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">All</button>
+      <button type="button" id="f-have" data-f="have" aria-pressed="false">Already in Gaia</button>
+      <button type="button" id="f-extend" data-f="extend" aria-pressed="false">Extend</button>
+      <button type="button" id="f-new" data-f="new" aria-pressed="false">New</button>
+      <button type="button" id="f-reshape" data-f="reshape" aria-pressed="false">Reshaped</button>
+      <button type="button" id="f-decline" data-f="decline" aria-pressed="false">Left out</button>
+    </div>
+    <div class="map" id="map">
+      <div class="row head"><div>Compass layer</div><div>In Gaia today</div><div>Proposal</div></div>
+
+      <div class="row" data-t="new reshape">
+        <div class="layer">Direction<small>values, strengths, roles, mission, three-year vision, qualities, principles</small></div>
+        <div class="gaia">A private <code>why</code> on each goal.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span><span class="chip reshape">Reshaped</span></div>
+          <p>A <b>Compass</b> section at the top of Goals &amp; habits: a few values in your own words, the roles you hold, and one provisional sentence about where you're heading. Goals can point at a value, the same way tasks can point at a goal: an optional lens, never a folder. Seven Compass fields become three; strengths, qualities and principles can live as notes on a value.</p></div>
+      </div>
+
+      <div class="row" data-t="have reshape">
+        <div class="layer">Priorities<small>yearly → quarterly → monthly → weekly → daily</small></div>
+        <div class="gaia">Goals have a soft <code>season</code>. The weekly reflection asks for <em>one thing</em>. Tasks are chosen for a day.</div>
+        <div class="prop"><div class="chips"><span class="chip have">Already in Gaia</span><span class="chip reshape">Reshaped</span></div>
+          <p>Five levels become three that already exist: <b>season</b> (a goal's soft timeframe) → <b>this week's one thing</b> (from the reflection) → <b>today's essential</b>. Only the last is new: mark one of today's tasks as <em class="s">the one that matters</em>, with up to two more beside it.</p></div>
+      </div>
+
+      <div class="row" data-t="have extend new">
+        <div class="layer">Execution<small>projects, tasks, recurring, waiting-for, ideas, completed, Capture inbox</small></div>
+        <div class="gaia">Tasks with time blocks, <em>Later</em>, <em>let go</em>, finish-goals, done history.</div>
+        <div class="prop"><div class="chips"><span class="chip have">Already in Gaia</span><span class="chip extend">Extend</span><span class="chip new">New</span></div>
+          <p>A finish-goal <em>is</em> a project, so no new type is needed. Add <b>Capture</b> (one keystroke from anywhere; sort it later, or never), a <b>with someone else</b> state for tasks, and <b>repeating tasks</b> for responsibilities like rent or laundry. Ideas live in Later.</p></div>
+      </div>
+
+      <div class="row" data-t="have extend reshape">
+        <div class="layer">Habits &amp; routines<small>normal / minimum versions, Minimum · Standard · Strong days</small></div>
+        <div class="gaia">Cue, rhythm, tiny version, done / tiny / rest, Gentle day.</div>
+        <div class="prop"><div class="chips"><span class="chip have">Already in Gaia</span><span class="chip extend">Extend</span><span class="chip reshape">Reshaped</span></div>
+          <p>Compass's habit tracker is mostly Gaia's habit editor. Add three fields: <b>why</b>, <b>if–then plans</b> for known obstacles, and a <b>coming-back</b> note (Compass's “recovery rule”, without the idea of a lapse). The three day types become <b>Gentle · Steady · Bright</b>. Gentle day already exists.</p></div>
+      </div>
+
+      <div class="row" data-t="new reshape decline">
+        <div class="layer">Attention &amp; leisure<small>boundaries, social media, series, naps, avoidance patterns, recovery</small></div>
+        <div class="gaia">Empty time is called <em>open time</em>. A very full day is mentioned once.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span><span class="chip reshape">Reshaped</span><span class="chip decline">Left out</span></div>
+          <p><b>Rest blocks</b> become a real kind of block on the timeline, so a series window or a nap is <em class="s">planned</em>, not earned. A <b>work ends here</b> anchor marks the boundary. Tracking social media minutes and “avoidance patterns” is left out; an optional reflection question takes its place.</p></div>
+      </div>
+
+      <div class="row" data-t="have extend">
+        <div class="layer">Reviews<small>daily, weekly, monthly, quarterly, dashboard, planned vs completed</small></div>
+        <div class="gaia">Weekly reflection: what went well, what was hard, one thing.</div>
+        <div class="prop"><div class="chips"><span class="chip have">Already in Gaia</span><span class="chip extend">Extend</span></div>
+          <p>A new <b>Look back</b> page gathers the weekly reflections and adds a <b>monthly</b> one with the month's data pulled in: what you tended, how the light changed, what you let go, and how each goal is moving. No daily review: Gaia already tried one and removed it.</p></div>
+      </div>
+
+      <div class="row" data-t="new">
+        <div class="layer">Energy<small>energy, mood, sleep, stress, naps</small></div>
+        <div class="gaia">Nothing yet.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span></div>
+          <p><b>Today's light</b>: a ten-second, skippable morning check-in that describes the day without grading it. It can offer a day shape. See below.</p></div>
+      </div>
+
+      <div class="row" data-t="reshape">
+        <div class="layer">Dashboard<small>about 25 panels, 7 / 30 / 90 day views</small></div>
+        <div class="gaia">Plan is the home screen.</div>
+        <div class="prop"><div class="chips"><span class="chip reshape">Reshaped</span></div>
+          <p>Plan stays home. Its header gains Today's light and a Capture button (also <b>Ctrl I</b> from anywhere), and the week strip already shows rhythms. The long-view panels go to Look back, where you open them on purpose. Every figure obeys <em>Hide numbers</em>.</p></div>
+      </div>
+
+      <div class="row" data-t="new reshape">
+        <div class="layer">AI Companion<small>local model, recommendations, interview</small></div>
+        <div class="gaia">Nothing yet. Gaia's safety line (Support page, the narrow body/food note) is the starting point.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span><span class="chip reshape">Reshaped</span></div>
+          <p>A companion that runs on your own machine and only sees what you let it see. Following the Life Hub, it mostly <b>asks questions</b>, inside Look back and the goal editor, rather than living on its own page. When you ask it for help with a plan, it can <b>propose</b> one change, which you add, edit or set aside.</p></div>
+      </div>
+
+      <div class="row" data-t="new">
+        <div class="layer">Evidence<small>verified sources, observations, AI interpretations</small></div>
+        <div class="gaia">The research lives in the separate design-brief artifact.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span></div>
+          <p>A <b>Why Gaia works this way</b> page inside Help. It holds the research behind the design and your own observations, each kind drawn differently so they can't be mistaken for one another.</p></div>
+      </div>
+
+      <div class="row" data-t="have extend">
+        <div class="layer">Privacy &amp; data<small>export, backup, delete, encryption, AI status, opt-in sync</small></div>
+        <div class="gaia">Local mode with no account. Export, import, delete with undo. Optional Supabase accounts.</div>
+        <div class="prop"><div class="chips"><span class="chip have">Already in Gaia</span><span class="chip extend">Extend</span></div>
+          <p>Add a visible <b>companion status</b> (off / on this device), <b>delete conversations</b>, an <b>encrypted export</b>, and a rule for account mode: check-ins and conversations stay on the device unless you turn syncing on for them.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">The second map</p>
+      <h2>The Life Hub's ideas, one by one</h2>
+      <p class="muted">The Life Hub was planned as a fresh app with its own stack and design. Most of its screens now exist in Gaia under other names, so what matters is its thinking: the two-minute rule, momentum instead of percentages, and a companion that asks.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Filter Life Hub ideas by proposal type" data-for="hubmap">
+      <button type="button" id="h-all" data-f="all" aria-pressed="true">All</button>
+      <button type="button" id="h-have" data-f="have" aria-pressed="false">Already in Gaia</button>
+      <button type="button" id="h-extend" data-f="extend" aria-pressed="false">Extend</button>
+      <button type="button" id="h-new" data-f="new" aria-pressed="false">New</button>
+      <button type="button" id="h-reshape" data-f="reshape" aria-pressed="false">Reshaped</button>
+      <button type="button" id="h-decline" data-f="decline" aria-pressed="false">Left out</button>
+    </div>
+    <div class="map" id="hubmap">
+      <div class="row head"><div>Life Hub idea</div><div>In Gaia today</div><div>Proposal</div></div>
+
+      <div class="row" data-t="new reshape">
+        <div class="layer">Daily check-in<small>mood, sleep, habit checkboxes, under two minutes</small></div>
+        <div class="gaia">Habit check-ins (done / tiny / rest) on Plan. No mood or sleep.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span><span class="chip reshape">Reshaped</span></div>
+          <p>Merges with Compass's energy tracking into one card, <b>Today's light</b>. The Life Hub's <b>two-minute rule</b> becomes its limit: three taps and it's done. Habits stay where they already are on Plan, so the check-in doesn't repeat them.</p></div>
+      </div>
+
+      <div class="row" data-t="new">
+        <div class="layer">Backfilling<small>log a past day, with no flag for the gap</small></div>
+        <div class="gaia">Check-ins are keyed by date, so the data model already allows it.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span></div>
+          <p>Let any earlier day's light and habits be filled in from the week strip. Nothing marks it as late. Filling it in is always optional.</p></div>
+      </div>
+
+      <div class="row" data-t="have reshape">
+        <div class="layer">Rolling consistency<small>“18 of last 30 days”, no reset-to-zero streaks</small></div>
+        <div class="gaia">Rhythms per week: “That is your week” when the aim is met.</div>
+        <div class="prop"><div class="chips"><span class="chip have">Already in Gaia</span><span class="chip reshape">Reshaped</span></div>
+          <p>Both plans agree on no streaks. The difference is the denominator: “18 of 30” quietly shows twelve blanks. Look back says <b>“18 days tended this month”</b> instead, and hides even that with <em>Hide numbers</em>.</p></div>
+      </div>
+
+      <div class="row" data-t="have">
+        <div class="layer">Habits linked to goals</div>
+        <div class="gaia">Already there: a habit or task can point at one goal.</div>
+        <div class="prop"><div class="chips"><span class="chip have">Already in Gaia</span></div>
+          <p>No change. The goal card will also show how its habits have been going, as the Life Hub's goals panel did.</p></div>
+      </div>
+
+      <div class="row" data-t="new reshape">
+        <div class="layer">Goal momentum<small>moving forward · holding steady · stuck · paused, set at each check-in</small></div>
+        <div class="gaia">Goal status: active, paused, completed, released.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span><span class="chip reshape">Reshaped</span></div>
+          <p>The best idea in the Life Hub, and it comes in almost whole. At each weekly or monthly look back you tag each active goal <b>moving · steady · snagged · resting</b>. <em>Snagged</em> asks one follow-up borrowed from Compass: <em>on what?</em> Clarity, time, energy or setup. That turns “stuck” into something you can change.</p></div>
+      </div>
+
+      <div class="row" data-t="new">
+        <div class="layer">Milestones &amp; goal timeline<small>optional counter, history of check-ins</small></div>
+        <div class="gaia">A finish-goal has “what done looks like”, and a closing note.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span></div>
+          <p>An optional <b>milestone count</b> for goals that are really countable (“12 of 20 chapters”), never a made-up percentage. Each goal gets a <b>timeline</b> of its momentum tags and the notes you wrote about it.</p></div>
+      </div>
+
+      <div class="row" data-t="extend">
+        <div class="layer">Weekly &amp; monthly reviews<small>prompts, pulled-in data, a free-text journal</small></div>
+        <div class="gaia">Weekly reflection with three prompts, offered on your chosen weekday.</div>
+        <div class="prop"><div class="chips"><span class="chip extend">Extend</span></div>
+          <p>Add a <b>journal</b> field and the week's data (light, habits, goals) above the prompts, plus a <b>monthly</b> version. Both plans kept writing out of the daily check-in, and so does Gaia.</p></div>
+      </div>
+
+      <div class="row" data-t="reshape">
+        <div class="layer">Dashboard &amp; correlations<small>mood/sleep trends, goals panel, “mood dips on low-sleep days”</small></div>
+        <div class="gaia">No trend views yet.</div>
+        <div class="prop"><div class="chips"><span class="chip reshape">Reshaped</span></div>
+          <p>Trends and gentle correlations live in <b>Look back</b>, not on the home screen. A correlation is shown as a <b>pattern in your data</b>, drawn dashed, and phrased as a question for you to confirm or ignore.</p></div>
+      </div>
+
+      <div class="row" data-t="extend">
+        <div class="layer">Welcome back &amp; cue-based prompts<small>re-entry after a gap; prompts inside the app, not push alerts</small></div>
+        <div class="gaia">The reflection card appears on its weekday. Gentle day exists.</div>
+        <div class="prop"><div class="chips"><span class="chip extend">Extend</span></div>
+          <p>After a few quiet days, Plan opens with a short <b>welcome back</b> that never counts the gap and offers a Gentle day. Goal check-ins follow the Life Hub's cue idea: they appear right after the weekly reflection, not as a separate alert.</p></div>
+      </div>
+
+      <div class="row" data-t="have extend">
+        <div class="layer">Calendar time-blocking<small>tasks and goals dragged onto a calendar</small></div>
+        <div class="gaia">Already built: drag tasks onto the timeline, resize, several sessions per task, Outlook link.</div>
+        <div class="prop"><div class="chips"><span class="chip have">Already in Gaia</span><span class="chip extend">Extend</span></div>
+          <p>The Life Hub's biggest Phase 2 item is done. What's left is letting a <b>goal</b> be dragged onto the timeline, which creates a “time for …” block linked to it, so goals get protected time as well as a mention in a review.</p></div>
+      </div>
+
+      <div class="row" data-t="new decline">
+        <div class="layer">Phone access<small>local Wi-Fi, then Tailscale, then a PWA icon</small></div>
+        <div class="gaia">Already online on Vercel with accounts, and works offline.</div>
+        <div class="prop"><div class="chips"><span class="chip new">New</span><span class="chip decline">Left out</span></div>
+          <p>Wi-Fi and Tailscale are no longer needed. The one piece worth keeping is <b>installable on the home screen</b> (a PWA manifest and icon), which is small.</p></div>
+      </div>
+
+      <div class="row" data-t="decline">
+        <div class="layer">New stack &amp; design system<small>FastAPI + SQLite + Tailwind; blush, sage, Fraunces</small></div>
+        <div class="gaia">React + Vite, <code>localStorage</code> and Supabase, Monet token system.</div>
+        <div class="prop"><div class="chips"><span class="chip decline">Left out</span></div>
+          <p>Gaia already exists and works, so there's nothing to rebuild. The blush and sage feeling already lives in the Water Lilies palette's <em>lily pink</em> and <em>sage</em> swatches.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">The words</p>
+      <h2>Same ideas, in Gaia's voice</h2>
+      <p class="muted">Gaia never says <em>missed</em>, <em>overdue</em>, <em>failed</em> or <em>streak</em>. Both plans used some of these words, so here is what each one becomes.</p>
+    </div>
+    <div class="lang">
+      <div class="pair"><span class="from">Current streaks</span><span class="arr">→</span><span class="to">Your rhythm this week</span></div>
+      <div class="pair"><span class="from">Needs attention</span><span class="arr">→</span><span class="to">Worth a look</span></div>
+      <div class="pair"><span class="from">Minimum · Standard · Strong day</span><span class="arr">→</span><span class="to">Gentle · Steady · Bright</span></div>
+      <div class="pair"><span class="from">Recovery rule after a missed day</span><span class="arr">→</span><span class="to">Coming back</span></div>
+      <div class="pair"><span class="from">Planned versus completed</span><span class="arr">→</span><span class="to">Where the time went</span></div>
+      <div class="pair"><span class="from">Completion trend</span><span class="arr">→</span><span class="to">What you tended</span></div>
+      <div class="pair"><span class="from">Energy tracking</span><span class="arr">→</span><span class="to">Today's light</span></div>
+      <div class="pair"><span class="from">Automatic avoidance patterns</span><span class="arr">→</span><span class="to">What pulled me away?</span></div>
+      <div class="pair"><span class="from">Life Operating System</span><span class="arr">→</span><span class="to">A kind way to organise yourself</span></div>
+      <div class="pair"><span class="from">Intentional leisure window</span><span class="arr">→</span><span class="to">Rest, on purpose</span></div>
+      <div class="pair"><span class="from">18 of last 30 days</span><span class="arr">→</span><span class="to">18 days tended this month</span></div>
+      <div class="pair"><span class="from">Stuck</span><span class="arr">→</span><span class="to">Snagged, on what?</span></div>
+      <div class="pair"><span class="from">Backfill a missed day</span><span class="arr">→</span><span class="to">Fill in an earlier day</span></div>
+      <div class="pair"><span class="from">Dashboard</span><span class="arr">→</span><span class="to">Look back</span></div>
+      <div class="pair"><span class="from">Waiting-for list</span><span class="arr">→</span><span class="to">With someone else</span></div>
+      <div class="pair"><span class="from">Essential task</span><span class="arr">→</span><span class="to">The one that matters</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">New · Today's light</p>
+      <h2>Monet painted the same cathedral thirty times. Only the light changed.</h2>
+    </div>
+    <div class="strip rouen" role="img" aria-label="Claude Monet, Rouen Cathedral"></div>
+    <div class="light">
+      <div class="prose" style="display:grid;gap:14px">
+        <p>Compass wanted energy, mood, sleep and stress on the dashboard as numbers. The Life Hub wanted a morning check-in for mood and sleep that takes under two minutes. Gaia joins them and takes one of its own paintings as the model: the Rouen Cathedral series is one building in many kinds of light, and none of them is the wrong light.</p>
+        <p><b>Today's light</b> is a small card at the top of Plan in the morning: three taps, well inside the Life Hub's two minutes. It sits right where your <em>Morning start</em> habit already opens Gaia, so it rides an existing cue instead of needing a reminder. Every question is optional, and a day with no entry is simply <em>not logged</em>, just as with habits. An earlier day can be filled in later with no mark on it. It never produces a score.</p>
+        <p>Its one job is to offer a <b>day shape</b>. Low light offers a Gentle day (tiny versions, no figures, one essential). Good light offers a Bright day, which is the only time Gaia suggests adding a second focus block. You can always pick a different shape.</p>
+        <p class="muted small">Over a month, Look back can show the light as a quiet band of colour next to what you tended. That's where patterns like “gym days tend to follow rested nights” can come up, as observations and never as rules.</p>
+      </div>
+      <div class="card" aria-label="Example of the Today's light card">
+        <div class="ctitle"><h3>Today's light</h3><span class="eyebrow">Example · try it</span></div>
+        <div class="q"><span class="ql" id="q-energy">Energy</span>
+          <div class="seg" role="group" aria-labelledby="q-energy" data-q="energy">
+            <button type="button" id="e-low" data-v="low" aria-pressed="false">Low</button>
+            <button type="button" id="e-some" data-v="some" aria-pressed="true">Some</button>
+            <button type="button" id="e-good" data-v="good" aria-pressed="false">Good</button>
+          </div></div>
+        <div class="q"><span class="ql" id="q-sleep">Sleep</span>
+          <div class="seg" role="group" aria-labelledby="q-sleep" data-q="sleep">
+            <button type="button" id="s-rough" data-v="rough" aria-pressed="false">Rough</button>
+            <button type="button" id="s-okay" data-v="okay" aria-pressed="true">Okay</button>
+            <button type="button" id="s-rested" data-v="rested" aria-pressed="false">Rested</button>
+          </div></div>
+        <div class="q"><span class="ql" id="q-mind">Mind</span>
+          <div class="seg" role="group" aria-labelledby="q-mind" data-q="mind">
+            <button type="button" id="m-calm" data-v="calm" aria-pressed="true">Calm</button>
+            <button type="button" id="m-full" data-v="full" aria-pressed="false">Full</button>
+            <button type="button" id="m-heavy" data-v="heavy" aria-pressed="false">Heavy</button>
+          </div></div>
+        <div class="shape" id="shape" aria-live="polite">
+          <strong>A Steady day</strong>
+          <span class="muted">Your usual rhythm, one essential and one focus block. Rest window at 20:00.</span>
+        </div>
+        <p class="small muted" id="heavy-note" hidden>If “heavy” has been true for a while, the Support page is one tap away. Gaia is a planner, not a health service.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">Your first three habits</p>
+      <h2>Compass's habits, written as Gaia habits</h2>
+      <p class="muted">Most of Compass's habit tracker is already in Gaia's editor. Behaviour is the title, trigger is the cue, target frequency is the rhythm, the minimum version is the tiny version, and history is the check-ins. The three fields marked <em>new field</em> are what this proposal adds.</p>
+    </div>
+    <div class="habits">
+      <article class="habit">
+        <h3>Move my body</h3>
+        <div class="rhythm" aria-label="About 3 times a week">
+          <span class="on">·</span><span class="on">·</span><span class="on">·</span>
+        </div>
+        <dl>
+          <div><dt>Rhythm</dt><dd>About 3 times a week, any days</dd></div>
+          <div><dt>Cue</dt><dd>After I close the laptop for lunch, on gym days</dd></div>
+          <div><dt>Usual</dt><dd>Gym session, about 80 minutes including travel</dd></div>
+          <div><dt>Tiny version</dt><dd class="tiny">Gym clothes on, a 10-minute walk</dd></div>
+          <div class="newfield"><dt>Why</dt><dd>So my body has somewhere to put the day</dd></div>
+          <div class="newfield"><dt>If–then</dt><dd>If it rains, then I do the walk on the stairs and call it done</dd></div>
+          <div class="newfield"><dt>Coming back</dt><dd>After a quiet week, I start with the tiny version, not the full session</dd></div>
+        </dl>
+      </article>
+      <article class="habit">
+        <h3>Morning start</h3>
+        <div class="rhythm" aria-label="Monday to Friday">
+          <span class="on">M</span><span class="on">T</span><span class="on">W</span><span class="on">T</span><span class="on">F</span><span>S</span><span>S</span>
+        </div>
+        <dl>
+          <div><dt>Rhythm</dt><dd>Weekdays · suggested at 07:00</dd></div>
+          <div><dt>Cue</dt><dd>When I get up, around 7</dd></div>
+          <div><dt>Usual</dt><dd>Wash, eat or prepare food, choose today's tasks in Gaia</dd></div>
+          <div><dt>Tiny version</dt><dd class="tiny">Water, wash, write one thing that matters today</dd></div>
+          <div class="newfield"><dt>Why</dt><dd>A day I chose feels lighter than one that happened to me</dd></div>
+          <div class="newfield"><dt>If–then</dt><dd>If I reach for my phone first, then I open Gaia instead of anything else</dd></div>
+          <div class="newfield"><dt>Coming back</dt><dd>Any morning is a fine morning to start again</dd></div>
+        </dl>
+      </article>
+      <article class="habit">
+        <h3>Evening shutdown</h3>
+        <div class="rhythm" aria-label="Sunday to Thursday nights">
+          <span class="on">S</span><span class="on">M</span><span class="on">T</span><span class="on">W</span><span class="on">T</span><span>F</span><span>S</span>
+        </div>
+        <dl>
+          <div><dt>Rhythm</dt><dd>Five nights, before workdays · suggested at 22:15</dd></div>
+          <div><dt>Cue</dt><dd>When the series window ends</dd></div>
+          <div><dt>Usual</dt><dd>Close work, choose tomorrow's first task, dim screens, asleep by 23:00</dd></div>
+          <div><dt>Tiny version</dt><dd class="tiny">Write tomorrow's first step, phone in the other room</dd></div>
+          <div class="newfield"><dt>Why</dt><dd>So tomorrow starts with a decision already made</dd></div>
+          <div class="newfield"><dt>If–then</dt><dd>If I'm still working at 22:00, then I write where I stopped and close the laptop</dd></div>
+          <div class="newfield"><dt>Coming back</dt><dd>Just tonight's tiny version, nothing to catch up on</dd></div>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">New · From the Life Hub</p>
+      <h2>Goals move. They don't get a percentage.</h2>
+    </div>
+    <div class="light">
+      <div class="prose" style="display:grid;gap:14px">
+        <p>The Life Hub's plan started from a real problem: personal goals lived in a notebook and were never checked on, because nothing in the day led back to them. Gaia gives goals a home already. What it's missing is the check-in.</p>
+        <p>Once a week, right after the weekly reflection, Gaia asks how each active goal is <b>moving</b>. You pick one word. It's your own sense of it, not something calculated, so it stays honest for goals like “feel calmer at work” that can't be measured.</p>
+        <p>If you pick <b>snagged</b>, Gaia asks one more thing: <em>on what?</em> That's Compass's idea that an obstacle is usually about clarity, time, energy or setup, and that the answer is to adjust the setup, not to blame yourself. Each answer points to a small next step, such as a first task, a smaller tiny version, or a time block.</p>
+        <p class="muted small">Goals that are genuinely countable can add an optional milestone (“12 of 20 chapters”). Everything you tag and write builds the goal's timeline, which is what the monthly look back reads from.</p>
+      </div>
+      <div class="card" aria-label="Example of a goal check-in">
+        <div class="ctitle"><h3>Finish my thesis draft</h3><span class="eyebrow">Example · try it</span></div>
+        <p class="small muted">Linked: <em>Morning start</em> · 2 writing blocks this week</p>
+        <div class="q"><span class="ql" id="q-mom">How is it moving this week?</span>
+          <div class="seg" role="group" aria-labelledby="q-mom" id="mom">
+            <button type="button" id="mo-moving" data-v="moving" aria-pressed="true">Moving</button>
+            <button type="button" id="mo-steady" data-v="steady" aria-pressed="false">Steady</button>
+            <button type="button" id="mo-snag" data-v="snagged" aria-pressed="false">Snagged</button>
+            <button type="button" id="mo-rest" data-v="resting" aria-pressed="false">Resting</button>
+          </div></div>
+        <div class="q" id="snag-q" hidden><span class="ql" id="q-snag">Snagged on what?</span>
+          <div class="seg" role="group" aria-labelledby="q-snag" id="snag">
+            <button type="button" id="sn-clarity" data-v="clarity" aria-pressed="false">Not sure what's next</button>
+            <button type="button" id="sn-time" data-v="time" aria-pressed="false">No time for it</button>
+            <button type="button" id="sn-energy" data-v="energy" aria-pressed="false">Low energy</button>
+            <button type="button" id="sn-setup" data-v="setup" aria-pressed="false">The setup is off</button>
+          </div></div>
+        <div class="shape" id="mom-out" aria-live="polite"><strong>Moving</strong><span class="muted">Noted on the timeline. Nothing else to do.</span></div>
+        <div class="milestone"><div class="ms-bar" aria-hidden="true"><i style="width:60%"></i></div><span class="small muted">12 of 20 sections drafted · optional milestone</span></div>
+        <ol class="gtl" aria-label="Goal timeline">
+          <li><span class="d">7 Sep</span><span class="chip have">moving</span><span class="small">Outline done, felt clear.</span></li>
+          <li><span class="d">31 Aug</span><span class="chip reshape">snagged · clarity</span><span class="small">Added a task: “list the three chapters”.</span></li>
+          <li><span class="d">24 Aug</span><span class="chip extend">steady</span><span class="small"></span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">A flexible day</p>
+      <h2>Anchors instead of a timetable</h2>
+      <p class="muted">You work from home with no fixed meetings, so the day hangs on a few anchors and everything else can move. Gaia's timeline already works this way: habits show as dashed suggestions, not commitments. The new things here are the essential focus block, a rest block, and a <em>work ends</em> anchor. Your 07:00–23:00 day window is already a setting.</p>
+    </div>
+    <div class="tl-wrap" role="img" aria-label="Example Steady day from 07:00 to 23:00">
+      <div class="tl">
+        <div class="tl-hours" id="hours"></div>
+        <div class="tl-track" id="track"></div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--block-focus)"></i>Focus: today's essential</span>
+      <span><i style="background:var(--block-habit)"></i>Habit, placed</span>
+      <span><i style="border:1.5px dashed color-mix(in oklab, var(--sage) 80%, var(--text))"></i>Habit, suggested</span>
+      <span><i style="background:var(--block-rest)"></i>Rest, on purpose</span>
+      <span><i style="background:var(--now);width:2px"></i>Anchor</span>
+      <span>Blank space is <em class="s">open time</em></span>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">New · The companion</p>
+      <h2>A private guide that mostly asks, and never acts on its own</h2>
+      <p class="muted">The two plans pulled in different directions here. Compass wanted a guide that makes recommendations. The Life Hub wanted a Socratic companion that asks sharper questions, so your reflection isn't outsourced. Gaia follows the Life Hub by default: <b>insight you reach yourself is the kind that changes things.</b> Compass's proposals remain, but only when you ask for help with a plan.</p>
+    </div>
+
+    <div class="boundary">
+      <span class="cap">Everything inside this line stays on your device</span>
+      <div class="arch-wrap">
+        <div class="arch">
+          <div class="node"><b>Gaia in your browser</b><span>Plan, habits, reflections, the companion panel</span></div>
+          <div class="link" aria-hidden="true">⇄</div>
+          <div class="node"><b>Your planner</b><span><code>localStorage</code> as today, plus IndexedDB for conversations</span></div>
+          <div class="link" aria-hidden="true">⇄</div>
+          <div class="node"><b>A local model</b><span>In the browser (WebLLM on WebGPU), or Ollama on this computer for a larger model</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two">
+      <div style="display:grid;gap:16px">
+        <h3>Where it lives</h3>
+        <p class="small">Inside <b>Look back</b> (weekly and monthly) and the <b>goal editor</b>, not on its own page, as the Life Hub proposed. A focused tool is easier to build well and less likely to become a place to chat instead of reflect.</p>
+        <h3>How a proposal works</h3>
+        <p class="small">Only when you ask it for help with a plan. Gaia's reducer already turns every change into one named action, and undo already snapshots the state before it. The companion never dispatches anything itself. It writes a <em>proposal</em> that holds the action, and nothing happens until you press <b>Add it</b>.</p>
+        <h3>What it can see</h3>
+        <p class="small">You choose per conversation. Reflections start switched off, matching Gaia's rule that reflection text is never inspected.</p>
+        <div class="scopes"><span class="scope on">Habits &amp; check-ins</span><span class="scope on">Goals</span><span class="scope on">Today's light</span><span class="scope">Reflections</span><span class="scope">Compass</span></div>
+        <h3>Where it runs</h3>
+        <p class="small">Both plans named Ollama, which runs a stronger model on your own computer. The catch is that the online Vercel version can only reach it when you're on that computer. Running a model in the browser works everywhere and nothing leaves the device, but the models are smaller. With neither available, the companion stays off and says so plainly in Settings.</p>
+      </div>
+      <div style="display:grid;gap:16px">
+        <div class="question-card">
+          <div class="from" style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--text-tertiary)"><span class="dot" style="width:22px;height:22px;border-radius:50%;background:color-mix(in oklab, var(--lav) 60%, var(--surface))" aria-hidden="true"></span>Companion · in your monthly look back</div>
+          <p class="ask">You tagged your thesis <em>snagged on clarity</em> twice this month, and the weeks after both had a writing block on Monday. What was different about those Mondays?</p>
+          <label class="small muted" for="c-answer">Your answer, in your words. It goes into this month's journal.</label>
+          <textarea id="c-answer" placeholder="Take your time. You can also skip this question."></textarea>
+        </div>
+        <p class="small muted">It points at your own data and asks. It doesn't tell you what the data means.</p>
+        <div class="proposal" id="proposal">
+          <p class="small muted" style="margin:0">Only if you ask, “help me fit the gym in better”:</p>
+          <div class="from"><span class="dot" aria-hidden="true"></span>Companion · a proposal</div>
+          <p class="body">Your gym check-ins over the last month mostly landed on Tuesday and Thursday evenings, and on days after a <em>rested</em> light. Saturday mornings are open on your timeline.</p>
+          <div class="change"><b>Would add</b> a dashed Saturday 10:00 suggestion to <em>Move my body</em>. Rhythm stays “about 3 times a week”.</div>
+          <div class="actions" id="p-actions">
+            <button type="button" class="btn primary" id="p-add">Add it</button>
+            <button type="button" class="btn" id="p-edit">Edit first</button>
+            <button type="button" class="btn" id="p-skip">Not now</button>
+          </div>
+          <p class="status" id="p-status" hidden></p>
+        </div>
+        <div class="two" style="gap:18px">
+          <div style="display:grid;gap:8px"><p class="eyebrow">It helps with</p>
+            <ul class="list">
+              <li>Asking the question behind a pattern</li>
+              <li>Weekly and monthly look backs</li>
+              <li>Breaking a goal down, by asking, not by writing it for you</li>
+              <li>Writing if–then plans</li>
+              <li>Naming the obstacle: clarity, time, energy, resistance, distraction or setup</li>
+              <li>Exploring values for Compass</li>
+              <li>Planning rest on purpose</li>
+            </ul></div>
+          <div style="display:grid;gap:8px"><p class="eyebrow">It never</p>
+            <ul class="list no">
+              <li>Writes your review, or sums up your month for you</li>
+              <li>Diagnoses, or calls itself a therapist</li>
+              <li>Makes medical or diet claims</li>
+              <li>Changes anything without your yes</li>
+              <li>Mentions what didn't happen</li>
+              <li>Keeps going when things sound heavy. It points to Support instead</li>
+            </ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">New · Why Gaia works this way</p>
+      <h2>Three kinds of knowing, drawn so they can't be confused</h2>
+      <p class="muted">Compass's Evidence section becomes part of Help. Each kind of entry has its own visual form, so a pattern in the data never looks like a study, and a study never overrules what you noticed about yourself.</p>
+    </div>
+    <div class="ev">
+      <div class="evc src">
+        <span class="chip have" style="justify-self:start">Source · verified</span>
+        <h3>Research</h3>
+        <p class="small muted">A citation you or the design brief checked, with a link, a one-line takeaway, and the Gaia feature it shaped. Entries are marked verified or not yet verified.</p>
+        <p class="ex">Implementation intentions (Gollwitzer): <q>If–then plans help people act on goals</q>, which is why habits have cues and if–then plans.</p>
+      </div>
+      <div class="evc obs">
+        <span class="chip extend" style="justify-self:start">Your observation</span>
+        <h3>What you noticed</h3>
+        <p class="small muted">Written by you, often from a reflection. It carries the most weight, because it's about you.</p>
+        <p class="ex"><q>The tiny walk nearly always turns into the full gym session.</q></p>
+      </div>
+      <div class="evc read">
+        <span class="chip new" style="justify-self:start">A pattern in your data</span>
+        <h3>Something worth asking about</h3>
+        <p class="small muted">The Life Hub's gentle correlations, worked out from your own entries. Drawn with a dashed edge, like any suggestion in Gaia, and phrased as a question. It becomes your observation only if you say it's true.</p>
+        <p class="ex"><q>Bright days often follow evenings with a shutdown before 22:30. Does that match how it feels?</q></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">Navigation</p>
+      <h2>One new place in the sidebar, not fourteen</h2>
+      <p class="muted">Compass's menu had fourteen items and the Life Hub's had eight. Gaia adds the ideas without adding the weight. Capture is a button, a sidebar row and <b>Ctrl I</b>, all opening a small window rather than a page, Today's light lives on Plan, and the companion lives inside Look back and the goal editor.</p>
+    </div>
+    <div class="navs">
+      <div class="side">
+        <span class="cap">Gaia today</span>
+        <div class="it">Plan</div>
+        <div class="it">Calendar</div>
+        <div class="it">Goals &amp; habits</div>
+        <div class="it">Manage</div>
+        <hr>
+        <div class="it">Settings</div>
+        <div class="it">Support</div>
+        <div class="it">Help</div>
+      </div>
+      <div class="side">
+        <span class="cap">Gaia with Compass</span>
+        <div class="it">Capture <small>Ctrl I · opens a small window</small></div>
+        <div class="it">Plan <small>+ Today's light, the one that matters</small></div>
+        <div class="it">Calendar</div>
+        <div class="it">Goals &amp; habits <small>+ Compass, momentum, milestones</small></div>
+        <div class="it added">Look back <span class="chip new">new</span></div>
+        <div class="it">Manage</div>
+        <hr>
+        <div class="it">Settings <small>+ companion status, privacy</small></div>
+        <div class="it">Support</div>
+        <div class="it">Help <small>+ Why Gaia works this way</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">Left out, on purpose</p>
+      <h2>What Gaia declines, and why</h2>
+    </div>
+    <div class="decline-list prose">
+      <div class="dl"><b>Streaks</b><p class="small muted">A streak turns every blank day into a loss. Rhythms (“about 3 a week”) keep the goal and drop the punishment.</p></div>
+      <div class="dl"><b>A 25-panel dashboard</b><p class="small muted">It contradicts Compass's own principle: <em>never overwhelm the user with excessive planning</em>. Plan stays short and Look back opens on purpose.</p></div>
+      <div class="dl"><b>Planned vs completed</b><p class="small muted">Its only output is a gap. “Where the time went” shows the same blocks with no comparison.</p></div>
+      <div class="dl"><b>“X of the last 30 days”</b><p class="small muted">Kinder than a streak, but the denominator still counts blanks. Gaia counts only what you tended.</p></div>
+      <div class="dl"><b>A daily review</b><p class="small muted">Both plans had one. Gaia tried it as <em>closing the day</em> and removed it on 15 September, because it showed unfinished things at the hour they are least welcome.</p></div>
+      <div class="dl"><b>A companion that summarises you</b><p class="small muted">Compass's recommendations feed stays out. The Life Hub was right that a bot doing the review quietly replaces your own reflection.</p></div>
+      <div class="dl"><b>Rebuilding on FastAPI and SQLite</b><p class="small muted">The Life Hub planned a fresh stack. Gaia already runs, stores data locally and online, and works on a phone, so a rewrite would cost weeks and add nothing you'd see.</p></div>
+      <div class="dl"><b>Social media &amp; avoidance tracking</b><p class="small muted">Counting minutes invites self-surveillance. “What pulled me away?” is an optional reflection question instead.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">How it ships</p>
+      <h2>Four seasons, each one useful on its own</h2>
+      <p class="muted">Earlier seasons fit Gaia's current model with small, additive changes, and <code>migrateState</code> fills them in for old saves. Borrowing the Life Hub's best rule, a season starts when the last one has become part of your week, not on a date. Adding many new habits at once is a common reason people stop using a planner.</p>
+    </div>
+    <div class="phases">
+      <div class="phase">
+        <div class="ph"><b>Seeds</b><span>Season 1 · small, additive</span></div>
+        <div class="pb">
+          <ul class="list">
+            <li>Habit fields: <b>why</b>, <b>if–then</b>, <b>coming back</b></li>
+            <li><b>The one that matters</b>: one task marked with a star, plus up to two, on Plan</li>
+            <li><b>Capture</b> with <b>Ctrl I</b>, a button or the sidebar, into an <b>Inbox</b> at the top of Later, sorted with one menu</li>
+            <li><b>With someone else</b>: a folded section for tasks you're waiting on (“Laura has it · since Tue”)</li>
+            <li>Optional <b>milestone count</b> on goals</li>
+            <li>Install on the home screen (PWA manifest and icon)</li>
+            <li>The three habits above, offered in a <b>Start with a few habits</b> card in Settings, each one optional</li>
+          </ul>
+          <p class="small"><a href="https://claude.ai/artifact/R6DeUMVA6TV3TfnnDhJUQb">See every Season 1 screen on the design canvas →</a></p>
+          <p class="gate"><b>Ready for the next season when</b> all your tasks live in Gaia, and the essential feels useful rather than like one more thing to choose.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="ph"><b>Light</b><span>Season 2 · the day and the week</span></div>
+        <div class="pb">
+          <ul class="list">
+            <li><b>Today's light</b> check-in, under two minutes, with filling in earlier days</li>
+            <li><b>Day shapes</b> (Gentle already exists; add Steady and Bright) and a <b>welcome back</b> after quiet days</li>
+            <li><b>Goal momentum</b> right after the weekly reflection, with <em>snagged, on what?</em> and each goal's timeline</li>
+            <li><b>Look back</b>: weekly and monthly, with a journal field and the period's data pulled in</li>
+            <li><b>Rest blocks</b>, a <b>work ends</b> anchor, goals dragged onto the timeline, and <b>repeating tasks</b></li>
+          </ul>
+          <p class="gate"><b>Ready for the next season when</b> you've opened Today's light most mornings for two or three weeks and done one weekly and one monthly look back. This is the Life Hub's own gate.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="ph"><b>Compass</b><span>Season 3 · direction</span></div>
+        <div class="pb">
+          <ul class="list">
+            <li><b>Compass</b> section: values, roles, one provisional sentence</li>
+            <li>Goals can point at a value, as an optional lens</li>
+            <li><b>Patterns in your data</b> in Look back, phrased as questions</li>
+            <li><b>Why Gaia works this way</b> in Help, seeded from the design brief</li>
+          </ul>
+          <p class="gate"><b>Ready for the next season when</b> a pattern has come up in Look back that you recognised, or didn't, and either way it felt fair.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="ph"><b>Companion</b><span>Season 4 · local AI</span></div>
+        <div class="pb">
+          <ul class="list">
+            <li>Questions inside Look back and the goal editor, drawn from real months of your data</li>
+            <li>Proposals only when you ask: <b>Add it · Edit first · Not now</b></li>
+            <li>Ollama and in-browser engines, per-conversation scopes, conversation deletion, companion status in Settings</li>
+            <li>Encrypted export, and device-only check-ins and conversations in account mode unless you turn syncing on</li>
+          </ul>
+          <p class="gate"><b>Keep it if</b> it has sharpened something you noticed. <b>Dial it back if</b> it starts to feel like it's doing the review for you. That's the Life Hub's test, and it's the right one.</p>
+        </div>
+      </div>
+    </div>
+    <p class="muted small prose">Later ideas such as finances, life-area views and quarterly looks come in the same way goals did: as <b>lenses</b> on existing things, never as new folders. That's why the structure never needs to change.</p>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">For the code</p>
+      <h2>What changes in <code>types.ts</code></h2>
+      <p class="muted">All additions are optional fields or new lists, so every existing save still loads.</p>
+    </div>
+<pre class="code"><span class="c">// Season 1</span>
+interface Habit { …; why?: string; ifThen?: { when: string; then: string }[]; comingBack?: string }
+type TaskStatus = 'open' | 'done' | 'let-go' | 'waiting';
+interface Task  { …; waitingOn?: string; waitingSince?: string; essential?: boolean }   <span class="c">// essential only counts on plannedFor</span>
+interface Capture { id: ID; text: string; createdAt: string }  <span class="c">// sorted into a task, habit or goal, or let go</span>
+interface Goal  { …; milestone?: { target: number; current: number; unit?: string } }
+
+<span class="c">// Season 2 · keyed by date, so filling in an earlier day is just another entry</span>
+interface Light { date: string; energy?: 'low' | 'some' | 'good'; sleep?: 'rough' | 'okay' | 'rested';
+                  mind?: 'calm' | 'full' | 'heavy'; nap?: boolean }   <span class="c">// describes, never grades</span>
+type DayShape = 'gentle' | 'steady' | 'bright';          <span class="c">// replaces gentleDayDate with { date, shape }</span>
+type Momentum = 'moving' | 'steady' | 'snagged' | 'resting';
+interface GoalCheckIn { goalId: ID; date: string; momentum: Momentum;
+                        snag?: 'clarity' | 'time' | 'energy' | 'setup'; note?: string }
+interface Reflection { …; period: 'week' | 'month'; journal?: string }   <span class="c">// existing saves become 'week'</span>
+interface TimeBlock { …; kind?: 'task' | 'rest' }
+interface Task  { …; repeat?: Rhythm }                    <span class="c">// reuses the habit rhythm type</span>
+
+<span class="c">// Season 3</span>
+interface Value { id: ID; word: string; note?: string }
+interface Compass { values: Value[]; roles: string[]; heading?: string; updatedAt: string }
+interface Goal  { …; valueId?: ID }
+interface Evidence { id: ID; kind: 'source' | 'observation' | 'reading'; title: string;
+                     url?: string; verified?: boolean; note?: string }
+
+<span class="c">// Season 4 · a proposal holds an action; only approve() dispatches it</span>
+interface Proposal { id: ID; reason: string; action: Action; status: 'open' | 'added' | 'set-aside'; createdAt: string }</pre>
+  </section>
+
+  <section>
+    <div class="sec-head prose">
+      <p class="eyebrow">Your call</p>
+      <h2>Five decisions before Season 1</h2>
+    </div>
+    <div class="questions prose">
+      <div class="question"><b>How private should Gaia be?</b><p class="small muted">The two plans disagreed. Compass made local-first a core principle, and the Life Hub said privacy wasn't a concern. Gaia sits in between today: local by default, with optional accounts. The proposal keeps that, and asks only that mood and companion data stay on the device unless you choose otherwise.</p></div>
+      <div class="question"><b>“Snagged”, or the Life Hub's plainer “stuck”?</b><p class="small muted">“Snagged” suggests something you can unhook, which fits the follow-up question. “Stuck” is more direct.</p></div>
+      <div class="question"><b>Is “Compass” the right name for the Direction section?</b><p class="small muted">It honours where Gaia came from. The alternative is plainer: “What matters”.</p></div>
+      <div class="question"><b>Gentle · Steady · Bright, or keep Compass's three?</b><p class="small muted">The proposal favours the light words because they match Today's light and make no day sound lesser.</p></div>
+      <div class="question"><b>Should check-ins sync in account mode?</b><p class="small muted">Recommended: off by default, with one switch in Settings.</p></div>
+      <div class="question"><b>Which companion engine first?</b><p class="small muted">Both plans chose Ollama, and you already run Gaia on your own computer, so Ollama first is the natural start. An in-browser model can come second, for when you open Gaia on your phone.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="strip garden" role="img" aria-label="Claude Monet, the garden at Giverny"></div>
+    <p class="phr">Small actions. Meaningful direction. Leave space.</p>
+    <p class="small muted"><a href="index.html">Back to the Gaia docs</a> · Paintings by Claude Monet, public domain.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  // Map filter
+  document.querySelectorAll('.filters').forEach(function (group) {
+    var btns = group.querySelectorAll('button');
+    var rows = document.querySelectorAll('#' + group.getAttribute('data-for') + ' .row:not(.head)');
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var f = b.getAttribute('data-f');
+        btns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        rows.forEach(function (r) {
+          r.hidden = f !== 'all' && r.getAttribute('data-t').split(' ').indexOf(f) === -1;
+        });
+      });
+    });
+  });
+
+  // Today's light
+  var state = { energy: 'some', sleep: 'okay', mind: 'calm' };
+  var shapeEl = document.getElementById('shape');
+  var heavy = document.getElementById('heavy-note');
+  function shape() {
+    var low = state.energy === 'low' || (state.sleep === 'rough' && state.energy !== 'good') || state.mind === 'heavy';
+    var bright = state.energy === 'good' && state.sleep !== 'rough' && state.mind === 'calm';
+    if (low) return ['A Gentle day', 'Tiny versions count in full, figures are hidden, and one essential is plenty. Rest can start early.'];
+    if (bright) return ['A Bright day', 'Room for a second focus block if you want one. The rest window stays where it is.'];
+    return ['A Steady day', 'Your usual rhythm, one essential and one focus block. Rest window at 20:00.'];
+  }
+  // Goal momentum
+  var momOut = document.getElementById('mom-out');
+  var snagQ = document.getElementById('snag-q');
+  var NEXT = {
+    moving: ['Moving', 'Noted on the timeline. Nothing else to do.'],
+    steady: ['Steady', 'Holding is a kind of progress. Noted on the timeline.'],
+    resting: ['Resting', 'Resting on purpose. It stays active, just quiet, until you pick it up.'],
+    snagged: ['Snagged', 'Pick what it is snagged on and Gaia offers one small change.'],
+    clarity: ['Snagged on clarity', 'Offer: write the very next step as a task, in under ten words.'],
+    time: ['Snagged on time', 'Offer: drag the goal onto one open block this week.'],
+    energy: ['Snagged on energy', 'Offer: shrink the linked habit to its tiny version for a week.'],
+    setup: ['Snagged on setup', 'Offer: change the cue or the time. The goal is fine, the setup needs adjusting.']
+  };
+  function showMom(k) { momOut.innerHTML = '<strong>' + NEXT[k][0] + '</strong><span class="muted">' + NEXT[k][1] + '</span>'; }
+  function wire(id, fn) {
+    var g = document.getElementById(id);
+    g.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        g.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        fn(b.getAttribute('data-v'));
+      });
+    });
+  }
+  wire('mom', function (v) {
+    snagQ.hidden = v !== 'snagged';
+    document.querySelectorAll('#snag button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+    showMom(v);
+  });
+  wire('snag', showMom);
+
+  document.querySelectorAll('.seg[data-q]').forEach(function (g) {
+    var q = g.getAttribute('data-q');
+    g.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state[q] = b.getAttribute('data-v');
+        g.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        var s = shape();
+        shapeEl.innerHTML = '<strong>' + s[0] + '</strong><span class="muted">' + s[1] + '</span>';
+        heavy.hidden = state.mind !== 'heavy';
+      });
+    });
+  });
+
+  // Timeline, 07:00 to 23:00
+  var START = 7, END = 23, span = END - START;
+  var hours = document.getElementById('hours');
+  var track = document.getElementById('track');
+  for (var h = START; h <= END; h += 2) {
+    var s = document.createElement('span');
+    s.style.left = ((h - START) / span * 100) + '%';
+    s.textContent = (h < 10 ? '0' : '') + h + ':00';
+    hours.appendChild(s);
+  }
+  function t(hm) { var p = hm.split(':'); return +p[0] + (+p[1]) / 60; }
+  var blocks = [
+    ['07:00', '07:45', 'habit', 'Morning start', 'tiny if Gentle'],
+    ['09:00', '11:30', 'focus', 'Essential', 'one thing'],
+    ['12:30', '13:00', 'habit', 'Lunch', ''],
+    ['14:00', '15:30', 'focus', 'Second priority', ''],
+    ['17:00', '18:20', 'sugg', 'Gym', '80 min · suggested'],
+    ['20:00', '21:30', 'rest', 'Series, on purpose', 'rest block'],
+    ['22:15', '22:45', 'sugg', 'Shutdown', 'suggested']
+  ];
+  blocks.forEach(function (b) {
+    var d = document.createElement('div');
+    d.className = 'blk ' + b[2];
+    d.style.left = ((t(b[0]) - START) / span * 100) + '%';
+    d.style.width = ((t(b[1]) - t(b[0])) / span * 100) + '%';
+    d.innerHTML = '<b>' + b[3] + '</b>' + (b[4] ? b[4] : '');
+    track.appendChild(d);
+  });
+  [['18:30', 'work ends'], ['23:00', 'sleep']].forEach(function (a) {
+    var d = document.createElement('div');
+    d.className = 'blk anchor';
+    d.style.left = 'calc(' + ((t(a[0]) - START) / span * 100) + '% - 1px)';
+    d.innerHTML = '<i>' + a[1] + '</i>';
+    track.appendChild(d);
+  });
+
+  // Proposal demo
+  var status = document.getElementById('p-status');
+  var actions = document.getElementById('p-actions');
+  function done(msg) { actions.hidden = true; status.hidden = false; status.textContent = msg; }
+  document.getElementById('p-add').addEventListener('click', function () { done('Added. Saturday 10:00 now shows as a dashed suggestion. Undo is in the toast.'); });
+  document.getElementById('p-edit').addEventListener('click', function () { done('Opens the habit editor with the suggestion filled in, so you can change the day or time before it is saved.'); });
+  document.getElementById('p-skip').addEventListener('click', function () { done('Set aside. It will not come back unless you ask.'); });
+})();
+</script>
+
+</body>
+</html>
