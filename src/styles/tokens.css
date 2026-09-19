@@ -65,6 +65,9 @@
      in dark, settled into the ground. See src/lib/swatch.ts. */
   --swatch-keep: 100%;
   --swatch-lift: 100%;
+  --swatch-shift-l: 0;
+  --swatch-shift-a: 0;
+  --swatch-shift-b: 0;
   --swatch-lavender: color-mix(in oklab, color-mix(in oklab, #b3a7d6 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
   --swatch-powder-blue: color-mix(in oklab, color-mix(in oklab, #a9c3e0 var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
   --swatch-sage: color-mix(in oklab, color-mix(in oklab, #a3c29d var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));
@@ -156,8 +159,9 @@
     --block-ink: #cbd3e0;
     --inverse-surface: #2a3140;
 
-    /* Swatches sink a little into the dark ground, so they glow less. */
+    /* Swatches sink into the dark ground, so they glow less. */
     --swatch-lift: 82%;
+    --swatch-shift-l: -0.14;
   }
 }
 
@@ -208,8 +212,9 @@
   --block-ink: #cbd3e0;
   --inverse-surface: #2a3140;
 
-  /* Swatches sink a little into the dark ground, so they glow less. */
+  /* Swatches sink into the dark ground, so they glow less. */
   --swatch-lift: 82%;
+  --swatch-shift-l: -0.14;
 }
 
 /* ---------- Rouen Cathedral ---------- */
@@ -226,6 +231,8 @@
   --chip-today-bg: rgba(211, 181, 138, 0.32);
   --chip-today-ink: #5d5140;
   --swatch-keep: 78%;
+  --swatch-shift-a: 0.012;
+  --swatch-shift-b: 0.045;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -270,6 +277,8 @@
   --chip-today-bg: rgba(159, 195, 155, 0.32);
   --chip-today-ink: #3f5140;
   --swatch-keep: 80%;
+  --swatch-shift-a: -0.035;
+  --swatch-shift-b: 0.022;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -314,6 +323,8 @@
   --chip-today-bg: rgba(200, 169, 196, 0.3);
   --chip-today-ink: #4e4560;
   --swatch-keep: 80%;
+  --swatch-shift-a: 0.03;
+  --swatch-shift-b: -0.014;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -342,6 +353,29 @@
   --avatar-quiet: #9990a6;
   --chip-today-bg: rgba(200, 169, 196, 0.2);
   --chip-today-ink: #e0cfe0;
+}
+
+/* ---------- Swatches, moved whole by the palette and the theme ---------- */
+
+@supports (color: oklab(from red l a b)) {
+  :root {
+    --swatch-lavender: oklab(from #b3a7d6 calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-powder-blue: oklab(from #a9c3e0 calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-sage: oklab(from #a3c29d calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-pale-sage: oklab(from #bdd3b0 calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-lily-pink: oklab(from #e6bccb calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-eucalyptus: oklab(from #9fd0ba calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-sand: oklab(from #d9cbbe calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-blue-grey: oklab(from #b6c3d6 calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-mist: oklab(from #c8c6d0 calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-peach: oklab(from #e8c6ae calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-slate: oklab(from #a7b6cc calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-heather: oklab(from #cdb4c3 calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-lichen: oklab(from #c3c9be calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-linen: oklab(from #c9bba9 calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-seafoam: oklab(from #b4c8c4 calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+    --swatch-wisteria: oklab(from #bdb3d2 calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));
+  }
 }
 
 @media (max-width: 1023px) {

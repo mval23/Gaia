@@ -48,14 +48,30 @@ export const swatches = {
   wisteria: '#bdb3d2',
 };
 
-// How much of each swatch's own hue survives; the rest is the painting's --avatar.
-// Water Lilies is where the swatches were picked, so it keeps them as they are.
+// How far each painting moves every swatch, in oklab (a: green to red, b: blue
+// to yellow). The whole set moves together, so no two swatches drift into each
+// other. Water Lilies is where the swatches were picked, so it keeps them.
+const swatchShift = {
+  lilies: { a: 0, b: 0 },
+  rouen: { a: 0.012, b: 0.045 },
+  giverny: { a: -0.035, b: 0.022 },
+  waterloo: { a: 0.03, b: -0.014 },
+};
+
+// Browsers without relative colours get a light blend toward the painting's --avatar.
 const swatchKeep = { lilies: '100%', rouen: '78%', giverny: '80%', waterloo: '80%' };
 
 const swatchTokens = Object.entries(swatches)
   .map(
     ([name, hex]) =>
       `  --swatch-${name}: color-mix(in oklab, color-mix(in oklab, ${hex} var(--swatch-keep), var(--avatar)) var(--swatch-lift), var(--bg));`,
+  )
+  .join('\n');
+
+const shiftedSwatchTokens = Object.entries(swatches)
+  .map(
+    ([name, hex]) =>
+      `    --swatch-${name}: oklab(from ${hex} calc(l + var(--swatch-shift-l)) calc(a + var(--swatch-shift-a)) calc(b + var(--swatch-shift-b)));`,
   )
   .join('\n');
 
@@ -103,6 +119,9 @@ const shared = `
      in dark, settled into the ground. See src/lib/swatch.ts. */
   --swatch-keep: ${swatchKeep.lilies};
   --swatch-lift: 100%;
+  --swatch-shift-l: 0;
+  --swatch-shift-a: ${swatchShift.lilies.a};
+  --swatch-shift-b: ${swatchShift.lilies.b};
 ${swatchTokens}`;
 
 const sharedDark = `
@@ -139,8 +158,9 @@ const sharedDark = `
   --block-ink: #cbd3e0;
   --inverse-surface: #2a3140;
 
-  /* Swatches sink a little into the dark ground, so they glow less. */
-  --swatch-lift: 82%;`;
+  /* Swatches sink into the dark ground, so they glow less. */
+  --swatch-lift: 82%;
+  --swatch-shift-l: -0.14;`;
 
 const shape = `
   /* Shape */
@@ -218,6 +238,8 @@ for (const [name, p] of Object.entries(palettes)) {
 :root[data-palette='${name}'] {
 ${vars(p.light, '  ')}
   --swatch-keep: ${swatchKeep[name]};
+  --swatch-shift-a: ${swatchShift[name].a};
+  --swatch-shift-b: ${swatchShift[name].b};
 }
 
 @media (prefers-color-scheme: dark) {
@@ -233,6 +255,14 @@ ${vars(p.dark, '  ')}
 }
 
 out += `
+/* ---------- Swatches, moved whole by the palette and the theme ---------- */
+
+@supports (color: oklab(from red l a b)) {
+  :root {
+${shiftedSwatchTokens}
+  }
+}
+
 @media (max-width: 1023px) {
   :root {
     --gutter: 24px;
