@@ -1,0 +1,31 @@
+/* The roadmap fills the space below the shell's top padding and scrolls inside itself,
+   so the page never scrolls twice (the same fit as the Plan page). */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 32px);
+  min-height: 480px;
+  margin-bottom: -28px;
+}
+
+.frame {
+  flex: 1;
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.missing {
+  margin: 48px 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+/* On a phone the top bar (about 70px) and the shell's padding sit above it. */
+@media (max-width: 767px) {
+  .page {
+    height: calc(100dvh - 70px - 14px);
+    margin-bottom: -28px;
+  }
+}

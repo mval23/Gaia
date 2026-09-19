@@ -7,6 +7,7 @@ import { GoalsPage } from './pages/GoalsPage';
 import { SupportPage } from './pages/SupportPage';
 import { HelpPage } from './pages/HelpPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { PlansPage } from './pages/PlansPage';
 import { ManageTasks } from './pages/manage/ManageTasks';
 import { ManageGroups } from './pages/manage/ManageGroups';
 
@@ -20,6 +21,7 @@ export function App() {
         <Route path="support" element={<SupportPage />} />
         <Route path="help" element={<HelpPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="plans" element={<PlansPage />} />
         <Route path="manage" element={<ManageLayout />}>
           <Route index element={<Navigate to="tasks" replace />} />
           <Route path="tasks" element={<ManageTasks />} />

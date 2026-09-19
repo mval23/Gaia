@@ -6,6 +6,7 @@ export default defineConfig({
   server: { port: 5173, strictPort: true },
   build: {
     // auth-redirect.html is the page the Microsoft sign-in popup returns to.
-    rollupOptions: { input: { main: 'index.html', authRedirect: 'auth-redirect.html' } },
+    // docs/plans.html is also the in-app What's coming page (/plans), so it ships with the app.
+    rollupOptions: { input: { main: 'index.html', authRedirect: 'auth-redirect.html', plans: 'docs/plans.html' } },
   },
 });
