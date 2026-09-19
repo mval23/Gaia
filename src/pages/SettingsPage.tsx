@@ -369,7 +369,7 @@ function MicrosoftAccount() {
           <p className={styles.hint}>
             {access === 'needs-consent'
               ? 'Gaia needs your permission to read and add calendar events.'
-              : syncError ?? 'Link a group to one of your calendars from Manage ▸ Groups.'}
+              : syncError ?? 'Link a group to one of your calendars from Manage ▸ Groups & categories.'}
           </p>
           <div className={styles.actions}>
             {access === 'needs-consent' && (

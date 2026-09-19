@@ -5,6 +5,7 @@ import { addDays, addMonths, dayOfWeek, monthGrid, startOfWeek, weekDates, weekd
 import { DEFAULT_RHYTHM, isOnRhythm, normalizeRhythm, rhythmLabel, weeklyTarget } from './rhythm';
 import { createEmpty } from '../data/seed';
 import { mentionsBodyOrFood } from './sensitive';
+import { whatGoesWith } from './copy';
 import { isState, migrateState } from '../store/persist';
 import tokens from '../styles/tokens.css?raw';
 import { CATEGORY_PALETTE, GROUP_PALETTE, paint } from './swatch';
@@ -31,6 +32,7 @@ import {
   partitionDay,
   totalCount,
   weekCount,
+  filterTasks,
 } from '../store/selectors';
 
 describe('time', () => {
@@ -744,5 +746,50 @@ describe('season 1', () => {
   it('files an Inbox line near what was added most recently', () => {
     const s = reducer(seed, { type: 'task/add', id: 't-latest', categoryId: 'c-home', title: 'Newest' });
     expect(recentCategoryId(s)).toBe('c-home');
+  });
+});
+
+describe('manage', () => {
+  const seed = createSeed('2026-09-14');
+  const withTasks = (patches: Array<Partial<GaiaState['tasks'][number]>>): GaiaState => ({
+    ...seed,
+    tasks: patches.map((p, i) => ({ ...seed.tasks[0], id: `m-${i}`, blocks: [], notes: '', ...p })),
+  });
+
+  it('searches titles and notes, ignoring case and stray spaces', () => {
+    const state = withTasks([{ title: 'Call the bank' }, { title: 'Other', notes: 'ask the BANK first' }, { title: 'Read' }]);
+    expect(filterTasks(state, { query: '  bank ' }).map((t) => t.id)).toEqual(['m-0', 'm-1']);
+  });
+
+  it('narrows by group and by category', () => {
+    const state = withTasks([{ categoryId: 'c-client-a' }, { categoryId: 'c-university' }]);
+    expect(filterTasks(state, { groupId: 'g-personal' }).map((t) => t.id)).toEqual(['m-1']);
+    expect(filterTasks(state, { categoryId: 'c-client-a' }).map((t) => t.id)).toEqual(['m-0']);
+  });
+
+  it('keeps let-go tasks out unless they are asked for', () => {
+    const state = withTasks([{ status: 'open' }, { status: 'let-go' }, { status: 'waiting' }]);
+    expect(filterTasks(state, {}).map((t) => t.id)).toEqual(['m-0', 'm-2']);
+    expect(filterTasks(state, { status: 'let-go' }).map((t) => t.id)).toEqual(['m-1']);
+    // With someone else is unfinished, so it counts as active.
+    expect(filterTasks(state, { status: 'open' }).map((t) => t.id)).toEqual(['m-0', 'm-2']);
+  });
+
+  it('settles finished tasks at the bottom, then sorts by the chosen order', () => {
+    const state = withTasks([
+      { title: 'B', status: 'done', priority: 'high' },
+      { title: 'C', priority: 'low', due: '2026-09-20' },
+      { title: 'A', priority: 'high', due: '2026-09-30' },
+    ]);
+    expect(filterTasks(state, {}).map((t) => t.title)).toEqual(['C', 'A', 'B']);
+    expect(filterTasks(state, { sort: 'title' }).map((t) => t.title)).toEqual(['A', 'C', 'B']);
+    expect(filterTasks(state, { sort: 'priority' }).map((t) => t.title)).toEqual(['A', 'C', 'B']);
+  });
+
+  it('says what goes with a deleted category, and nothing when it is empty', () => {
+    expect(whatGoesWith(0, 0)).toBe('');
+    expect(whatGoesWith(1, 0)).toBe('1 task');
+    expect(whatGoesWith(5, 2)).toBe('5 tasks and 2 habits');
+    expect(whatGoesWith(0, 1)).toBe('1 habit');
   });
 });

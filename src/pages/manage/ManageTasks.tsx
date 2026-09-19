@@ -1,15 +1,27 @@
 import { useMemo } from 'react';
+import type { Task } from '../../types';
 import { useGaia } from '../../store/GaiaProvider';
-import { categoriesInGroup, categoryById, groupById, sortedGroups } from '../../store/selectors';
+import {
+  categoriesInGroup,
+  filterTasks,
+  groupById,
+  sortedGroups,
+  type TaskSort,
+  type TaskStatusFilter,
+} from '../../store/selectors';
 import { useParam, useSetParams } from '../../hooks/useDateParam';
+import { countOf } from '../../lib/copy';
 import { Icon } from '../../components/ui/Icon';
 import { Select } from '../../components/ui/Select';
 import { MonetAccent } from '../../components/art/MonetAccent';
 import { GroupSection } from '../../components/tasks/GroupSection';
 import { CategoryCard } from '../../components/tasks/CategoryCard';
+import ui from '../../components/ui/ui.module.css';
 import styles from './manage.module.css';
 
-const PRIORITY_RANK = { high: 0, medium: 1, low: 2 } as const;
+const STATUSES: TaskStatusFilter[] = ['open', 'done', 'scheduled', 'unscheduled', 'let-go'];
+const SORTS: TaskSort[] = ['due', 'title', 'priority'];
+const NO_TASKS: Task[] = [];
 
 /**
  * The same tree the Plan page shows — Group → Category → Task, with the inline
@@ -22,46 +34,32 @@ export function ManageTasks() {
   const [groupId] = useParam('group');
   const setParams = useSetParams();
   const [categoryId, setCategoryId] = useParam('category');
-  const [status, setStatus] = useParam('status');
-  const [sort, setSort] = useParam('sort');
+  const [rawStatus, setStatus] = useParam('status');
+  const [rawSort, setSort] = useParam('sort');
 
   const groups = sortedGroups(state);
   const validGroup = groupId && groupById(state, groupId) ? groupId : null;
   const categoryOptions = validGroup ? categoriesInGroup(state, validGroup) : state.categories;
   const validCategory = categoryId && categoryOptions.some((c) => c.id === categoryId) ? categoryId : null;
-  const query = (q ?? '').trim().toLowerCase();
+  const status = STATUSES.find((s) => s === rawStatus) ?? null;
+  const sort = SORTS.find((s) => s === rawSort) ?? null;
+  const query = (q ?? '').trim();
   const narrowed = !!(query || status || validCategory || validGroup);
 
-  const matching = useMemo(() => {
-    const rows = state.tasks.filter((task) => {
-      const cat = categoryById(state, task.categoryId);
-      const group = cat ? groupById(state, cat.groupId) : undefined;
-      if (query && !task.title.toLowerCase().includes(query) && !task.notes.toLowerCase().includes(query)) return false;
-      if (validGroup && group?.id !== validGroup) return false;
-      if (validCategory && cat?.id !== validCategory) return false;
-      // With someone else is still unfinished, so it counts as open here.
-      if (status === 'open' && task.status !== 'open' && task.status !== 'waiting') return false;
-      if (status === 'done' && task.status !== 'done') return false;
-      if (status === 'scheduled' && task.blocks.length === 0) return false;
-      if (status === 'let-go' && task.status !== 'let-go') return false;
-      if (status !== 'let-go' && task.status === 'let-go') return false;
-      if (status === 'unscheduled' && (task.blocks.length > 0 || task.status !== 'open')) return false;
-      return true;
-    });
+  const matching = useMemo(
+    () => filterTasks(state, { query, groupId: validGroup, categoryId: validCategory, status, sort }),
+    [state, query, validGroup, validCategory, status, sort],
+  );
+  // Built once, so each category reads its own list instead of re-filtering everything.
+  const byCategory = useMemo(() => {
+    const map = new Map<string, Task[]>();
+    for (const t of matching) map.set(t.categoryId, [...(map.get(t.categoryId) ?? []), t]);
+    return map;
+  }, [matching]);
+  const inCategory = (id: string) => byCategory.get(id) ?? NO_TASKS;
+  const total = state.tasks.filter((t) => t.status !== 'let-go').length;
 
-    return [...rows].sort((a, b) => {
-      // Finished ones settle at the bottom of their category, as on the Plan page.
-      const done = Number(a.status === 'done') - Number(b.status === 'done');
-      if (done) return done;
-      if (sort === 'title') return a.title.localeCompare(b.title);
-      if (sort === 'priority') return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
-      const dueA = a.due ?? '9999-99-99';
-      const dueB = b.due ?? '9999-99-99';
-      return dueA.localeCompare(dueB) || a.createdAt.localeCompare(b.createdAt);
-    });
-  }, [state, query, validGroup, validCategory, status, sort]);
-
-  const inCategory = (id: string) => matching.filter((t) => t.categoryId === id);
+  const clearFilters = () => setParams({ q: null, group: null, category: null, status: null });
 
   const visibleGroups = groups
     .filter((g) => !validGroup || g.id === validGroup)
@@ -75,15 +73,19 @@ export function ManageTasks() {
     .filter(({ cats }) => cats.length > 0);
 
   return (
-    <section className={styles.panel} aria-label="Tasks">
-      <div className={styles.filters}>
+    <section className={styles.panel} aria-labelledby="manage-tasks-title">
+      {/* Keeps the outline whole: h1 for the page, h2 here, h3 for each group below. */}
+      <h2 id="manage-tasks-title" className="visually-hidden">
+        Tasks
+      </h2>
+      <div className={styles.filters} role="search" aria-label="Find tasks">
         <label className={styles.search}>
           <Icon name="search" size={17} />
           <span className="visually-hidden">Search tasks</span>
           <input
             type="search"
             className={styles.searchInput}
-            placeholder="Search tasks…"
+            placeholder="Search titles and notes…"
             value={q ?? ''}
             onChange={(e) => setQ(e.target.value)}
           />
@@ -93,7 +95,7 @@ export function ManageTasks() {
           value={validGroup ?? ''}
           onChange={(e) => setParams({ group: e.target.value || null, category: null })}
         >
-          <option value="">All Groups</option>
+          <option value="">All groups</option>
           {groups.map((g) => (
             <option key={g.id} value={g.id}>
               {g.name}
@@ -105,7 +107,7 @@ export function ManageTasks() {
           value={validCategory ?? ''}
           onChange={(e) => setCategoryId(e.target.value || null)}
         >
-          <option value="">All Categories</option>
+          <option value="">All categories</option>
           {categoryOptions.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -113,7 +115,7 @@ export function ManageTasks() {
           ))}
         </Select>
         <Select aria-label="Filter by status" value={status ?? ''} onChange={(e) => setStatus(e.target.value || null)}>
-          <option value="">All Status</option>
+          <option value="">Any status</option>
           <option value="open">Active</option>
           <option value="done">Completed</option>
           <option value="scheduled">Scheduled</option>
@@ -121,19 +123,39 @@ export function ManageTasks() {
           <option value="let-go">Let go</option>
         </Select>
         <Select aria-label="Sort tasks" value={sort ?? ''} onChange={(e) => setSort(e.target.value || null)}>
-          <option value="">Sort: Due date</option>
-          <option value="title">Sort: Title</option>
-          <option value="priority">Sort: Priority</option>
+          <option value="">Sort by due date</option>
+          <option value="title">Sort by title</option>
+          <option value="priority">Sort by priority</option>
         </Select>
-        <span className={styles.count} aria-live="polite">
-          {matching.length} {matching.length === 1 ? 'task' : 'tasks'}
-        </span>
+        <div className={styles.filterSummary}>
+          <span className={styles.count} role="status">
+            {narrowed && status !== 'let-go' ? `${matching.length} of ${countOf(total, 'task')}` : countOf(matching.length, 'task')}
+          </span>
+          {narrowed && (
+            <button type="button" className={ui.textButton} onClick={clearFilters}>
+              <Icon name="close" size={14} />
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
       {visibleGroups.length === 0 ? (
-        <div className={styles.empty}>
-          <MonetAccent art="garden" variant="card" phrase="nothing waiting." />
-        </div>
+        narrowed ? (
+          <div className={styles.emptyFiltered}>
+            <p>
+              No tasks match{' '}
+              {query ? `“${query}”${status || validGroup || validCategory ? ' with these filters' : ''}` : 'these filters'}.
+            </p>
+            <button type="button" className={ui.secondaryButton} onClick={clearFilters}>
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          <div className={styles.empty}>
+            <MonetAccent art="garden" variant="card" phrase="nothing waiting." />
+          </div>
+        )
       ) : (
         <div className={styles.tree}>
           {visibleGroups.map(({ group, cats }) => (

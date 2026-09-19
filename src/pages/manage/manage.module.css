@@ -1,42 +1,24 @@
+/* The same page frame as Goals and Settings: eyebrow and title, the painting beside them. */
 .page {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  padding: 28px 0 64px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
 }
 
 .header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px 24px;
-  padding: 18px 4px 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 4px;
 }
 
-.title {
-  font-family: var(--font-heading);
-  font-weight: 400;
-  font-size: 44px;
-  line-height: 1.08;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.tabs {
-  flex-shrink: 1;
-}
-
-.tabs a {
-  height: 36px;
-  padding: 0 20px;
-  font-size: 15px;
-}
-
-/* This header wraps, so the accent starts from its smallest size (painting plus a wrapped phrase)
-   and grows into the free space, instead of dropping to its own line. */
-.header > .accent {
-  flex: 1 1 0;
-  min-width: calc(25cqi + 12px + 90px);
-  justify-content: flex-end;
+/* On desktop the title keeps its size; the painting beside it is the part that gives way. */
+@media (min-width: 1024px) {
+  .header > :first-child {
+    flex-shrink: 0;
+  }
 }
 
 /* The painting sits to the right of the title only when there is room for it (a quarter of
@@ -49,10 +31,30 @@
   display: none;
 }
 
-@container (min-width: 820px) {
+@container (min-width: 720px) {
   .accent {
     display: flex;
   }
+}
+
+.title {
+  margin: 4px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.tabs {
+  justify-self: start;
+  margin-bottom: 4px;
+}
+
+.tabs a {
+  height: 36px;
+  padding: 0 20px;
+  font-size: 15px;
 }
 
 .panel {
@@ -68,12 +70,6 @@
   color: var(--danger) !important;
 }
 
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
 
 .rowMeta {
   font-size: 13.5px;
@@ -88,7 +84,7 @@
 }
 
 .addButton {
-  margin: 10px 0 0 10px;
+  margin: 0 0 0 10px;
 }
 
 .addInline {
@@ -148,40 +144,146 @@
   outline: none;
 }
 
-.count {
+.filterSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-left: auto;
+}
+
+.filterSummary button {
+  margin-left: 0;
+}
+
+.count {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Filters that leave nothing are not the same as having nothing, so this says which. */
+.emptyFiltered {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 48px 12px;
+  text-align: center;
+}
+
+.emptyFiltered p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.emptyLine {
+  margin: 0 0 4px 6px;
   font-size: 14px;
   color: var(--text-secondary);
 }
 
-/* ---------- Categories ---------- */
-.catSection + .catSection {
-  margin-top: 26px;
+/* ---------- Groups & categories ----------
+   The same shape as the Tasks tab: a group heading, then its categories as cards. */
+.structure {
+  display: grid;
+  gap: 18px;
 }
 
-.sectionHeading {
+.groupSection {
+  min-width: 0;
+}
+
+.groupHead {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 0 0 12px 6px;
+  gap: 6px;
+  min-height: 44px;
+  margin: 0 0 6px -6px;
+}
+
+.groupHead > .rowMeta {
   font-size: 13px;
-  font-weight: 600;
 }
 
-.groupDot {
-  width: 11px;
-  height: 11px;
+.swatchButton {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+}
+
+.groupSwatch,
+.swatch {
+  display: block;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
-.sectionName {
+.swatch {
+  width: 12px;
+  height: 12px;
+}
+
+.inlineName {
+  flex: 1;
+  min-width: 80px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--text);
+  text-overflow: ellipsis;
+}
+
+.inlineName:hover {
+  border-color: var(--border);
+}
+
+.inlineName:focus-visible {
+  outline: none;
+  border-color: var(--navy);
+  background: var(--surface-strong);
+  box-shadow: 0 0 0 3px var(--tint);
+}
+
+/* A group name reads like the Tasks tab's group headings, and shows its real case while you edit it. */
+.groupName {
+  flex: 0 1 auto;
+  width: 14ch;
+  min-width: 6ch;
+  max-width: 45%;
+  field-sizing: content;
+  font-size: 13px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.sectionCount {
-  font-weight: 400;
-  color: var(--text-secondary);
+.groupName:focus {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+}
+
+.groupActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.groupActions button:disabled {
+  opacity: 0.35;
+  background: none;
+}
+
+.groupBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .catList {
@@ -190,26 +292,33 @@
   gap: 8px;
 }
 
+/* Each category is a card, like the category cards on the Tasks tab. */
 .catRow {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 60px;
-  padding: 8px 12px 8px 8px;
-  border-radius: 14px;
+  gap: 4px;
+  min-height: 50px;
+  padding: 4px 6px 4px 4px;
+  border-radius: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px var(--border), 0 4px 14px var(--tint-weak);
   transition: opacity 0.15s var(--ease), box-shadow 0.15s var(--ease);
-}
-
-.catRow:hover {
-  box-shadow: var(--shadow);
 }
 
 .catRowDragging {
   opacity: 0.45;
   box-shadow: var(--shadow-lg);
+}
+
+.catRow > .rowMeta {
+  font-size: 14px;
+  padding: 0 4px;
+}
+
+/* The row's … menu; also how focus finds the row again after it moves to another group. */
+.rowOptions {
+  flex-shrink: 0;
 }
 
 .dropIndicator {
@@ -236,146 +345,28 @@
   background: var(--hover);
 }
 
-.swatchButton {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-}
-
-.swatch {
-  display: block;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(43, 52, 69, 0.08);
-}
-
-.inlineName {
-  flex: 1;
-  min-width: 80px;
-  height: 36px;
-  padding: 0 10px;
-  margin-left: -4px;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  background: transparent;
-  font-size: 16px;
-  color: var(--text);
-  text-overflow: ellipsis;
-}
-
-.inlineName:hover {
-  border-color: var(--border);
-}
-
-.inlineName:focus-visible {
-  outline: none;
-  border-color: var(--navy);
-  background: var(--surface-strong);
-  box-shadow: 0 0 0 3px var(--tint);
-}
-
-.groupSelect {
-  min-height: 34px;
-  width: 124px;
-  font-size: 14px;
-}
-
-/* ---------- Groups ---------- */
-.groupList {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.groupCard {
-  padding: 14px 16px 16px 12px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-}
-
-.groupHead {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.groupAvatarButton {
-  width: 42px !important;
-  height: 42px !important;
-  border-radius: 50% !important;
-}
-
-.groupAvatar {
-  display: block;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(43, 52, 69, 0.08);
-}
-
-.groupName {
-  font-size: 18px;
-}
-
-.groupActions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.groupActions button:disabled {
-  opacity: 0.35;
-  background: none;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0 0 46px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 32px;
-  padding: 0 14px 0 12px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-strong);
-  border: 1px solid var(--border);
-  font-size: 14px;
-}
-
-.chipEmpty {
-  font-size: 14px;
-  color: var(--text-secondary);
+.addGroup {
+  margin: 20px 0 0 2px;
 }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1023px) {
-  .title {
-    font-size: 40px;
-  }
-
-  .count {
+  .filterSummary {
     margin-left: 0;
     width: 100%;
+    justify-content: space-between;
   }
 }
 
 @media (max-width: 767px) {
-  .header {
-    padding-top: 8px;
-    gap: 12px;
+  /* The header stacks here, so there is no room beside the title. */
+  .accent {
+    display: none;
   }
 
-  .title {
-    font-size: 34px;
-    width: 100%;
+  .header {
+    flex-direction: column;
+    gap: 12px;
   }
 
   .tabs a {
@@ -383,8 +374,13 @@
     font-size: 14px;
   }
 
+  /* On a phone the cards sit on the page itself, as on Goals, instead of in a card within a card. */
   .panel {
-    padding: 14px 12px 16px;
+    padding: 0;
+    min-height: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
   }
 
   .search {
@@ -400,40 +396,42 @@
     width: 100%;
   }
 
-  .catRow {
-    flex-wrap: wrap;
-    gap: 6px 8px;
-  }
-
-  .catRow .inlineName {
-    flex-basis: calc(100% - 140px);
-  }
-
-  .catRow .rowMeta {
-    margin-left: 76px;
-    flex: 1;
-  }
-
+  /* A group: its name, then its count, then its actions, lined up under the name. */
   .groupHead {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'chevron swatch name'
+      '.       .      meta'
+      '.       .      actions';
+    gap: 0 4px;
   }
 
-  .groupHead .rowMeta {
-    order: 5;
-    width: 100%;
-    margin-left: 92px;
+  .groupHead > .groupChevron {
+    grid-area: chevron;
   }
 
-  .groupName {
-    flex-basis: 100px;
+  .groupHead > .swatchButton {
+    grid-area: swatch;
   }
 
-  .chips {
+  .groupHead > .groupName {
+    grid-area: name;
+    max-width: none;
+    justify-self: start;
+  }
+
+  .groupHead > .rowMeta {
+    grid-area: meta;
+    padding-left: 9px;
+    white-space: normal;
+  }
+
+  .groupHead > .groupActions {
+    grid-area: actions;
     margin-left: 0;
   }
 }
-
-/* ---------- Habits ---------- */
 
 /* The task tree, the same shape the Plan page uses. */
 .tree {
