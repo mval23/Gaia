@@ -7,7 +7,7 @@ import { useDateParam, useParam } from '../hooks/useDateParam';
 import { useTaskEditor } from '../hooks/useTaskEditor';
 import { useHabitEditor } from '../hooks/useSheetParam';
 import { useDragActions } from '../dnd/DragProvider';
-import { MOBILE_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
+import { SINGLE_PANEL_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
 import { addDays, dayOfWeek, formatLongDate, fromISODate, relativeDayLabel } from '../lib/dates';
 import { findFreeSlot } from '../lib/layout';
 import { COPY, FULL_DAY_RATIO } from '../lib/copy';
@@ -51,7 +51,8 @@ export function TodayPage() {
   const { date, setDate, isToday, today } = useDateParam();
   // Still read from the URL so a ?group= link keeps working, but no control here.
   const [groupRaw] = useParam('group');
-  const isMobile = useMediaQuery(MOBILE_QUERY);
+  // Phones and an upright iPad have room for one panel at a time.
+  const singlePanel = useMediaQuery(SINGLE_PANEL_QUERY);
   const [mobilePanel, setMobilePanel] = useState<'tasks' | 'day'>('tasks');
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
@@ -115,7 +116,7 @@ export function TodayPage() {
   useEffect(() => {
     if (!tasksPanelRef.current) return;
     return registerUnscheduleZone(`${shiftId}-tasks`, tasksPanelRef.current);
-  }, [registerUnscheduleZone, shiftId, isMobile, mobilePanel]);
+  }, [registerUnscheduleZone, shiftId, singlePanel, mobilePanel]);
 
   const scheduleNext = useCallback(
     (task: Task) => {
@@ -225,7 +226,7 @@ export function TodayPage() {
         {full && !hideNumbers && <p className={styles.fullNote}>{COPY.fullDay}</p>}
       </header>
 
-      {isMobile && (
+      {singlePanel && (
         <div className={styles.mobileSwitch}>
           <SegmentedControl
             size="sm"
@@ -246,7 +247,7 @@ export function TodayPage() {
           id="plan-tasks-panel"
           className={`${styles.panel} ${styles.panelPlain}`}
           aria-label="Rhythms and tasks"
-          hidden={isMobile && mobilePanel !== 'tasks'}
+          hidden={singlePanel && mobilePanel !== 'tasks'}
         >
           <div className={styles.panelScroll}>
             <RhythmsSection date={date} groupFilter={groupFilter} gentle={gentle} />
@@ -282,7 +283,7 @@ export function TodayPage() {
           </div>
         </section>
 
-        {!isMobile && (
+        {!singlePanel && (
           <SplitHandle
             containerRef={workspaceRef}
             value={split}
@@ -295,14 +296,14 @@ export function TodayPage() {
           />
         )}
 
-        <section className={styles.panel} aria-labelledby="day-panel-title" hidden={isMobile && mobilePanel !== 'day'}>
+        <section className={styles.panel} aria-labelledby="day-panel-title" hidden={singlePanel && mobilePanel !== 'day'}>
           <div className={styles.panelHeader}>
             <h2 id="day-panel-title" className="eyebrow">
               Day
             </h2>
             <span className={styles.panelMeta}>
               {blocks.length === 0
-                ? isMobile
+                ? singlePanel
                   ? 'Nothing planned yet'
                   : 'Nothing planned yet · drag a task here'
                 : `${blocks.length} ${blocks.length === 1 ? 'block' : 'blocks'}`}
