@@ -56,44 +56,46 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential }: 
     if (!done && date && !onThisDay) notify(`“${task.title}” completed`, previous);
   };
 
-  // Three groups at most, as Apple's context-menu guidance asks: time first, then the plan, then
-  // the ways a task ends, with Delete last. Category and clearing every session live in Edit details.
-  const timeItems: MenuEntry[] = [
-    ...dayMoveItems,
-    // A task can be scheduled many times, so this always adds another session.
-    ...(onScheduleNext && !done
-      ? [
-          {
-            label: onThisDay ? 'Add another session' : 'Schedule next free hour',
-            icon: 'schedule' as const,
-            onSelect: () => onScheduleNext(task),
-          },
-        ]
-      : []),
-  ];
-
-  const planItems: MenuEntry[] = [
-    ...(date && !done && !withSomeone
-      ? [
-          task.essentialFor === date
-            ? {
-                label: 'Not the one today',
-                icon: 'star' as const,
-                onSelect: () => {
-                  dispatch({ type: 'task/essential', id: task.id, date: undefined });
-                  announce(`${task.title} is back in the list`);
-                },
-              }
-            : {
-                label: 'Make it the one that matters',
-                icon: 'star' as const,
+  // The day's one task that matters: offered only while the day has none, and
+  // taken back from the task that has it. Only one per day, so no other task offers it.
+  const dayHasEssential =
+    !!date && state.tasks.some((t) => t.essentialFor === date && t.id !== task.id && t.status !== 'let-go');
+  const essentialItem: MenuEntry[] =
+    !date || done || withSomeone
+      ? []
+      : task.essentialFor === date
+        ? [
+            {
+              label: 'Not the one today',
+              icon: 'star',
+              onSelect: () => {
+                dispatch({ type: 'task/essential', id: task.id, date: undefined });
+                announce(`${task.title} is back in the list`);
+              },
+            },
+          ]
+        : dayHasEssential
+          ? []
+          : [
+              {
+                label: 'The one that matters',
+                icon: 'star',
                 onSelect: () => {
                   dispatch({ type: 'task/essential', id: task.id, date });
                   announce(`${task.title} is the one that matters today`);
                 },
               },
-        ]
-      : []),
+            ];
+
+  // "Tomorrow" leads the day items; Unschedule sits with the other time changes.
+  const tomorrowItems = dayMoveItems.filter((item) => 'icon' in item && item.icon === 'arrowRight');
+  const unscheduleItems = dayMoveItems.filter((item) => !tomorrowItems.includes(item));
+
+  // Three groups at most, as Apple's context-menu guidance asks: which day it belongs to,
+  // then its time and details, then the ways a task ends, with Delete last.
+  const dayItems: MenuEntry[] = [
+    ...essentialItem,
+    ...tomorrowItems,
     ...(date && task.plannedFor !== date && !done && !withSomeone
       ? [
           {
@@ -106,6 +108,20 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential }: 
           },
         ]
       : []),
+  ];
+
+  const timeItems: MenuEntry[] = [
+    // A task can be scheduled many times, so this always adds another session.
+    ...(onScheduleNext && !done
+      ? [
+          {
+            label: onThisDay ? 'Add another session' : 'Schedule next free hour',
+            icon: 'schedule' as const,
+            onSelect: () => onScheduleNext(task),
+          },
+        ]
+      : []),
+    ...unscheduleItems,
     ...(task.plannedFor
       ? [
           {
@@ -172,7 +188,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential }: 
     },
   ];
 
-  const menuItems: MenuEntry[] = [timeItems, planItems, endItems]
+  const menuItems: MenuEntry[] = [dayItems, timeItems, endItems]
     .filter((group) => group.length > 0)
     .flatMap((group, i) => (i === 0 ? group : [{ kind: 'separator' as const }, ...group]));
 
