@@ -39,6 +39,51 @@ export function activeCount(tasks: Task[]): number {
   return tasks.reduce((n, t) => n + (t.status === 'open' ? 1 : 0), 0);
 }
 
+export type TaskStatusFilter = 'open' | 'done' | 'scheduled' | 'unscheduled' | 'let-go';
+export type TaskSort = 'due' | 'title' | 'priority';
+
+export interface TaskFilters {
+  query?: string;
+  groupId?: string | null;
+  categoryId?: string | null;
+  status?: TaskStatusFilter | null;
+  sort?: TaskSort | null;
+}
+
+/**
+ * The Manage ▸ Tasks list: what the search and filters leave, finished ones at the
+ * bottom. A let-go task only shows when asked for, so letting go stays quiet.
+ */
+export function filterTasks(state: GaiaState, filters: TaskFilters): Task[] {
+  const { groupId, categoryId, status, sort } = filters;
+  const query = (filters.query ?? '').trim().toLowerCase();
+  const groupOf = new Map(state.categories.map((c) => [c.id, c.groupId]));
+  const rows = state.tasks.filter((task) => {
+    if (query && !task.title.toLowerCase().includes(query) && !task.notes.toLowerCase().includes(query)) return false;
+    if (groupId && groupOf.get(task.categoryId) !== groupId) return false;
+    if (categoryId && task.categoryId !== categoryId) return false;
+    // With someone else is still unfinished, so it counts as open here.
+    if (status === 'open' && task.status !== 'open' && task.status !== 'waiting') return false;
+    if (status === 'done' && task.status !== 'done') return false;
+    if (status === 'scheduled' && task.blocks.length === 0) return false;
+    if (status === 'let-go' && task.status !== 'let-go') return false;
+    if (status !== 'let-go' && task.status === 'let-go') return false;
+    if (status === 'unscheduled' && (task.blocks.length > 0 || task.status !== 'open')) return false;
+    return true;
+  });
+
+  return rows.sort((a, b) => {
+    // Finished ones settle at the bottom of their category, as on the Plan page.
+    const done = Number(a.status === 'done') - Number(b.status === 'done');
+    if (done) return done;
+    if (sort === 'title') return a.title.localeCompare(b.title);
+    if (sort === 'priority') return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
+    const dueA = a.due ?? '9999-99-99';
+    const dueB = b.due ?? '9999-99-99';
+    return dueA.localeCompare(dueB) || a.createdAt.localeCompare(b.createdAt);
+  });
+}
+
 /**
  * A task belongs in a day's Tasks list when it is unchecked, or when it is on that
  * day's timeline (checked or not). Checked tasks that aren't on the timeline drop out.

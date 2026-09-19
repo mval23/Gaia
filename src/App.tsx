@@ -8,7 +8,6 @@ import { SupportPage } from './pages/SupportPage';
 import { HelpPage } from './pages/HelpPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ManageTasks } from './pages/manage/ManageTasks';
-import { ManageCategories } from './pages/manage/ManageCategories';
 import { ManageGroups } from './pages/manage/ManageGroups';
 
 export function App() {
@@ -26,7 +25,8 @@ export function App() {
           <Route path="tasks" element={<ManageTasks />} />
           {/* Habits moved in with goals; keep old links working. */}
           <Route path="habits" element={<Navigate to="/goals" replace />} />
-          <Route path="categories" element={<ManageCategories />} />
+          {/* Categories now live with their groups; keep old links working. */}
+          <Route path="categories" element={<Navigate to="/manage/groups" replace />} />
           <Route path="groups" element={<ManageGroups />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

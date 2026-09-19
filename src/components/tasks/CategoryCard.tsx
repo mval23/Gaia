@@ -3,6 +3,8 @@ import type { Category, Group, Task } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { useCollapsed } from '../../hooks/useCollapsed';
 import { CATEGORY_PALETTE, paint } from '../../lib/swatch';
+import { whatGoesWith } from '../../lib/copy';
+import { habitsInCategory } from '../../store/selectors';
 import { Icon } from '../ui/Icon';
 import { Menu, type MenuEntry } from '../ui/Menu';
 import { TaskRow } from './TaskRow';
@@ -28,7 +30,10 @@ export function CategoryCard({ category, group, tasks, date, onScheduleNext }: C
   const collapsed = isCollapsed(key);
   const active = tasks.filter((t) => t.status === 'open').length;
   const bodyId = `cat-body-${category.id}`;
-  const totalInCategory = state.tasks.filter((t) => t.categoryId === category.id).length;
+  const along = whatGoesWith(
+    state.tasks.filter((t) => t.categoryId === category.id).length,
+    habitsInCategory(state, category.id).length,
+  );
 
   const items: MenuEntry[] =
     menuView === 'main'
@@ -45,16 +50,13 @@ export function CategoryCard({ category, group, tasks, date, onScheduleNext }: C
           { label: collapsed ? 'Expand' : 'Collapse', icon: 'chevronDown', onSelect: () => toggle(key) },
           { kind: 'separator' },
           {
-            label: 'Delete category',
+            label: along ? `Delete, with ${along}` : 'Delete category',
             icon: 'trash',
             danger: true,
             onSelect: () => {
               const previous = state;
               dispatch({ type: 'category/delete', id: category.id });
-              notify(
-                `${category.name} deleted${totalInCategory ? ` with ${totalInCategory} task${totalInCategory === 1 ? '' : 's'}` : ''}`,
-                previous,
-              );
+              notify(`${category.name} deleted${along ? `, with ${along}` : ''}`, previous);
             },
           },
         ]

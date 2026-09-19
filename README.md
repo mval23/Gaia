@@ -254,7 +254,7 @@ Environment variable changes only take effect after a new deploy.
 ### Microsoft sign-in
 
 Settings ▸ Microsoft account signs in with a work or school account
-(`User.Read`, `Calendars.ReadWrite`). Then, in Manage ▸ Groups, the calendar
+(`User.Read`, `Calendars.ReadWrite`). Then, in Manage ▸ Groups & categories, the calendar
 button on a group links it to one of your Outlook calendars:
 
 - that calendar's meetings appear on the Plan timeline and in Calendar, in the

@@ -22,5 +22,16 @@ export const COPY = {
   captureKept: 'Kept in your Inbox',
 } as const;
 
+/** "1 task", "3 habits". */
+export function countOf(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? '' : 's'}`;
+}
+
+/** What goes with a category when it is deleted: "5 tasks and 1 habit", or "" when nothing does. */
+export function whatGoesWith(tasks: number, habits: number): string {
+  const parts = [tasks && countOf(tasks, 'task'), habits && countOf(habits, 'habit')].filter(Boolean);
+  return parts.join(' and ');
+}
+
 /** How full a day has to look before Gaia gently mentions it. */
 export const FULL_DAY_RATIO = 0.8;
