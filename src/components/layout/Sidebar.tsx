@@ -316,7 +316,7 @@ export function Sidebar() {
               }
               items={[
                 { kind: 'heading', label: account ? `Signed in as ${account.email}` : 'Your planner · saved on this device' },
-                { label: 'Groups & categories', icon: 'folder', onSelect: () => navigate('/manage/groups') },
+                { label: 'What’s coming', icon: 'flag', onSelect: () => navigate('/plans') },
                 { label: 'How to use Gaia', icon: 'sparkle', onSelect: () => navigate('/help') },
                 { label: 'Support', icon: 'heart', onSelect: () => navigate('/support') },
                 ...(account

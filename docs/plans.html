@@ -6,11 +6,16 @@
   <title>Gaia Plans</title>
   <meta name="description" content="Where Gaia is going: the Compass and Life Hub sketches folded into Gaia, in four seasons." />
   <link rel="icon" type="image/png" href="assets/favicon-64.png" />
+<script>
+  // Shown inside the Gaia app (What's coming), this page drops its own header and background.
+  if (window.self !== window.top) document.documentElement.setAttribute('data-embedded', '');
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap">
 <style>
 :root {
+  color-scheme: light;
   --bg: #f5f2ed;
   --surface: #fbfaf7;
   --surface-strong: #ffffff;
@@ -54,6 +59,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #141922;
     --surface: #1b212d;
     --surface-strong: #212936;
@@ -84,6 +90,7 @@
   }
 }
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #141922;
   --surface: #1b212d;
   --surface-strong: #212936;
@@ -139,6 +146,11 @@ a { color: var(--primary); }
 code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 0.86em; background: var(--tint-weak); padding: 1px 5px; border-radius: 5px; }
 
 /* Header */
+/* Inside the app (/plans) the app already has the logo, the sidebar and the page's own background. */
+:root[data-embedded] body { background: transparent; }
+:root[data-embedded] .page { padding-inline: 0; padding-block: 0 32px; }
+:root[data-embedded] .top, :root[data-embedded] .docs-only { display: none; }
+
 .top { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
 .top img { width: 30px; height: 30px; border-radius: 8px; }
 .top span { font-family: var(--serif); font-size: 1.15rem; }
@@ -1001,7 +1013,7 @@ footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-s
             <li>Install on the home screen (PWA manifest and icon)</li>
             <li>The three habits above, offered in a <b>Start with a few habits</b> card in Settings, each one optional</li>
           </ul>
-          <p class="small"><a href="https://claude.ai/artifact/R6DeUMVA6TV3TfnnDhJUQb">See every Season 1 screen on the design canvas →</a></p>
+          <p class="small"><a href="https://claude.ai/artifact/R6DeUMVA6TV3TfnnDhJUQb" target="_blank" rel="noopener">See every Season 1 screen on the design canvas →</a></p>
           <p class="gate"><b>Ready for the next season when</b> all your tasks live in Gaia, and the essential feels useful rather than like one more thing to choose.</p>
         </div>
       </div>
@@ -1099,7 +1111,7 @@ interface Proposal { id: ID; reason: string; action: Action; status: 'open' | 'a
   <footer>
     <div class="strip garden" role="img" aria-label="Claude Monet, the garden at Giverny"></div>
     <p class="phr">Small actions. Meaningful direction. Leave space.</p>
-    <p class="small muted"><a href="index.html">Back to the Gaia docs</a> · Paintings by Claude Monet, public domain.</p>
+    <p class="small muted"><span class="docs-only"><a href="index.html">Back to the Gaia docs</a> · </span>Paintings by Claude Monet, public domain.</p>
   </footer>
 </div>
 
