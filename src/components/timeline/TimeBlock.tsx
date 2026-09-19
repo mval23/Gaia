@@ -8,6 +8,7 @@ import { HOUR_PX, useDragActions } from '../../dnd/DragProvider';
 import { DAY_MIN, MIN_DURATION, SNAP_MIN, formatClock, formatDuration, formatRange } from '../../lib/time';
 import { useDayMoveItems } from '../../hooks/useDayMoveItems';
 import { CompleteToggle } from '../ui/CompleteToggle';
+import { Icon } from '../ui/Icon';
 import { ContextMenu, useContextMenu, type MenuEntry } from '../ui/Menu';
 import { paint } from '../../lib/swatch';
 import styles from './timeline.module.css';
@@ -47,6 +48,7 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
   const group = groupOfTask(state, task);
   const fmt = state.settings.timeFormat;
   const done = task.status === 'done';
+  const essential = task.essentialFor === block.date;
   const compact = schedule.durationMin < 45;
   const range = formatRange(schedule.startMin, schedule.durationMin, fmt);
   const dayMoveItems = useDayMoveItems(task, block.date, block);
@@ -122,7 +124,7 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
       tabIndex={0}
       className={`${styles.block} ${compact ? styles.blockCompact : ''} ${done ? styles.blockDone : ''} ${dimmed ? styles.blockDimmed : ''}`}
       style={blockStyle(schedule, placement, category?.color)}
-      aria-label={`${task.title}, ${range}, ${group?.name ?? ''} · ${category?.name ?? ''}${sessionLabel}${done ? ', completed' : ''}`}
+      aria-label={`${task.title}${essential ? ', the one that matters' : ''}, ${range}, ${group?.name ?? ''} · ${category?.name ?? ''}${sessionLabel}${done ? ', completed' : ''}`}
       aria-describedby="block-help"
       // On touch, holding opens the right-click menu and moving on from the hold drags, like task rows.
       onPointerDown={(e) =>
@@ -144,6 +146,7 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
       />
       <div className={styles.blockText}>
         <span className={styles.blockTitle} title={task.title}>
+          {essential && <Icon name="star" size={12} className={styles.blockStar} />}
           {task.title}
         </span>
         <span className={styles.blockMeta}>

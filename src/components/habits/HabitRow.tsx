@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { CheckInKind, Habit } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
-import { categoryById, checkInKey, goalById, isQuiet, weekCount } from '../../store/selectors';
+import { categoryById, checkInKey, goalById, isQuiet, isReturning, weekCount } from '../../store/selectors';
 import { rhythmLabel, weeklyTarget } from '../../lib/rhythm';
 import { formatClock } from '../../lib/time';
 import { Menu } from '../ui/Menu';
@@ -41,6 +41,10 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
   const target = weeklyTarget(habit.rhythm);
   const thisWeek = weekCount(state, habit.id, date);
   const quiet = !dismissedPrompt && isQuiet(state, habit, date);
+  // After a few quiet days, the person's own words for coming back replace the cue.
+  const returning = isReturning(state, habit, date);
+  const comingBack = habit.comingBack?.trim();
+  const why = habit.why?.trim();
   const aimMet = thisWeek >= target;
 
   const setKind = (kind: CheckInKind) => {
@@ -54,7 +58,7 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
   };
 
   const detail = [
-    gentle && habit.tinyVersion ? habit.tinyVersion : habit.cue,
+    returning ? comingBack : gentle && habit.tinyVersion ? habit.tinyVersion : habit.cue,
     rhythmLabel(habit.rhythm),
     habit.preferredStartMin !== undefined ? `around ${formatClock(habit.preferredStartMin, settings.timeFormat)}` : null,
     goal?.title,
@@ -83,6 +87,7 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
         ) : (
           detail && <p className={styles.detail}>{detail}</p>
         )}
+        {gentle && why && !value && <p className={styles.why}>{why}</p>}
       </div>
 
       {!value && !gentle && !settings.hideNumbers && (
@@ -122,7 +127,7 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
 
       {quiet && !value && (
         <div className={styles.quiet}>
-          <p>This rhythm hasn’t found its place lately. That happens.</p>
+          <p>{comingBack ? `Your note for coming back: “${comingBack}”` : 'This rhythm hasn’t found its place lately. That happens.'}</p>
           <div className={styles.quietActions}>
             <button
               type="button"

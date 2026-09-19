@@ -9,6 +9,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import logoMark from '../../assets/brand/gaia-logo.webp';
 import { MonetImage } from '../art/MonetAccent';
 import { useAccount } from '../../auth/AuthGate';
+import { CAPTURE_KEYS, useCapture } from '../capture/CaptureProvider';
 import styles from './Sidebar.module.css';
 
 const NAV: { to: string; label: string; icon: IconName; match: (path: string) => boolean }[] = [
@@ -51,6 +52,7 @@ export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const account = useAccount();
+  const { openCapture } = useCapture();
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const [collapsedPref, setCollapsedPref] = useState(readCollapsed);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -144,6 +146,9 @@ export function Sidebar() {
             </span>
           )}
           <div className={styles.spacer} />
+          <button type="button" className={styles.headBtn} onClick={openCapture} aria-label="Capture">
+            <Icon name="capture" size={19} />
+          </button>
           <button type="button" className={styles.headBtn} onClick={() => setSearchOpen(true)} aria-label="Search tasks">
             <Icon name="search" size={19} />
           </button>
@@ -232,6 +237,20 @@ export function Sidebar() {
               <Icon name="search" size={18} />
               <span className={styles.label}>Search</span>
               <kbd className={styles.kbd}>{isMac ? '⌘K' : 'Ctrl K'}</kbd>
+            </button>
+
+            <button
+              type="button"
+              className={styles.item}
+              onClick={() => {
+                setDrawerOpen(false);
+                openCapture();
+              }}
+              {...tipFor(`Capture · ${CAPTURE_KEYS}`)}
+            >
+              <Icon name="capture" size={18} />
+              <span className={styles.label}>Capture</span>
+              <kbd className={styles.kbd}>{CAPTURE_KEYS}</kbd>
             </button>
 
             <div className={styles.divider} />

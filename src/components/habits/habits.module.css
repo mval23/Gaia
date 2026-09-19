@@ -74,6 +74,16 @@
   color: var(--text-secondary);
 }
 
+/* The person's own reason, shown on gentle days. */
+.why {
+  margin: 3px 0 0;
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
 .detail {
   margin: 1px 0 0;
   font-size: 12px;

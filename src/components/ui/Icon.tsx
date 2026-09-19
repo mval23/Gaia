@@ -68,6 +68,34 @@ const paths = {
     </>
   ),
   flag: <path d="M5.5 21V4.5M5.5 4.5h11l-2 4 2 4h-11" />,
+  // "The one that matters". Filled with currentColor where it is chosen.
+  star: <path d="m12 3.75 2.5 5.1 5.6.8-4.05 3.95.95 5.6L12 16.55l-5 2.65.95-5.6L3.9 9.65l5.6-.8z" />,
+  // Capture: a pen, because it is only ever one line.
+  capture: (
+    <>
+      <path d="M4.75 19.25h4L19.4 8.6a2 2 0 0 0-2.83-2.83L5.9 16.4z" />
+      <path d="M14.9 7.4l2.7 2.7" />
+    </>
+  ),
+  inbox: (
+    <>
+      <path d="M4.25 13.25h4.25l1.5 2.5h4l1.5-2.5h4.25" />
+      <path d="M6.3 5.25h11.4l2.05 8v5.5H4.25v-5.5z" />
+    </>
+  ),
+  // Someone else has it.
+  handoff: (
+    <>
+      <circle cx="9" cy="8.5" r="3.25" />
+      <path d="M3.75 19.25c.8-3.4 2.9-5 5.25-5s3.2.9 4 2.2M15.5 15.75h5M18.25 13l2.5 2.75-2.5 2.75" />
+    </>
+  ),
+  home: (
+    <>
+      <path d="M4.25 11 12 4.25 19.75 11v8.75H4.25z" />
+      <path d="M9.75 19.75v-5h4.5v5" />
+    </>
+  ),
   // A quiet ring rather than a target: a goal is a direction, not a bullseye.
   heart: <path d="M12 20.25S3.75 15.5 3.75 9.6A4.35 4.35 0 0 1 12 7.4a4.35 4.35 0 0 1 8.25 2.2c0 5.9-8.25 10.65-8.25 10.65z" />,
   goal: (

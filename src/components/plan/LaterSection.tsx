@@ -7,6 +7,7 @@ import { COPY } from '../../lib/copy';
 import { Icon } from '../ui/Icon';
 import { GroupSection } from '../tasks/GroupSection';
 import { CategoryCard } from '../tasks/CategoryCard';
+import { InboxList } from './InboxList';
 import styles from './plan.module.css';
 
 interface Props {
@@ -51,6 +52,9 @@ export function LaterSection({ tasks, date, groupFilter, hideNumbers, onSchedule
           )}
         </button>
       </h2>
+
+      {/* Outside the fold: a line kept in passing should not disappear with Later. */}
+      <InboxList date={date} hideNumbers={hideNumbers} />
 
       {!collapsed && (
         <div id={bodyId} className={styles.laterBody}>

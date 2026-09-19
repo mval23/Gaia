@@ -1,4 +1,5 @@
 import type {
+  Capture,
   CheckIn,
   CheckInKind,
   GaiaState,
@@ -16,10 +17,11 @@ import { createSeed } from '../data/seed';
 import { isValidISODate } from '../lib/dates';
 import { normalizeRhythm } from '../lib/rhythm';
 import { DAY_MIN, clamp } from '../lib/time';
+import { normalizeMilestone } from './reducer';
 
 const KEY = 'gaia:v1';
 
-const TASK_STATUSES: TaskStatus[] = ['open', 'done', 'let-go'];
+const TASK_STATUSES: TaskStatus[] = ['open', 'done', 'let-go', 'waiting'];
 const GOAL_STATUSES: GoalStatus[] = ['active', 'paused', 'completed', 'released'];
 const GOAL_KINDS: GoalKind[] = ['finish', 'ongoing'];
 const HABIT_STATUSES: HabitStatus[] = ['active', 'paused', 'archived'];
@@ -34,6 +36,8 @@ function migrateTask(raw: Task & { schedule?: Schedule }): Task {
     ...task,
     blocks,
     status: TASK_STATUSES.includes(raw.status) ? raw.status : 'open',
+    essentialFor: isValidISODate(raw.essentialFor) ? raw.essentialFor : undefined,
+    waitingSince: isValidISODate(raw.waitingSince) ? raw.waitingSince : undefined,
   };
 }
 
@@ -44,6 +48,7 @@ function migrateGoal(raw: Goal, categoryIds: Set<string>): Goal {
     kind: GOAL_KINDS.includes(raw.kind) ? raw.kind : 'ongoing',
     status: GOAL_STATUSES.includes(raw.status) ? raw.status : 'active',
     categoryId: raw.categoryId && categoryIds.has(raw.categoryId) ? raw.categoryId : undefined,
+    milestone: raw.milestone && typeof raw.milestone === 'object' ? normalizeMilestone(raw.milestone) : undefined,
   };
 }
 
@@ -57,7 +62,19 @@ function migrateHabit(raw: Habit): Habit {
       typeof raw.preferredStartMin === 'number' && Number.isFinite(raw.preferredStartMin)
         ? clamp(Math.round(raw.preferredStartMin), 0, DAY_MIN - 1)
         : undefined,
+    // A plan with neither half written is just an empty row someone added.
+    ifThen: Array.isArray(raw.ifThen)
+      ? raw.ifThen
+          .filter((p) => p && typeof p === 'object')
+          .map((p) => ({ when: String(p.when ?? ''), then: String(p.then ?? '') }))
+          .filter((p) => p.when.trim() || p.then.trim())
+      : undefined,
   };
+}
+
+function isCapture(raw: unknown): raw is Capture {
+  const c = raw as Capture;
+  return !!c && typeof c.id === 'string' && typeof c.text === 'string' && c.text.trim() !== '';
 }
 
 function isCheckIn(raw: unknown): raw is CheckIn {
@@ -101,6 +118,7 @@ export function migrateState(parsed: GaiaState, seed: GaiaState = createSeed()):
       ? parsed.checkIns.filter((c) => isCheckIn(c) && habitIds.has(c.habitId))
       : [],
     reflections: Array.isArray(parsed.reflections) ? parsed.reflections : [],
+    captures: Array.isArray(parsed.captures) ? parsed.captures.filter(isCapture) : [],
     settings: { ...seed.settings, ...parsed.settings },
   };
 }

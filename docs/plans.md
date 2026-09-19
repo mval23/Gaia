@@ -4,8 +4,8 @@ The roadmap for Gaia's next features, written for a build session. The same plan
 illustrated for people, is [`docs/plans.html`](plans.html). Keep the two in step:
 when a decision here changes, change the page too.
 
-**Status (19 Sep 2026):** a proposal. Nothing in it is built yet. Season 1 has
-mockups and its details are settled (see Season 1 below). The open
+**Status (19 Sep 2026):** Season 1 is built, on the `season-1` branch. Seasons 2–4
+are still a proposal. The open
 decisions at the end are Mariana's to make, so ask before assuming an answer.
 
 ## Where it came from
@@ -61,7 +61,28 @@ row under Search, but it opens the small capture window, not a page.
 Each season starts when the one before it is part of Mariana's week, not on a
 date. Build one season at a time.
 
-### Season 1: Seeds (small, additive)
+### Season 1: Seeds (small, additive) · built
+
+Built as described below, with these details settled while building:
+
+- "The one that matters" is stored as `Task.essentialFor` (a date), not a boolean,
+  so it belongs to one day and stays behind if the task moves to another. It's
+  chosen from the task's menu, and a quiet hint under Today suggests it when two
+  or more tasks are open. "Up to two more" is a suggestion, not a limit, because a
+  day is still chosen, not capped.
+- Capture lives in `src/components/capture/`. The Plan header button is hidden on
+  phones, where the top bar has a Capture pen. Inbox lines show no dates.
+  "Plan it for today" files the task in the category of the most recently added
+  task (`recentCategoryId`), and the toast says where it went, with Undo.
+- A task with someone else keeps any time blocks it had. It's off the Today and
+  Later lists, not off the timeline.
+- Installing: `public/manifest.webmanifest` and icons from
+  `scripts/brand-assets.mjs`, plus an "On your home screen" section in Settings
+  that appears only where the browser can install (Chrome and Edge) or on an
+  iPhone. There's no service worker yet, so an installed Gaia still needs a
+  connection to open.
+- The starter card is `src/components/settings/StarterHabits.tsx` and its data is
+  in `src/data/starterHabits.ts`. It hides once all three habits exist.
 
 Mockups of every screen in this season (Plan, Capture, habit editor, goal
 milestone, starter habits, phone) are on the design canvas:
@@ -165,7 +186,7 @@ in `src/store/reducer.ts`.
 // Season 1
 interface Habit { …; why?: string; ifThen?: { when: string; then: string }[]; comingBack?: string }
 type TaskStatus = 'open' | 'done' | 'let-go' | 'waiting';
-interface Task  { …; waitingOn?: string; waitingSince?: string; essential?: boolean }   // essential only counts on plannedFor
+interface Task  { …; waitingOn?: string; waitingSince?: string; essentialFor?: string }   // one task per date
 interface Capture { id: ID; text: string; createdAt: string }
 interface Goal  { …; milestone?: { target: number; current: number; unit?: string } }
 
@@ -233,7 +254,7 @@ from home with no fixed meetings.
 
 | Habit | Rhythm | Cue | Usual | Tiny version |
 |---|---|---|---|---|
-| Move my body | about 3×/week | after lunch on gym days | gym, ~80 min incl. travel | gym clothes on, 10-min walk |
+| Move my body | about 3×/week, ~17:00 | after work, on gym days | gym, ~80 min incl. travel | gym clothes on, 10-min walk |
 | Morning start | Mon–Fri, ~07:00 | when I get up | wash, eat, choose today's tasks in Gaia | water, wash, write one thing that matters |
 | Evening shutdown | Sun–Thu, ~22:15 | when the series window ends | close work, choose tomorrow's first task, screens down, asleep by 23:00 | write tomorrow's first step, phone in another room |
 

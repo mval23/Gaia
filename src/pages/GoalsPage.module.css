@@ -508,3 +508,85 @@
   margin-top: 6px;
   width: 100%;
 }
+
+/* ---------- An optional milestone ---------- */
+
+.milestone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'marks plus'
+    'text plus';
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--panel-inset);
+}
+
+.marks,
+.bar {
+  grid-area: marks;
+}
+
+.marks {
+  display: flex;
+  gap: 3px;
+}
+
+.mark {
+  flex: 1;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--tint);
+}
+
+.mark[data-on] {
+  background: var(--cat);
+}
+
+.bar {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--tint);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cat);
+}
+
+.milestoneText {
+  grid-area: text;
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.milestoneText strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.plusOne {
+  grid-area: plus;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.plusOne:hover {
+  background: var(--hover);
+}

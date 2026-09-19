@@ -79,6 +79,15 @@ export function formatShortDate(iso: string): string {
   return fromISODate(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+/** "since Tue" within the week, "since Sep 3" before that. Never a count of days. */
+export function sinceLabel(iso: string, today: string): string {
+  const days = Math.round((fromISODate(today).getTime() - fromISODate(iso).getTime()) / 86_400_000);
+  if (days <= 0) return 'since today';
+  if (days === 1) return 'since yesterday';
+  if (days < 7) return `since ${weekdayName(iso, 'short')}`;
+  return `since ${formatShortDate(iso)}`;
+}
+
 export function weekdayName(iso: string, style: 'long' | 'short' = 'long'): string {
   return fromISODate(iso).toLocaleDateString('en-US', { weekday: style });
 }

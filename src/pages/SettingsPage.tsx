@@ -11,6 +11,8 @@ import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { Select } from '../components/ui/Select';
 import { MonetAccent } from '../components/art/MonetAccent';
 import { useOutlook } from '../integrations/outlook/OutlookProvider';
+import { StarterHabits } from '../components/settings/StarterHabits';
+import { InstallGaia } from '../components/settings/InstallGaia';
 import ui from '../components/ui/ui.module.css';
 import styles from './SettingsPage.module.css';
 
@@ -84,6 +86,8 @@ export function SettingsPage() {
             ))}
           </div>
         </section>
+
+        <StarterHabits />
 
         <section className={styles.group} aria-labelledby="the-day">
           <h2 id="the-day" className={styles.groupTitle}>
@@ -201,6 +205,8 @@ export function SettingsPage() {
           {account && <GaiaAccount email={account.email} signOut={account.signOut} />}
 
           <MicrosoftAccount />
+
+          <InstallGaia />
 
           <section className={styles.group} aria-labelledby="your-data">
             <h2 id="your-data" className={styles.groupTitle}>

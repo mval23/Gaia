@@ -19,6 +19,8 @@ import { MonetAccent } from '../components/art/MonetAccent';
 import { RhythmsSection } from '../components/plan/RhythmsSection';
 import { TodaySection } from '../components/plan/TodaySection';
 import { LaterSection } from '../components/plan/LaterSection';
+import { WithSomeoneSection } from '../components/plan/WithSomeoneSection';
+import { useCapture } from '../components/capture/CaptureProvider';
 import { CalendarLinks } from '../components/plan/CalendarLinks';
 import { WeeklyReflection } from '../components/plan/WeeklyReflection';
 import { TimeGrid, type Suggestion } from '../components/timeline/TimeGrid';
@@ -81,7 +83,13 @@ export function TodayPage() {
   const eventsByDate = useOutlookEvents([date], groupFilter);
   const moveDay = useMoveBlockDay();
 
-  const { today: todayTasks, later: laterTasks } = useMemo(
+  const { openCapture } = useCapture();
+  const {
+    essential,
+    today: todayTasks,
+    withSomeone,
+    later: laterTasks,
+  } = useMemo(
     () => partitionDay(state, date, groupFilter),
     [state, date, groupFilter],
   );
@@ -148,6 +156,10 @@ export function TodayPage() {
 
         <div className={styles.controls}>
           <div className={styles.dayNav}>
+            <button type="button" className={`${ui.pillButton} ${styles.captureButton}`} onClick={openCapture}>
+              <Icon name="capture" size={16} />
+              Capture
+            </button>
             <div className={styles.arrowPill} role="group" aria-label="Change day">
               <button
                 ref={prevRef}
@@ -242,12 +254,15 @@ export function TodayPage() {
             {showReflection && <WeeklyReflection date={date} />}
 
             <TodaySection
+              essential={essential}
               tasks={todayTasks}
               date={date}
               gentle={gentle}
               hideNumbers={hideNumbers}
               onScheduleNext={scheduleNext}
             />
+
+            <WithSomeoneSection tasks={withSomeone} date={date} hideNumbers={hideNumbers} />
 
             <LaterSection
               tasks={laterTasks}
@@ -257,7 +272,7 @@ export function TodayPage() {
               onScheduleNext={scheduleNext}
             />
 
-            {todayTasks.length === 0 && laterTasks.length === 0 ? (
+            {!essential && todayTasks.length === 0 && laterTasks.length === 0 && state.captures.length === 0 ? (
               <div className={styles.emptyState}>
                 <MonetAccent art="garden" variant="card" phrase="room to begin." />
               </div>

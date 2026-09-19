@@ -405,3 +405,56 @@ button.cardToggle:hover {
     display: none;
   }
 }
+
+/* "The one that matters": the same row, given room. */
+.taskEssential {
+  min-height: 52px;
+}
+
+.taskEssential .taskTitle {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+/* Who has it, while it is with someone else. */
+.withChip {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 9px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--avatar) 18%, transparent);
+  color: var(--text-secondary);
+}
+
+.taskEssential {
+  flex-wrap: wrap;
+  row-gap: 2px;
+  padding-block: 6px;
+}
+
+/* Title and menu share the first line; chips and context get the second. */
+.taskEssential .taskTitle {
+  flex: 1 1 calc(100% - 120px);
+}
+
+.essentialMeta {
+  order: 3;
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding-left: 34px;
+}
+
+.essentialMeta .rowContext {
+  max-width: none;
+}

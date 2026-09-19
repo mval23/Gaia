@@ -27,8 +27,11 @@ export type Priority = 'low' | 'medium' | 'high';
 /**
  * `let-go` is a deliberate, kind exit: the task keeps its history but is neither
  * open nor done. It never appears in a day list, a count, or a search default.
+ *
+ * `waiting` means someone else has it for now. The screen never calls it
+ * "waiting", because Later already waits: it reads "With someone else".
  */
-export type TaskStatus = 'open' | 'done' | 'let-go';
+export type TaskStatus = 'open' | 'done' | 'let-go' | 'waiting';
 
 export interface Schedule {
   /** Local calendar date, YYYY-MM-DD */
@@ -65,6 +68,33 @@ export interface Task {
   plannedFor?: string;
   /** How often that choice has moved; a gentle nudge appears after a few moves. */
   plannedMoves?: number;
+  /** The day this task is "the one that matters". At most one task per day. */
+  essentialFor?: string;
+  /** Who has it while the status is `waiting`. Kept afterwards, as a memory. */
+  waitingOn?: string;
+  /** The day it went to someone else. Cleared when it comes back. */
+  waitingSince?: string;
+}
+
+/** A thought kept in one line, to be sorted later or never. */
+export interface Capture {
+  id: ID;
+  text: string;
+  createdAt: string;
+}
+
+/** Only for goals that are truly countable. Never shown as a percentage. */
+export interface Milestone {
+  target: number;
+  current: number;
+  /** "sections drafted", "sessions" … */
+  unit?: string;
+}
+
+/** "If it rains, then I walk the stairs." In the person's words. */
+export interface IfThen {
+  when: string;
+  then: string;
 }
 
 export type GoalKind = 'finish' | 'ongoing';
@@ -91,6 +121,7 @@ export interface Goal {
   season?: Season;
   status: GoalStatus;
   closingNote?: string;
+  milestone?: Milestone;
   createdAt: string;
   closedAt?: string;
 }
@@ -114,6 +145,12 @@ export interface Habit {
   tinyVersion?: string;
   /** Renders as a dashed suggestion on the timeline. A suggestion, not a commitment. */
   preferredStartMin?: number;
+  /** Private. Shown under the habit on gentle days. */
+  why?: string;
+  /** Plans for what usually gets in the way. */
+  ifThen?: IfThen[];
+  /** What helps to pick it up again. Shown after a few quiet days, instead of anything about the gap. */
+  comingBack?: string;
   status: HabitStatus;
   createdAt: string;
 }
@@ -172,5 +209,6 @@ export interface GaiaState {
   habits: Habit[];
   checkIns: CheckIn[];
   reflections: Reflection[];
+  captures: Capture[];
   settings: Settings;
 }

@@ -185,6 +185,56 @@ function Sheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
         />
       </SheetRow>
 
+      <SheetRow
+        label="Something to count"
+        hint="Only for goals you can really count: chapters, sessions, savings. Gaia shows the count as it is, never as a percentage."
+      >
+        <label className={styles.checkLine}>
+          <input
+            type="checkbox"
+            checked={!!goal.milestone}
+            onChange={(e) =>
+              patch({ milestone: e.target.checked ? { target: 10, current: 0, unit: '' } : undefined })
+            }
+          />
+          Count toward a number
+        </label>
+        {goal.milestone && (
+          <div className={styles.milestoneFields}>
+            <label className={styles.miniField}>
+              <span>How many</span>
+              <input
+                type="number"
+                min={1}
+                className="field"
+                value={goal.milestone.target}
+                onChange={(e) => patch({ milestone: { ...goal.milestone!, target: Number(e.target.value) } })}
+              />
+            </label>
+            <label className={styles.miniField}>
+              <span>Of what</span>
+              <input
+                className="field"
+                placeholder="sections drafted"
+                value={goal.milestone.unit ?? ''}
+                onChange={(e) => patch({ milestone: { ...goal.milestone!, unit: e.target.value } })}
+              />
+            </label>
+            <label className={styles.miniField}>
+              <span>So far</span>
+              <input
+                type="number"
+                min={0}
+                max={goal.milestone.target}
+                className="field"
+                value={goal.milestone.current}
+                onChange={(e) => patch({ milestone: { ...goal.milestone!, current: Number(e.target.value) } })}
+              />
+            </label>
+          </div>
+        )}
+      </SheetRow>
+
       <SheetRow label="Lives in" hint="A goal borrows a category's colour. It can stay unattached.">
         <Select
           aria-label="Category"
