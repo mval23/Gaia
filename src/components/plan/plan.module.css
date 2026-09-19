@@ -108,3 +108,98 @@
   font-size: 12.5px;
   color: var(--text-tertiary);
 }
+
+/* ---------- The one that matters ---------- */
+
+.essential {
+  display: grid;
+  gap: 4px;
+  padding: 10px 10px 8px 12px;
+  border-radius: var(--radius-lg, 14px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.essentialLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding-left: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--avatar) 70%, var(--text));
+}
+
+.essentialStar {
+  fill: var(--avatar);
+  stroke: var(--avatar);
+}
+
+.hintLine {
+  margin: 0;
+  padding: 0 2px;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+/* ---------- Inbox, at the top of Later ---------- */
+
+.inbox {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px 6px;
+  border-radius: var(--radius);
+  background: var(--panel-inset);
+}
+
+.inboxHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  padding: 2px;
+  color: var(--text-secondary);
+}
+
+.inboxList {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inboxRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 2px;
+}
+
+.inboxText {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.inboxRow .sortButton {
+  width: auto;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.inboxRow .sortButton:hover {
+  color: var(--text);
+}

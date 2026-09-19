@@ -723,7 +723,7 @@ footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-s
         </div>
         <dl>
           <div><dt>Rhythm</dt><dd>About 3 times a week, any days</dd></div>
-          <div><dt>Cue</dt><dd>After I close the laptop for lunch, on gym days</dd></div>
+          <div><dt>Cue</dt><dd>After work, on gym days</dd></div>
           <div><dt>Usual</dt><dd>Gym session, about 80 minutes including travel</dd></div>
           <div><dt>Tiny version</dt><dd class="tiny">Gym clothes on, a 10-minute walk</dd></div>
           <div class="newfield"><dt>Why</dt><dd>So my body has somewhere to put the day</dd></div>
@@ -990,7 +990,7 @@ footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-s
     </div>
     <div class="phases">
       <div class="phase">
-        <div class="ph"><b>Seeds</b><span>Season 1 · small, additive</span></div>
+        <div class="ph"><b>Seeds</b><span>Season 1 · built</span></div>
         <div class="pb">
           <ul class="list">
             <li>Habit fields: <b>why</b>, <b>if–then</b>, <b>coming back</b></li>
@@ -1055,7 +1055,7 @@ footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-s
 <pre class="code"><span class="c">// Season 1</span>
 interface Habit { …; why?: string; ifThen?: { when: string; then: string }[]; comingBack?: string }
 type TaskStatus = 'open' | 'done' | 'let-go' | 'waiting';
-interface Task  { …; waitingOn?: string; waitingSince?: string; essential?: boolean }   <span class="c">// essential only counts on plannedFor</span>
+interface Task  { …; waitingOn?: string; waitingSince?: string; essentialFor?: string }   <span class="c">// one task per date</span>
 interface Capture { id: ID; text: string; createdAt: string }  <span class="c">// sorted into a task, habit or goal, or let go</span>
 interface Goal  { …; milestone?: { target: number; current: number; unit?: string } }
 

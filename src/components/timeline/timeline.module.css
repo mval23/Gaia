@@ -178,6 +178,15 @@
   white-space: nowrap;
 }
 
+/* "The one that matters", on its own block. */
+.blockStar {
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: -1px;
+  fill: var(--avatar);
+  stroke: var(--avatar);
+}
+
 .blockMeta {
   font-size: 12px;
   color: var(--block-ink);

@@ -5,7 +5,8 @@ import { blocksOnDate, categoryById, goalById, groupById, nextBlock } from '../.
 import { useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { useDayMoveItems } from '../../hooks/useDayMoveItems';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
-import { formatShortDate } from '../../lib/dates';
+import { formatShortDate, sinceLabel, todayISO } from '../../lib/dates';
+import { COPY } from '../../lib/copy';
 import { formatClock, formatRange } from '../../lib/time';
 import { CompleteToggle } from '../ui/CompleteToggle';
 import { Icon } from '../ui/Icon';
@@ -21,11 +22,13 @@ interface TaskRowProps {
   onScheduleNext?: (task: Task) => void;
   /** Show which group and category it belongs to, for the flat Today list. */
   showContext?: boolean;
+  /** Drawn larger, as "the one that matters" on this day. */
+  essential?: boolean;
 }
 
 const PRIORITY_LABEL = { low: 'Low priority', medium: 'Medium priority', high: 'High priority' } as const;
 
-export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProps) {
+export function TaskRow({ task, date, onScheduleNext, showContext, essential }: TaskRowProps) {
   const { state, dispatch } = useGaia();
   const { notify, announce } = useFeedback();
   const { startTaskDrag } = useDragActions();
@@ -35,6 +38,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
   const contextMenu = useContextMenu();
   const [editing, setEditing] = useState(false);
   const done = task.status === 'done';
+  const withSomeone = task.status === 'waiting';
   const dragging = session?.kind === 'task' && session.taskId === task.id;
   const fmt = state.settings.timeFormat;
   const onDay = date ? blocksOnDate(task, date) : [];
@@ -69,7 +73,28 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
   ];
 
   const planItems: MenuEntry[] = [
-    ...(date && task.plannedFor !== date && !done
+    ...(date && !done && !withSomeone
+      ? [
+          task.essentialFor === date
+            ? {
+                label: 'Not the one today',
+                icon: 'star' as const,
+                onSelect: () => {
+                  dispatch({ type: 'task/essential', id: task.id, date: undefined });
+                  announce(`${task.title} is back in the list`);
+                },
+              }
+            : {
+                label: 'Make it the one that matters',
+                icon: 'star' as const,
+                onSelect: () => {
+                  dispatch({ type: 'task/essential', id: task.id, date });
+                  announce(`${task.title} is the one that matters today`);
+                },
+              },
+        ]
+      : []),
+    ...(date && task.plannedFor !== date && !done && !withSomeone
       ? [
           {
             label: 'Plan for this day',
@@ -97,6 +122,30 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
   ];
 
   const endItems: MenuEntry[] = [
+    ...(withSomeone
+      ? [
+          {
+            label: 'It’s back with me',
+            icon: 'handoff' as const,
+            onSelect: () => {
+              dispatch({ type: 'task/update', id: task.id, patch: { status: 'open' } });
+              announce(`${task.title} is back with you`);
+            },
+          },
+        ]
+      : task.status === 'open'
+        ? [
+            {
+              label: 'It’s with someone else…',
+              icon: 'handoff' as const,
+              onSelect: () => {
+                dispatch({ type: 'task/update', id: task.id, patch: { status: 'waiting' } });
+                // The editor asks who has it; leaving that blank is fine too.
+                openTask(task.id);
+              },
+            },
+          ]
+        : []),
     ...(task.status !== 'let-go'
       ? [
           {
@@ -141,9 +190,41 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
         }
       : null;
 
+  // Chips and context. The one that matters gives them a line of their own under the title.
+  const meta = (
+    <>
+      {!editing && chip && (
+        <span className={`${styles.scheduleChip} ${onThisDay ? styles.scheduleChipToday : ''}`} title={chip.full}>
+          <Icon name={onThisDay ? 'clock' : 'calendar'} size={12} />
+          <span className="visually-hidden">{chip.full}</span>
+          <span aria-hidden="true">{chip.label}</span>
+        </span>
+      )}
+      {!editing && !chip && task.due && !done && <span className={styles.due}>{formatDue(task.due)}</span>}
+      {!editing && withSomeone && (
+        <span className={styles.withChip}>
+          {task.waitingOn?.trim() ? `${task.waitingOn.trim()} has it` : COPY.withSomeone}
+          {task.waitingSince ? ` · ${sinceLabel(task.waitingSince, date ?? todayISO())}` : ''}
+        </span>
+      )}
+      {!editing && goal && <span className={styles.goalChip}>{goal.title}</span>}
+      {!editing && showContext && category && (
+        <span className={styles.rowContext}>
+          <span className={styles.contextDot} style={{ background: paint(category.color) }} aria-hidden="true" />
+          <span className={styles.contextName}>{group ? `${group.name} · ${category.name}` : category.name}</span>
+        </span>
+      )}
+      {!editing && keepsMoving && (
+        <span className={styles.movesChip} title="This one keeps moving. It might need a different shape, a different day, or to be let go.">
+          keeps moving
+        </span>
+      )}
+    </>
+  );
+
   return (
     <li
-      className={`${styles.taskRow} ${done ? styles.taskDone : ''} ${dragging ? styles.taskDragging : ''}`}
+      className={`${styles.taskRow} ${done ? styles.taskDone : ''} ${dragging ? styles.taskDragging : ''} ${essential ? styles.taskEssential : ''}`}
       // The completion toggle, name field and menu stop propagation, so other presses can start a drag.
       // On touch, holding opens the right-click menu, and moving on from the hold drags, as on iPadOS.
       onPointerDown={(e) => !editing && startTaskDrag(e, task, { open: contextMenu.openAt, close: contextMenu.close })}
@@ -157,26 +238,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext }: TaskRowProp
         inputClassName={styles.titleInput}
         onEditingChange={setEditing}
       />
-      {!editing && chip && (
-        <span className={`${styles.scheduleChip} ${onThisDay ? styles.scheduleChipToday : ''}`} title={chip.full}>
-          <Icon name={onThisDay ? 'clock' : 'calendar'} size={12} />
-          <span className="visually-hidden">{chip.full}</span>
-          <span aria-hidden="true">{chip.label}</span>
-        </span>
-      )}
-      {!editing && !chip && task.due && !done && <span className={styles.due}>{formatDue(task.due)}</span>}
-      {!editing && goal && <span className={styles.goalChip}>{goal.title}</span>}
-      {!editing && showContext && category && (
-        <span className={styles.rowContext}>
-          <span className={styles.contextDot} style={{ background: paint(category.color) }} aria-hidden="true" />
-          <span className={styles.contextName}>{group ? `${group.name} · ${category.name}` : category.name}</span>
-        </span>
-      )}
-      {!editing && keepsMoving && (
-        <span className={styles.movesChip} title="This one keeps moving. It might need a different shape, a different day, or to be let go.">
-          keeps moving
-        </span>
-      )}
+      {essential ? <span className={styles.essentialMeta}>{meta}</span> : meta}
       <span
         className={styles.priority}
         data-priority={task.priority}

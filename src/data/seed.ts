@@ -1,4 +1,4 @@
-import type { Category, CheckIn, CheckInKind, GaiaState, Goal, Group, Habit, Settings, Task } from '../types';
+import type { Capture, Category, CheckIn, CheckInKind, GaiaState, Goal, Group, Habit, Settings, Task } from '../types';
 import { addDays, todayISO } from '../lib/dates';
 
 const DEFAULT_SETTINGS: Settings = {
@@ -53,6 +53,8 @@ export function createSeed(today = todayISO()): GaiaState {
       kind: 'finish',
       doneLooksLike: 'Final exam passed.',
       season: { end: addDays(today, 90) },
+      // Countable, so it may have a milestone. Most goals never will.
+      milestone: { target: 8, current: 3, unit: 'units reviewed' },
       status: 'active',
       createdAt: started,
     },
@@ -67,6 +69,9 @@ export function createSeed(today = todayISO()): GaiaState {
       rhythm: { type: 'daysOfWeek', days: [0, 1, 2, 3, 4, 5, 6] },
       cue: 'When I plug my phone into the kitchen charger',
       tinyVersion: 'Put the phone in another room',
+      why: 'Mornings go better when the night ends on time.',
+      ifThen: [{ when: 'If a series is still on at 10:30', then: 'I finish the episode and stop there' }],
+      comingBack: 'Tonight only the tiny version. Nothing to catch up on.',
       preferredStartMin: 22 * 60 + 30,
       status: 'active',
       createdAt: started,
@@ -147,11 +152,13 @@ export function createSeed(today = todayISO()): GaiaState {
     }),
     t('t-2', 'Review monthly report', 'c-client-a'),
     t('t-3', 'Send documentation', 'c-client-a', { priority: 'low' }),
+    // Someone else has this one for now.
+    t('t-18', 'Signed contract', 'c-client-a', { status: 'waiting', waitingOn: 'Laura', waitingSince: addDays(today, -3) }),
     t('t-4', 'Update Power BI dashboard', 'c-client-b', {
       plannedFor: today,
       blocks: [{ id: 'b-4', date: today, startMin: 9 * 60, durationMin: 90 }],
     }),
-    t('t-5', 'Client follow-up', 'c-client-b', { priority: 'high', due: today, plannedFor: today }),
+    t('t-5', 'Client follow-up', 'c-client-b', { priority: 'high', due: today, plannedFor: today, essentialFor: today }),
     t('t-6', 'Prepare quarterly summary', 'c-client-c'),
     t('t-7', 'Client call', 'c-client-c', {
       plannedFor: today,
@@ -178,6 +185,12 @@ export function createSeed(today = todayISO()): GaiaState {
     }),
   ];
 
+  // Two things kept in passing, not yet sorted.
+  const captures: Capture[] = [
+    { id: 'cap-1', text: 'Call the landlord about the heater', createdAt: `${today}T08:40:00` },
+    { id: 'cap-2', text: 'Idea: a reading corner by the window', createdAt: `${addDays(today, -2)}T21:10:00` },
+  ];
+
   return {
     groups,
     categories,
@@ -186,6 +199,7 @@ export function createSeed(today = todayISO()): GaiaState {
     habits,
     checkIns,
     reflections: [],
+    captures,
     settings: { ...DEFAULT_SETTINGS },
   };
 }
@@ -204,6 +218,7 @@ export function createEmpty(): GaiaState {
     habits: [],
     checkIns: [],
     reflections: [],
+    captures: [],
     settings: { ...DEFAULT_SETTINGS },
   };
 }

@@ -198,3 +198,94 @@
   gap: 8px;
   color: var(--text-secondary);
 }
+
+/* ---------- Habit editor: why it matters, and what helps ---------- */
+
+.groupHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 22px 0 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.groupTitle {
+  margin: 0;
+  flex: 1;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.groupNote {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+.whyInput {
+  min-height: 56px;
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 15.5px;
+}
+
+.plans {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.planArrow {
+  color: var(--text-tertiary);
+}
+
+.addPlan {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 560px) {
+  .plan {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .planArrow {
+    display: none;
+  }
+}
+
+/* ---------- Goal editor: something to count ---------- */
+
+.checkLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.milestoneFields {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) 90px;
+  gap: 8px;
+}
+
+.miniField {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}

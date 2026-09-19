@@ -7,7 +7,7 @@ import { blocksOn, categoriesInGroup, categoryById, groupOfTask, sortedGroups } 
 import { findFreeSlot } from '../../lib/layout';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { formatShortDate, isValidISODate, todayISO } from '../../lib/dates';
+import { formatShortDate, isValidISODate, sinceLabel, todayISO } from '../../lib/dates';
 import { DAY_MIN, formatClock, formatDuration, formatRange, nowMinutes } from '../../lib/time';
 import { Icon, type IconName } from '../ui/Icon';
 import { Select } from '../ui/Select';
@@ -56,13 +56,17 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
   const group = groupOfTask(state, task);
   const fmt = state.settings.timeFormat;
   const done = task.status === 'done';
+  const withSomeone = task.status === 'waiting';
+  const whoRef = useRef<HTMLInputElement>(null);
   const blocks = task.blocks;
   const totalMin = blocks.reduce((n, b) => n + b.durationMin, 0);
   const pageDate = params.get('date');
   const fallbackDate = isValidISODate(pageDate) ? pageDate : todayISO();
 
   useEffect(() => {
-    requestAnimationFrame(() => titleRef.current?.focus());
+    // Handed to someone else without a name yet: ask who, first.
+    const first = task.status === 'waiting' && !task.waitingOn ? whoRef : titleRef;
+    requestAnimationFrame(() => first.current?.focus());
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !e.defaultPrevented) {
         e.preventDefault();
@@ -131,6 +135,31 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
             }}
             onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
           />
+
+          {withSomeone && (
+            <Row icon="handoff" label="Who has it" htmlFor="editor-who">
+              <div className={styles.whoRow}>
+                <input
+                  id="editor-who"
+                  ref={whoRef}
+                  className="field"
+                  placeholder="Someone else"
+                  value={task.waitingOn ?? ''}
+                  onChange={(e) => patch({ waitingOn: e.target.value || undefined })}
+                />
+                <button
+                  type="button"
+                  className={ui.secondaryButton}
+                  onClick={() => patch({ status: 'open' })}
+                >
+                  It’s back with me
+                </button>
+              </div>
+              {task.waitingSince && (
+                <p className={styles.whoNote}>With them {sinceLabel(task.waitingSince, todayISO())}.</p>
+              )}
+            </Row>
+          )}
 
           <Row icon="goal" label="Supports" htmlFor="editor-goal">
             <Select

@@ -223,6 +223,18 @@ export function isQuiet(state: GaiaState, habit: Habit, today: string): boolean 
   return last <= addDays(today, -QUIET_DAYS);
 }
 
+export const RETURNING_DAYS = 5;
+
+/**
+ * A few quiet days in, the habit shows the person's own "coming back" note in
+ * place of its cue. It never says how long it has been.
+ */
+export function isReturning(state: GaiaState, habit: Habit, today: string): boolean {
+  if (!habit.comingBack?.trim()) return false;
+  const last = lastContactDate(state, habit.id) ?? habit.createdAt.slice(0, 10);
+  return last <= addDays(today, -RETURNING_DAYS);
+}
+
 /** Whether a flexible habit has already met its weekly aim, so it can sort last, kindly. */
 export function weekAimMet(state: GaiaState, habit: Habit, date: string): boolean {
   return weekCount(state, habit.id, date) >= weeklyTarget(habit.rhythm);
@@ -231,7 +243,11 @@ export function weekAimMet(state: GaiaState, habit: Habit, date: string): boolea
 /* ---------- The day: what was chosen, and what waits ---------- */
 
 export interface DayPartition {
+  /** "The one that matters" on this day, when one was chosen. Not repeated in `today`. */
+  essential?: Task;
   today: Task[];
+  /** Tasks someone else has for now: off this person's plate, not forgotten. */
+  withSomeone: Task[];
   later: Task[];
 }
 
@@ -244,17 +260,26 @@ export interface DayPartition {
 export function partitionDay(state: GaiaState, date: string, groupFilter = GROUP_ALL): DayPartition {
   const today: Task[] = [];
   const later: Task[] = [];
+  const withSomeone: Task[] = [];
+  let essential: Task | undefined;
   for (const task of state.tasks) {
     if (task.status === 'let-go') continue;
     if (!taskInGroupFilter(state, task, groupFilter)) continue;
+    if (task.status === 'waiting') {
+      withSomeone.push(task);
+      continue;
+    }
     // A paused goal's tasks step back to Later, without being touched.
     const resting = goalById(state, task.goalId)?.status === 'paused';
     const onDay = task.plannedFor === date || blocksOnDate(task, date).length > 0;
-    if (onDay && !resting) today.push(task);
-    else if (task.status === 'open') later.push(task);
+    if (onDay && !resting) {
+      if (task.essentialFor === date && !essential) essential = task;
+      else today.push(task);
+    } else if (task.status === 'open') later.push(task);
   }
   today.sort((a, b) => compareDayList(a, b, date));
-  return { today, later };
+  withSomeone.sort((a, b) => (a.waitingSince ?? '').localeCompare(b.waitingSince ?? ''));
+  return { essential, today, withSomeone, later };
 }
 
 /** A descriptive line for a goal card: steps taken and days active. Never a percentage. */
@@ -283,6 +308,21 @@ export function goalActivity(
     activeDays: days.size,
     windowDays,
   };
+}
+
+/**
+ * Where something from the Inbox goes when it becomes a task or a habit: the
+ * category of whatever was added most recently, so it lands near what the
+ * person is working on. They can move it from its editor.
+ */
+export function recentCategoryId(state: GaiaState): string | undefined {
+  const ids = new Set(state.categories.map((c) => c.id));
+  const newest = [...state.tasks]
+    .filter((t) => ids.has(t.categoryId))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  if (newest) return newest.categoryId;
+  const first = sortedGroups(state).flatMap((g) => categoriesInGroup(state, g.id))[0];
+  return first?.id;
 }
 
 /** The week a reflection belongs to. */

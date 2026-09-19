@@ -45,12 +45,32 @@ const outputs = [
   { file: 'public/favicon-32.png', size: 32, side: 340, format: 'png' },
   { file: 'public/favicon-64.png', size: 64, side: 360, format: 'png' },
   { file: 'public/apple-touch-icon.png', size: 180, side: SIDE, format: 'png' },
+  // Home-screen icons, named in public/manifest.webmanifest.
+  { file: 'public/icon-192.png', size: 192, side: SIDE, format: 'png' },
+  { file: 'public/icon-512.png', size: 512, side: SIDE, format: 'png' },
 ];
 
 for (const o of outputs) {
   const img = sharp(await squareOf(o.side)).resize(o.size, o.size, { kernel: 'lanczos3' });
   await (o.format === 'webp' ? img.webp({ quality: 92 }) : img.png({ compressionLevel: 9 })).toFile(o.file);
   console.log(`${o.file}  ${(statSync(o.file).size / 1024).toFixed(1)} KB`);
+}
+
+// Android may crop a home-screen icon to a circle, so this one keeps the lily
+// inside the middle 80% and fills the rest with the logo's lavender.
+{
+  const file = 'public/icon-maskable-512.png';
+  const inner = await sharp(await squareOf(SIDE)).resize(410, 410, { kernel: 'lanczos3' }).png().toBuffer();
+  // Pad with the crop's own edge colour, so no seam shows where the painting ends.
+  const { data: edge, info: edgeInfo } = await sharp(inner)
+    .extract({ left: 0, top: 0, width: 410, height: 4 })
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const n = edgeInfo.channels;
+  const avg = (c) => Math.round(edge.filter((_, i) => i % n === c).reduce((a, b) => a + b, 0) / (edge.length / n));
+  const pad = { r: avg(0), g: avg(1), b: avg(2), alpha: 1 };
+  await sharp(inner).extend({ top: 51, bottom: 51, left: 51, right: 51, background: pad }).png({ compressionLevel: 9 }).toFile(file);
+  console.log(`${file}  ${(statSync(file).size / 1024).toFixed(1)} KB`);
 }
 
 // Windows icon for the desktop shortcut: a multi-size .ico with PNG-compressed entries.

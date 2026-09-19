@@ -10,6 +10,7 @@ import tokens from '../styles/tokens.css?raw';
 import { CATEGORY_PALETTE, GROUP_PALETTE, paint } from './swatch';
 import type { CheckIn, GaiaState, Rhythm } from '../types';
 import { createSeed } from '../data/seed';
+import { STARTER_HABITS, hasHabitNamed, starterCategoryId } from '../data/starterHabits';
 import { reducer } from '../store/reducer';
 import {
   groupOfTask,
@@ -24,7 +25,9 @@ import {
   habitsForDate,
   isHabitResting,
   isQuiet,
+  isReturning,
   lastContactDate,
+  recentCategoryId,
   partitionDay,
   totalCount,
   weekCount,
@@ -417,6 +420,7 @@ describe('migration', () => {
   it('fills in the new collections and keeps what was saved', () => {
     const before = legacy();
     const after = migrateState(before);
+    expect(after.captures).toEqual([]);
     expect(after.goals).toEqual([]);
     expect(after.habits).toEqual([]);
     expect(after.checkIns).toEqual([]);
@@ -489,12 +493,13 @@ describe('the day', () => {
   const day = '2026-09-14';
 
   it('puts only what was chosen or scheduled into Today, and lets the rest wait', () => {
-    const { today, later } = partitionDay(seed, day);
+    const { essential, today, later } = partitionDay(seed, day);
     // Open, but not chosen and not scheduled: it waits under Later.
     expect(today.some((t) => t.id === 't-2')).toBe(false);
     expect(later.some((t) => t.id === 't-2')).toBe(true);
-    // Chosen for today.
-    expect(today.some((t) => t.id === 't-5')).toBe(true);
+    // Chosen for today (and, in the sample data, the one that matters).
+    expect(today.some((t) => t.id === 't-4')).toBe(true);
+    expect(essential?.id).toBe('t-5');
     // Finished on another day: in neither list.
     expect(today.some((t) => t.id === 't-8')).toBe(false);
     expect(later.some((t) => t.id === 't-8')).toBe(false);
@@ -633,5 +638,111 @@ describe('swatches', () => {
     expect(paint('#b3a7d6')).toBe('var(--swatch-lavender, #b3a7d6)');
     expect(paint('#123456')).toBe('#123456');
     expect(paint(undefined)).toBeUndefined();
+  });
+});
+
+describe('season 1', () => {
+  const day = '2026-09-14';
+  const seed = createSeed(day);
+  const task = (s: GaiaState, id: string) => s.tasks.find((t) => t.id === id)!;
+
+  it('keeps one task per day as the one that matters', () => {
+    const first = reducer(seed, { type: 'task/essential', id: 't-4', date: day });
+    expect(task(first, 't-4').essentialFor).toBe(day);
+    // The previous one quietly steps back into the list.
+    expect(task(first, 't-5').essentialFor).toBeUndefined();
+    const { essential, today } = partitionDay(first, day);
+    expect(essential?.id).toBe('t-4');
+    expect(today.some((t) => t.id === 't-4')).toBe(false);
+    expect(today.some((t) => t.id === 't-5')).toBe(true);
+  });
+
+  it('chooses a task for the day when it becomes the one that matters, and leaves it behind when it moves', () => {
+    const chosen = reducer(seed, { type: 'task/essential', id: 't-2', date: day });
+    expect(task(chosen, 't-2').plannedFor).toBe(day);
+    const moved = reducer(chosen, { type: 'task/plan', id: 't-2', date: '2026-09-15' });
+    expect(task(moved, 't-2').essentialFor).toBeUndefined();
+    const cleared = reducer(chosen, { type: 'task/essential', id: 't-2', date: undefined });
+    expect(task(cleared, 't-2').essentialFor).toBeUndefined();
+  });
+
+  it('takes a task off the plate while someone else has it, and brings it back open', () => {
+    const away = reducer(seed, { type: 'task/update', id: 't-4', patch: { status: 'waiting', waitingOn: 'Laura' } });
+    expect(task(away, 't-4').waitingSince).toBeTruthy();
+    expect(task(away, 't-4').completedAt).toBeUndefined();
+    const { today, later, withSomeone } = partitionDay(away, day);
+    expect(withSomeone.some((t) => t.id === 't-4')).toBe(true);
+    expect(today.some((t) => t.id === 't-4')).toBe(false);
+    expect(later.some((t) => t.id === 't-4')).toBe(false);
+
+    const back = reducer(away, { type: 'task/update', id: 't-4', patch: { status: 'open' } });
+    expect(task(back, 't-4').status).toBe('open');
+    expect(task(back, 't-4').waitingSince).toBeUndefined();
+    // Who had it stays, as a memory.
+    expect(task(back, 't-4').waitingOn).toBe('Laura');
+  });
+
+  it('finishes a task that was with someone else in one step', () => {
+    const done = reducer(seed, { type: 'task/toggle', id: 't-18' });
+    expect(task(done, 't-18').status).toBe('done');
+    expect(task(done, 't-18').waitingSince).toBeUndefined();
+  });
+
+  it('keeps captures newest first, ignores blank ones, and lets them go', () => {
+    const blank = reducer(seed, { type: 'capture/add', id: 'c-x', text: '   ' });
+    expect(blank).toBe(seed);
+    const kept = reducer(seed, { type: 'capture/add', id: 'c-new', text: '  Buy stamps ' });
+    expect(kept.captures[0]).toMatchObject({ id: 'c-new', text: 'Buy stamps' });
+    const gone = reducer(kept, { type: 'capture/remove', id: 'c-new' });
+    expect(gone.captures.some((c) => c.id === 'c-new')).toBe(false);
+  });
+
+  it('keeps a milestone whole and within its target', () => {
+    const s = reducer(seed, {
+      type: 'goal/update',
+      id: 'goal-stats',
+      patch: { milestone: { target: 4.6, current: 9, unit: 'units' } },
+    });
+    expect(s.goals.find((g) => g.id === 'goal-stats')!.milestone).toEqual({ target: 5, current: 5, unit: 'units' });
+    const off = reducer(s, { type: 'goal/update', id: 'goal-stats', patch: { milestone: undefined } });
+    expect(off.goals.find((g) => g.id === 'goal-stats')!.milestone).toBeUndefined();
+  });
+
+  it('repairs the new fields in an older or damaged save', () => {
+    const raw = {
+      ...seed,
+      captures: [{ id: 'ok', text: 'Keep me', createdAt: day }, { id: 'bad', text: '' }, null],
+      tasks: [{ ...seed.tasks[0], essentialFor: 'not a date', waitingSince: 'soon' }],
+      goals: [{ ...seed.goals[1], milestone: { target: 0, current: -3 } }],
+      habits: [{ ...seed.habits[0], ifThen: [{ when: '', then: ' ' }, { when: 'If it rains', then: '' }] }],
+    } as unknown as GaiaState;
+    const s = migrateState(raw);
+    expect(s.captures.map((c) => c.id)).toEqual(['ok']);
+    expect(s.tasks[0].essentialFor).toBeUndefined();
+    expect(s.tasks[0].waitingSince).toBeUndefined();
+    expect(s.goals[0].milestone).toEqual({ target: 1, current: 0, unit: undefined });
+    expect(s.habits[0].ifThen).toEqual([{ when: 'If it rains', then: '' }]);
+  });
+
+  it('shows the coming-back note only after a few quiet days, and only when there is one', () => {
+    const habit = seed.habits.find((h) => h.id === 'h-screens')!;
+    // Logged yesterday in the sample data.
+    expect(isReturning(seed, habit, day)).toBe(false);
+    expect(isReturning(seed, habit, addDays(day, 6))).toBe(true);
+    const noNote = { ...habit, comingBack: undefined };
+    expect(isReturning(seed, noNote, addDays(day, 6))).toBe(false);
+  });
+
+  it('offers the starter habits once, into Health', () => {
+    expect(starterCategoryId(seed)).toBe('c-health');
+    expect(hasHabitNamed(seed, 'move my body')).toBe(false);
+    const added = reducer(seed, { type: 'habit/add', id: 'h-new', categoryId: 'c-health', title: 'Move my body' });
+    expect(hasHabitNamed(added, '  Move My Body ')).toBe(true);
+    expect(STARTER_HABITS).toHaveLength(3);
+  });
+
+  it('files an Inbox line near what was added most recently', () => {
+    const s = reducer(seed, { type: 'task/add', id: 't-latest', categoryId: 'c-home', title: 'Newest' });
+    expect(recentCategoryId(s)).toBe('c-home');
   });
 });

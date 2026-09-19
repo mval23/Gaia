@@ -116,6 +116,11 @@
   height: 44px;
 }
 
+.captureButton {
+  height: 44px;
+  gap: 7px;
+}
+
 .summary {
   display: inline-flex;
   align-items: center;
@@ -292,7 +297,8 @@
     height: 40px !important;
   }
 
-  .gentleToggle {
+  .gentleToggle,
+  .captureButton {
     height: 40px;
   }
 
@@ -345,4 +351,11 @@
   font-style: italic;
   font-size: 15px;
   color: var(--text-secondary);
+}
+
+/* On a phone, Capture already sits in the top bar; the header keeps its room for the day. */
+@media (max-width: 767px) {
+  .captureButton {
+    display: none;
+  }
 }

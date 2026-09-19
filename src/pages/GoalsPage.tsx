@@ -198,6 +198,53 @@ export function GoalsPage() {
   );
 }
 
+/**
+ * A count the person keeps by hand. Small targets are drawn as one mark per
+ * step, so the shape is the count itself rather than a percentage.
+ */
+function MilestoneCount({ goal, closed }: { goal: Goal; closed: boolean }) {
+  const { dispatch } = useGaia();
+  const { announce } = useFeedback();
+  const m = goal.milestone!;
+  const unit = m.unit?.trim();
+  const full = m.current >= m.target;
+
+  return (
+    <div className={styles.milestone}>
+      {m.target <= 30 ? (
+        <div className={styles.marks} aria-hidden="true">
+          {Array.from({ length: m.target }, (_, i) => (
+            <span key={i} className={styles.mark} data-on={i < m.current || undefined} />
+          ))}
+        </div>
+      ) : (
+        <div className={styles.bar} aria-hidden="true">
+          <span style={{ width: `${(m.current / m.target) * 100}%` }} />
+        </div>
+      )}
+      <p className={styles.milestoneText}>
+        <strong>
+          {m.current} of {m.target}
+        </strong>
+        {unit ? ` ${unit}` : ''}
+      </p>
+      {!closed && !full && (
+        <button
+          type="button"
+          className={styles.plusOne}
+          aria-label={`Add one to ${goal.title}`}
+          onClick={() => {
+            dispatch({ type: 'goal/update', id: goal.id, patch: { milestone: { ...m, current: m.current + 1 } } });
+            announce(`${m.current + 1} of ${m.target}${unit ? ` ${unit}` : ''}`);
+          }}
+        >
+          <Icon name="plus" size={14} />1
+        </button>
+      )}
+    </div>
+  );
+}
+
 function GoalCard({ goal, today }: { goal: Goal; today: string }) {
   const { state } = useGaia();
   const { openGoal } = useGoalEditor();
@@ -256,6 +303,8 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
       )}
 
       {closed && goal.closingNote && <p className={styles.closingNote}>{goal.closingNote}</p>}
+
+      {goal.milestone && !state.settings.hideNumbers && <MilestoneCount goal={goal} closed={closed} />}
 
       {!state.settings.hideNumbers && !closed && (
         <p className={styles.activity}>

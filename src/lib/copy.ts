@@ -14,6 +14,12 @@ export const COPY = {
   aimMet: 'That is your week',
   reflectionInvite: 'Your week, when you have five minutes.',
   reflectionSaved: 'Saved. See you next week, or whenever.',
+  oneThatMatters: 'The one that matters',
+  chooseOne: 'Which one matters most today? Choose it from its menu.',
+  withSomeone: 'With someone else',
+  inboxNote: 'to sort, whenever',
+  captureHint: 'What’s on your mind?',
+  captureKept: 'Kept in your Inbox',
 } as const;
 
 /** How full a day has to look before Gaia gently mentions it. */

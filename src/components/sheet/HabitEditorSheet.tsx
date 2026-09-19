@@ -1,4 +1,4 @@
-import type { Habit, Rhythm } from '../../types';
+import type { Habit, IfThen, Rhythm } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { useHabitEditor } from '../../hooks/useSheetParam';
 import {
@@ -45,6 +45,13 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
     // Keep at least one day, so a rhythm never becomes impossible to meet.
     patch({ rhythm: { type: 'daysOfWeek', days: next.length ? next : days } });
   };
+
+  // One empty pair is offered until the first plan is written.
+  const plans: IfThen[] = habit.ifThen?.length ? habit.ifThen : [{ when: '', then: '' }];
+  const setPlan = (index: number, part: keyof IfThen, value: string) =>
+    patch({ ifThen: plans.map((p, i) => (i === index ? { ...p, [part]: value } : p)) });
+  const removePlan = (index: number) => patch({ ifThen: plans.filter((_, i) => i !== index) });
+  const addPlan = () => patch({ ifThen: [...plans, { when: '', then: '' }] });
 
   const setRhythmType = (type: Rhythm['type']) =>
     patch({
@@ -179,6 +186,79 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
             </option>
           ))}
         </Select>
+      </SheetRow>
+
+      <div className={styles.groupHead}>
+        <h3 className={styles.groupTitle}>Why it matters, and what helps</h3>
+        <span className={styles.groupNote}>all optional</span>
+      </div>
+
+      <SheetRow label="Why" htmlFor="habit-why" hint="Only you see this. It shows under the habit on gentle days.">
+        <textarea
+          id="habit-why"
+          className={`field ${styles.textarea} ${styles.whyInput}`}
+          rows={2}
+          placeholder="So my body has somewhere to put the day"
+          value={habit.why ?? ''}
+          onChange={(e) => patch({ why: e.target.value })}
+        />
+      </SheetRow>
+
+      <SheetRow
+        label="If–then"
+        hint="What usually gets in the way, and what you’ll do then. A plan like this makes a habit easier to keep."
+      >
+        <ul className={styles.plans}>
+          {plans.map((plan, i) => (
+            <li key={i} className={styles.plan}>
+              <input
+                className="field"
+                aria-label={`If, plan ${i + 1}`}
+                placeholder="If it rains"
+                value={plan.when}
+                onChange={(e) => setPlan(i, 'when', e.target.value)}
+              />
+              <Icon name="arrowRight" size={16} className={styles.planArrow} />
+              <input
+                className="field"
+                aria-label={`Then, plan ${i + 1}`}
+                placeholder="then I walk the stairs"
+                value={plan.then}
+                onChange={(e) => setPlan(i, 'then', e.target.value)}
+              />
+              {habit.ifThen?.length ? (
+                <button
+                  type="button"
+                  className={`${ui.iconButton} ${ui.iconButtonSm}`}
+                  aria-label={`Remove plan ${i + 1}`}
+                  onClick={() => removePlan(i)}
+                >
+                  <Icon name="close" size={14} />
+                </button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        {habit.ifThen?.length ? (
+          <button type="button" className={`${ui.textButton} ${styles.addPlan}`} onClick={addPlan}>
+            <Icon name="plus" size={14} />
+            Add another
+          </button>
+        ) : null}
+      </SheetRow>
+
+      <SheetRow
+        label="Coming back"
+        htmlFor="habit-back"
+        hint="What helps you pick it up again after a pause. After a few quiet days, Gaia shows this instead of anything about the gap."
+      >
+        <input
+          id="habit-back"
+          className="field"
+          placeholder="After a quiet week, I start with the tiny version"
+          value={habit.comingBack ?? ''}
+          onChange={(e) => patch({ comingBack: e.target.value })}
+        />
       </SheetRow>
 
       <SheetRow label="Lives in">

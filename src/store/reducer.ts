@@ -7,6 +7,7 @@ import type {
   GoalStatus,
   Group,
   Habit,
+  Milestone,
   Priority,
   Reflection,
   Rhythm,
@@ -16,7 +17,7 @@ import type {
   TimeBlock,
 } from '../types';
 import { MIN_DURATION, DAY_MIN, clamp } from '../lib/time';
-import { isValidISODate } from '../lib/dates';
+import { isValidISODate, todayISO } from '../lib/dates';
 import { DEFAULT_RHYTHM, normalizeRhythm } from '../lib/rhythm';
 
 export type Action =
@@ -33,6 +34,11 @@ export type Action =
   | { type: 'task/unschedule'; id: string; date?: string }
   /** Chooses the day a task is for; `date: undefined` sends it back to Later. */
   | { type: 'task/plan'; id: string; date?: string }
+  /** Makes a task "the one that matters" on `date`, or stops it being so (`date: undefined`). */
+  | { type: 'task/essential'; id: string; date?: string }
+  /** Keeps one line in the Inbox. */
+  | { type: 'capture/add'; id: string; text: string }
+  | { type: 'capture/remove'; id: string }
   | { type: 'category/add'; id: string; groupId: string; name: string; color: string }
   | { type: 'category/update'; id: string; patch: Partial<Pick<Category, 'name' | 'color'>> }
   | { type: 'category/move'; id: string; groupId: string; index: number }
@@ -68,6 +74,14 @@ const trimmed = (value?: string) => {
   const t = value?.trim();
   return t ? t : undefined;
 };
+
+/** A milestone with a whole, positive target and a count that stays within it. */
+export function normalizeMilestone(m: Milestone | undefined): Milestone | undefined {
+  if (!m) return undefined;
+  const target = Math.max(1, Math.round(Number(m.target) || 1));
+  const current = clamp(Math.round(Number(m.current) || 0), 0, target);
+  return { target, current, unit: m.unit };
+}
 
 export function normalizeSchedule(s: Schedule): Schedule {
   const durationMin = clamp(Math.round(s.durationMin), MIN_DURATION, DAY_MIN);
@@ -127,15 +141,20 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
           next.goalId = t.goalId;
         }
         if (action.patch.status && action.patch.status !== t.status) {
-          next.completedAt = action.patch.status === 'open' ? undefined : nowStamp();
+          const finished = action.patch.status === 'done' || action.patch.status === 'let-go';
+          next.completedAt = finished ? nowStamp() : undefined;
+          // Going to someone else starts today unless told otherwise; coming back clears it.
+          if (action.patch.status === 'waiting') next.waitingSince = action.patch.waitingSince ?? todayISO();
+          else next.waitingSince = undefined;
         }
         return next;
       });
     case 'task/toggle':
-      // Anything not open comes back as open, so a let-go task is never stranded.
+      // Open or with someone else becomes done. Anything else comes back as open,
+      // so a let-go task is never stranded.
       return mapTask(state, action.id, (t) =>
-        t.status === 'open'
-          ? { ...t, status: 'done', completedAt: nowStamp() }
+        t.status === 'open' || t.status === 'waiting'
+          ? { ...t, status: 'done', completedAt: nowStamp(), waitingSince: undefined }
           : { ...t, status: 'open', completedAt: undefined },
       );
     case 'task/delete':
@@ -171,10 +190,38 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         const moved = t.plannedFor !== undefined && action.date !== undefined;
         return {
           ...t,
+          // "The one that matters" belongs to a day, so it stays behind when the task moves.
+          essentialFor: t.essentialFor === action.date ? t.essentialFor : undefined,
           plannedFor: action.date,
           plannedMoves: moved ? (t.plannedMoves ?? 0) + 1 : t.plannedMoves,
         };
       });
+
+    case 'task/essential': {
+      const target = state.tasks.find((t) => t.id === action.id);
+      if (!target) return state;
+      const date = action.date;
+      if (date === undefined) {
+        return mapTask(state, action.id, (t) => ({ ...t, essentialFor: undefined }));
+      }
+      if (!isValidISODate(date)) return state;
+      // One per day: choosing a new one quietly steps the previous one back into the list.
+      return {
+        ...state,
+        tasks: state.tasks.map((t) => {
+          if (t.id === action.id) return { ...t, essentialFor: date, plannedFor: t.plannedFor ?? date };
+          return t.essentialFor === date ? { ...t, essentialFor: undefined } : t;
+        }),
+      };
+    }
+
+    case 'capture/add': {
+      const text = action.text.trim();
+      if (!text) return state;
+      return { ...state, captures: [{ id: action.id, text, createdAt: nowStamp() }, ...state.captures] };
+    }
+    case 'capture/remove':
+      return { ...state, captures: state.captures.filter((c) => c.id !== action.id) };
 
     case 'category/add': {
       const name = action.name.trim();
@@ -279,6 +326,7 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         if (action.patch.categoryId && !state.categories.some((c) => c.id === action.patch.categoryId)) {
           next.categoryId = g.categoryId;
         }
+        if ('milestone' in action.patch) next.milestone = normalizeMilestone(action.patch.milestone);
         return next;
       });
     case 'goal/setStatus': {

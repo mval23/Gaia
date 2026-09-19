@@ -39,7 +39,8 @@ export function ManageTasks() {
       if (query && !task.title.toLowerCase().includes(query) && !task.notes.toLowerCase().includes(query)) return false;
       if (validGroup && group?.id !== validGroup) return false;
       if (validCategory && cat?.id !== validCategory) return false;
-      if (status === 'open' && task.status !== 'open') return false;
+      // With someone else is still unfinished, so it counts as open here.
+      if (status === 'open' && task.status !== 'open' && task.status !== 'waiting') return false;
       if (status === 'done' && task.status !== 'done') return false;
       if (status === 'scheduled' && task.blocks.length === 0) return false;
       if (status === 'let-go' && task.status !== 'let-go') return false;
