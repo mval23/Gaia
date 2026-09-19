@@ -628,6 +628,7 @@ describe('swatches', () => {
   it('has a generated token, with the same hex, for every colour Gaia offers', () => {
     for (const s of [...CATEGORY_PALETTE, ...GROUP_PALETTE]) {
       expect(tokens).toContain(`--swatch-${s.token}: color-mix(in oklab, color-mix(in oklab, ${s.value.toLowerCase()} `);
+      expect(tokens).toContain(`--swatch-${s.token}: oklab(from ${s.value.toLowerCase()} `);
     }
   });
 
