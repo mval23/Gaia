@@ -4,6 +4,7 @@ import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { blocksOnDate, categoryById, goalById, groupById, nextBlock } from '../../store/selectors';
 import { useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { useDayMoveItems } from '../../hooks/useDayMoveItems';
+import { joinMenuGroups, useTaskMenuParts } from '../../hooks/useTaskMenuParts';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
 import { addDays, formatShortDate, sinceLabel, todayISO } from '../../lib/dates';
 import { COPY } from '../../lib/copy';
@@ -36,6 +37,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential, ac
   const session = useDragSession();
   const { openTask } = useTaskEditor();
   const dayMoveItems = useDayMoveItems(task, date);
+  const parts = useTaskMenuParts(task, date);
   const contextMenu = useContextMenu();
   const [editing, setEditing] = useState(false);
   const done = task.status === 'done';
@@ -57,37 +59,6 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential, ac
     if (!done && date && !onThisDay) notify(`“${task.title}” completed`, previous);
   };
 
-  // The day's one task that matters: offered only while the day has none, and
-  // taken back from the task that has it. Only one per day, so no other task offers it.
-  const dayHasEssential =
-    !!date && state.tasks.some((t) => t.essentialFor === date && t.id !== task.id && t.status !== 'let-go');
-  const essentialItem: MenuEntry[] =
-    !date || done || withSomeone
-      ? []
-      : task.essentialFor === date
-        ? [
-            {
-              label: 'Not the one today',
-              icon: 'star',
-              onSelect: () => {
-                dispatch({ type: 'task/essential', id: task.id, date: undefined });
-                announce(`${task.title} is back in the list`);
-              },
-            },
-          ]
-        : dayHasEssential
-          ? []
-          : [
-              {
-                label: 'The one that matters',
-                icon: 'star',
-                onSelect: () => {
-                  dispatch({ type: 'task/essential', id: task.id, date });
-                  announce(`${task.title} is the one that matters today`);
-                },
-              },
-            ];
-
   // The calendar beside each task: choose the day it is for. Moving it off the day
   // being shown clears its sessions there, as "Tomorrow" does.
   const planFor = (picked: string) => {
@@ -108,22 +79,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential, ac
 
   // Three groups at most, as Apple's context-menu guidance asks: which day it belongs to,
   // then its time and details, then the ways a task ends, with Delete last.
-  const dayItems: MenuEntry[] = [
-    ...essentialItem,
-    ...tomorrowItems,
-    ...(date && task.plannedFor !== date && !done && !withSomeone
-      ? [
-          {
-            label: 'Plan for this day',
-            icon: 'plan' as const,
-            onSelect: () => {
-              dispatch({ type: 'task/plan', id: task.id, date });
-              announce(`${task.title} is on today's list`);
-            },
-          },
-        ]
-      : []),
-  ];
+  const dayItems: MenuEntry[] = [...parts.essential, ...tomorrowItems, ...parts.plan];
 
   const timeItems: MenuEntry[] = [
     // A task can be scheduled many times, so this always adds another session.
@@ -152,60 +108,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential, ac
     { label: 'Edit details', icon: 'pencil', onSelect: () => openTask(task.id) },
   ];
 
-  const endItems: MenuEntry[] = [
-    ...(withSomeone
-      ? [
-          {
-            label: 'It’s back with me',
-            icon: 'handoff' as const,
-            onSelect: () => {
-              dispatch({ type: 'task/update', id: task.id, patch: { status: 'open' } });
-              announce(`${task.title} is back with you`);
-            },
-          },
-        ]
-      : task.status === 'open'
-        ? [
-            {
-              label: 'It’s with someone else…',
-              icon: 'handoff' as const,
-              onSelect: () => {
-                dispatch({ type: 'task/update', id: task.id, patch: { status: 'waiting' } });
-                // The editor asks who has it; leaving that blank is fine too.
-                openTask(task.id);
-              },
-            },
-          ]
-        : []),
-    ...(task.status !== 'let-go'
-      ? [
-          {
-            label: 'Let it go',
-            icon: 'unschedule' as const,
-            onSelect: () => {
-              const previous = state;
-              dispatch({ type: 'task/update', id: task.id, patch: { status: 'let-go' } });
-              dispatch({ type: 'task/unschedule', id: task.id });
-              notify(`Let go. "${task.title}" is still in your history.`, previous);
-            },
-          },
-        ]
-      : []),
-    {
-      label: 'Delete task',
-      icon: 'trash',
-      danger: true,
-      onSelect: () => {
-        const previous = state;
-        dispatch({ type: 'task/delete', id: task.id });
-        notify(`“${task.title}” deleted`, previous);
-      },
-    },
-  ];
-
-  const menuItems: MenuEntry[] = [dayItems, timeItems, endItems]
-    .filter((group) => group.length > 0)
-    .flatMap((group, i) => (i === 0 ? group : [{ kind: 'separator' as const }, ...group]));
+  const menuItems = joinMenuGroups([dayItems, timeItems, parts.end]);
 
   // Today's first session (plus how many more), otherwise the next upcoming one.
   const upcoming = date ? nextBlock(task, date) : undefined;

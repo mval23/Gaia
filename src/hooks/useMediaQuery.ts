@@ -17,3 +17,5 @@ export function useMediaQuery(query: string): boolean {
 }
 
 export const MOBILE_QUERY = '(max-width: 767px)';
+/** Too narrow for tasks and the day side by side: phones, and tablets held upright. */
+export const SINGLE_PANEL_QUERY = '(max-width: 1023px)';

@@ -7,9 +7,10 @@ import { categoryById, groupById, groupOfTask } from '../../store/selectors';
 import { HOUR_PX, useDragActions } from '../../dnd/DragProvider';
 import { DAY_MIN, MIN_DURATION, SNAP_MIN, formatClock, formatDuration, formatRange } from '../../lib/time';
 import { useDayMoveItems } from '../../hooks/useDayMoveItems';
+import { joinMenuGroups, useTaskMenuParts } from '../../hooks/useTaskMenuParts';
 import { CompleteToggle } from '../ui/CompleteToggle';
 import { Icon } from '../ui/Icon';
-import { ContextMenu, useContextMenu, type MenuEntry } from '../ui/Menu';
+import { ContextMenu, useContextMenu } from '../ui/Menu';
 import { paint } from '../../lib/swatch';
 import styles from './timeline.module.css';
 
@@ -52,6 +53,7 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
   const compact = schedule.durationMin < 45;
   const range = formatRange(schedule.startMin, schedule.durationMin, fmt);
   const dayMoveItems = useDayMoveItems(task, block.date, block);
+  const parts = useTaskMenuParts(task, block.date);
   const contextMenu = useContextMenu();
 
   const toggle = () => {
@@ -77,18 +79,25 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
     notify(`“${task.title}” is now ${formatDuration(MIN_DURATION)}`, previous);
   };
 
-  const menuItems: MenuEntry[] = [
-    ...dayMoveItems,
-    {
-      label: 'Quick task',
-      icon: 'clock',
-      disabled: schedule.durationMin === MIN_DURATION,
-      onSelect: makeQuick,
-    },
-    { kind: 'separator' },
-    { label: 'Edit details', icon: 'pencil', onSelect: onOpen },
-    { label: done ? 'Mark not done' : 'Complete', icon: 'check', onSelect: toggle },
-  ];
+  // The same order as a task's row: the day first, then this session and the task's
+  // details, then the ways a task ends. Unschedule here removes only this session.
+  const tomorrowItems = dayMoveItems.filter((item) => 'icon' in item && item.icon === 'arrowRight');
+  const unscheduleItems = dayMoveItems.filter((item) => !tomorrowItems.includes(item));
+  const menuItems = joinMenuGroups([
+    [...parts.essential, ...tomorrowItems, ...parts.plan],
+    [
+      {
+        label: 'Quick task',
+        icon: 'clock',
+        disabled: schedule.durationMin === MIN_DURATION,
+        onSelect: makeQuick,
+      },
+      ...unscheduleItems,
+      { label: 'Edit details', icon: 'pencil', onSelect: onOpen },
+      { label: done ? 'Mark not done' : 'Complete', icon: 'check', onSelect: toggle },
+    ],
+    parts.end,
+  ]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const { startMin, durationMin } = schedule;

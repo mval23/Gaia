@@ -268,6 +268,11 @@
     justify-content: flex-start;
   }
 
+  /* One panel at a time, chosen with the Tasks · Day switch, so neither is squeezed. */
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 14px;
+  }
 }
 
 @media (max-width: 767px) {
