@@ -63,8 +63,34 @@
   color: var(--text-tertiary);
 }
 
+/* Something the card can do right here, like clearing the sample away. */
+.doIt {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  transition: background 0.14s var(--ease);
+}
+
+.doIt:hover {
+  background: var(--hover);
+}
+
+.doIt:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-top: 14px;
@@ -77,6 +103,8 @@
   border-radius: var(--radius-pill);
   border: 1px solid transparent;
   padding: 6px 14px;
+  /* A narrow card moves a whole button down a line rather than breaking its words. */
+  white-space: nowrap;
   transition: background 0.14s var(--ease);
 }
 
@@ -121,7 +149,8 @@
     transition: none;
   }
 
-  .actions button {
+  .actions button,
+  .doIt {
     transition: none;
   }
 }

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Popover } from '../ui/Popover';
-import { useGaia } from '../../store/GaiaProvider';
+import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { SINGLE_PANEL_QUERY, useMediaQuery } from '../../hooks/useMediaQuery';
+import { hasSample, withoutSample } from '../../data/sample';
 import { useWalk } from './WalkProvider';
 import styles from './walk.module.css';
 
@@ -20,10 +21,21 @@ function showPanel(panel: 'tasks' | 'day'): void {
   if (button && button.getAttribute('aria-checked') !== 'true') button.click();
 }
 
+/** An anchor is an id, or a row marked for the walk when the same thing can appear twice. */
+function findAnchor(id: string): HTMLElement | null {
+  return document.getElementById(id) ?? document.querySelector<HTMLElement>(`[data-walk-anchor="${CSS.escape(id)}"]`);
+}
+
+function inView(el: HTMLElement): boolean {
+  const { top, bottom } = el.getBoundingClientRect();
+  return top >= 0 && bottom <= window.innerHeight;
+}
+
 /** The note itself: a scrim with a hole in it, and a card beside what it points at. */
 export function WalkGuide() {
-  const { step, index, total, last, next, back, end } = useWalk();
-  const { state } = useGaia();
+  const { step, anchorId, index, total, last, next, back, end } = useWalk();
+  const { state, dispatch } = useGaia();
+  const { notify } = useFeedback();
   const singlePanel = useMediaQuery(SINGLE_PANEL_QUERY);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -31,18 +43,24 @@ export function WalkGuide() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   anchorRef.current = anchor;
 
-  // Find what this stop points at. A stop can arrive before its page has
-  // rendered, so keep looking for a moment rather than giving up at once.
+  // Find what this stop points at, and keep finding it: a stop can arrive
+  // before its page has rendered, and the thing itself can be swapped out
+  // under it, as Add group becomes a text field once you press it.
   useEffect(() => {
-    if (!step) {
+    if (!step || !anchorId) {
       setAnchor(null);
       return;
     }
     let frame = 0;
     let tries = 0;
-    const look = () => {
+    const pick = () => {
       if (singlePanel && step.panel) showPanel(step.panel);
-      const found = document.getElementById(step.anchorId);
+      const found = findAnchor(anchorId);
+      // Only settle for the second choice once the page has had time to render the first.
+      return found ?? (tries > 45 && step.fallbackAnchorId ? findAnchor(step.fallbackAnchorId) : null);
+    };
+    const look = () => {
+      const found = pick();
       if (found) {
         setAnchor(found);
         return;
@@ -50,24 +68,28 @@ export function WalkGuide() {
       if (tries++ < 90) frame = requestAnimationFrame(look);
     };
     look();
-    return () => cancelAnimationFrame(frame);
-  }, [step, singlePanel]);
+    const watch = window.setInterval(() => {
+      const found = findAnchor(anchorId) ?? (step.fallbackAnchorId ? findAnchor(step.fallbackAnchorId) : null);
+      if (found) setAnchor((current) => (current === found ? current : found));
+    }, 400);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearInterval(watch);
+    };
+  }, [step, anchorId, singlePanel]);
 
-  // Bring it into view, then again as the page settles: a panel appearing or
-  // the timeline jumping to the current hour can carry the anchor off screen
-  // a moment after the first scroll.
+  // Bring it into view if it isn't, then check again as the page settles: a
+  // panel appearing or the timeline jumping to the current hour can carry it
+  // off screen a moment after the first scroll.
   useEffect(() => {
     if (!anchor) return;
     const gentle = !window.matchMedia(REDUCED).matches;
-    anchor.scrollIntoView({ block: 'center', behavior: gentle ? 'smooth' : 'auto' });
+    if (!inView(anchor)) anchor.scrollIntoView({ block: 'center', behavior: gentle ? 'smooth' : 'auto' });
     // A smooth scroll is cancelled by the next one, so the follow-ups only
-    // step in when the anchor is still out of sight, and they go straight
-    // there rather than restarting the animation.
+    // step in when the anchor is still out of sight, and go straight there.
     const correct = () => {
       const { top, bottom } = anchor.getBoundingClientRect();
-      if (bottom < 0 || top > window.innerHeight) {
-        anchor.scrollIntoView({ block: 'center', behavior: 'auto' });
-      }
+      if (bottom < 0 || top > window.innerHeight) anchor.scrollIntoView({ block: 'center', behavior: 'auto' });
       setRect(anchor.getBoundingClientRect());
     };
     const again = [window.setTimeout(correct, 320), window.setTimeout(correct, 750)];
@@ -94,16 +116,26 @@ export function WalkGuide() {
   }, [anchor]);
 
   // Each stop announces itself, and the card is where the keyboard lands.
-  // The card stays hidden until the popover has measured where to put it, and
-  // nothing hidden can take focus, so keep asking until it does.
+  // Only when the stop opens, though: if you are typing a group's name, the
+  // field swapping in under the ring must not pull you back to the card.
+  // The card stays hidden until the popover has placed it, and nothing hidden
+  // can take focus, so keep asking until it does.
+  const focusedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!step || !anchor) return;
+    if (!step) {
+      focusedFor.current = null;
+      return;
+    }
+    if (!anchor || focusedFor.current === step.id) return;
     let frame = 0;
     let tries = 0;
     const take = () => {
       const title = titleRef.current;
       title?.focus();
-      if (document.activeElement === title) return;
+      if (document.activeElement === title) {
+        focusedFor.current = step.id;
+        return;
+      }
       if (tries++ < 30) frame = requestAnimationFrame(take);
     };
     frame = requestAnimationFrame(take);
@@ -111,6 +143,15 @@ export function WalkGuide() {
   }, [step, anchor]);
 
   if (!step || index === null) return null;
+
+  const offerClear = step.action === 'clear-sample';
+  const sampleLeft = offerClear && hasSample(state);
+  const clearSample = () => {
+    const previous = state;
+    dispatch({ type: 'state/replace', state: withoutSample(state) });
+    notify('The sample is cleared. Anything you added is still here.', previous);
+    next();
+  };
 
   return (
     <>
@@ -153,6 +194,14 @@ export function WalkGuide() {
           </h2>
           <p className={styles.text}>{step.body}</p>
           {step.aside && <p className={styles.aside}>{step.aside}</p>}
+          {offerClear &&
+            (sampleLeft ? (
+              <button type="button" className={styles.doIt} onClick={clearSample}>
+                Clear the sample away
+              </button>
+            ) : (
+              <p className={styles.aside}>There’s no sample left here, so this one is already done.</p>
+            ))}
           <div className={styles.actions}>
             <button type="button" className={styles.leave} onClick={end}>
               Leave the walk
@@ -163,7 +212,7 @@ export function WalkGuide() {
               </button>
             )}
             <button type="button" className={styles.next} onClick={last ? end : next}>
-              {last ? 'Finish' : 'Next'}
+              {last ? 'Finish' : sampleLeft ? 'Not now' : 'Next'}
             </button>
           </div>
         </div>

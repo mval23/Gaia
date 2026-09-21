@@ -14,12 +14,12 @@ export function ManageLayout() {
       <header className={styles.header}>
         <div>
           <p className="eyebrow">Manage</p>
-          <h1 className={styles.title}>Where everything lives</h1>
+          <h1 id="manage-title" className={styles.title}>Where everything lives</h1>
         </div>
         <MonetAccent art="lilies" variant="strip" fill phrase="everything has a place" className={styles.accent} />
       </header>
       {/* NavLink sets aria-current="page" on the tab you are on. */}
-      <nav aria-label="Manage sections" className={`${ui.segmented} ${styles.tabs}`}>
+      <nav id="manage-tabs" aria-label="Manage sections" className={`${ui.segmented} ${styles.tabs}`}>
         {TABS.map((tab) => (
           <NavLink
             key={tab.to}

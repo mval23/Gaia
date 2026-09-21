@@ -86,7 +86,7 @@ export function ManageTasks() {
       <h2 id="manage-tasks-title" className="visually-hidden">
         Tasks
       </h2>
-      <div className={styles.filters} role="search" aria-label="Find tasks">
+      <div id="manage-find" className={styles.filters} role="search" aria-label="Find tasks">
         <label className={styles.search}>
           <Icon name="search" size={17} />
           <span className="visually-hidden">Search tasks</span>

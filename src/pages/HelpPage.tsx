@@ -354,7 +354,8 @@ export function HelpPage() {
           {/* Only true inside the app, so it has no twin in docs/index.html. */}
           <p className={styles.intro}>
             Already here? Under <b>your planner</b> in the menu, <b>Walk through it together</b> points these
-            things out on the real page, in six short stops. Leave it whenever you like.
+            things out on the real page, then helps you set up your own first group, category and task. Leave it
+            whenever you like.
           </p>
           <div className={styles.two}>
             <div className={styles.card}>

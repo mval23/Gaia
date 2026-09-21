@@ -10,12 +10,14 @@ import {
 } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useGaia } from '../../store/GaiaProvider';
-import { WALK_STEPS, isLastStep, nextIndex, stepAt, type WalkStep } from './walkSteps';
+import { WALK_STEPS, anchorFor, isLastStep, nextIndex, stepAt, type Made, type WalkStep } from './walkSteps';
 
 interface WalkValue {
   /** Only ever called because someone asked for it, from the sidebar menu. */
   startWalk: () => void;
   step: WalkStep | null;
+  /** What the current stop points at, which can follow what you just made. */
+  anchorId: string | null;
   index: number | null;
   total: number;
   last: boolean;
@@ -38,7 +40,39 @@ export function WalkProvider({ children }: { children: ReactNode }) {
   const { state } = useGaia();
   const step = stepAt(index);
 
-  const startWalk = useCallback(() => setIndex(0), []);
+  // What you make along the way, so the last stops can point at your own
+  // group, category and task rather than at the sample's.
+  const [made, setMade] = useState<Made>({});
+  const seen = useRef<Record<keyof Made, Set<string>>>({ group: new Set(), category: new Set(), task: new Set() });
+
+  const startWalk = useCallback(() => {
+    seen.current = {
+      group: new Set(state.groups.map((g) => g.id)),
+      category: new Set(state.categories.map((c) => c.id)),
+      task: new Set(state.tasks.map((t) => t.id)),
+    };
+    setMade({});
+    setIndex(0);
+  }, [state.groups, state.categories, state.tasks]);
+
+  useEffect(() => {
+    if (index === null) return;
+    const lists: [keyof Made, { id: string }[]][] = [
+      ['group', state.groups],
+      ['category', state.categories],
+      ['task', state.tasks],
+    ];
+    const found: Made = {};
+    for (const [kind, items] of lists) {
+      for (const { id } of items) {
+        if (seen.current[kind].has(id)) continue;
+        seen.current[kind].add(id);
+        found[kind] = id;
+      }
+    }
+    if (Object.keys(found).length) setMade((m) => ({ ...m, ...found }));
+  }, [index, state.groups, state.categories, state.tasks]);
+
   const end = useCallback(() => setIndex(null), []);
   const next = useCallback(() => setIndex((i) => (i === null ? null : nextIndex(i))), []);
   const back = useCallback(() => setIndex((i) => (i === null || i === 0 ? i : i - 1)), []);
@@ -53,9 +87,10 @@ export function WalkProvider({ children }: { children: ReactNode }) {
     // Each stop navigates once, when it becomes the current stop.
   }, [step, navigate]);
 
-  // Two stops invite you to do something. They move on when you do, and the
+  // Some stops invite you to do something. They move on when you do, and the
   // Next button means they never wait for it.
   const taskCount = state.tasks.length;
+  const categoryCount = state.categories.length;
   const blockCount = useMemo(
     () => state.tasks.reduce((n, task) => n + task.blocks.length, 0),
     [state.tasks],
@@ -67,7 +102,7 @@ export function WalkProvider({ children }: { children: ReactNode }) {
       mark.current = null;
       return;
     }
-    const count = step.advanceOn === 'task' ? taskCount : blockCount;
+    const count = step.advanceOn === 'task' ? taskCount : step.advanceOn === 'category' ? categoryCount : blockCount;
     if (mark.current?.stepId !== step.id) {
       mark.current = { stepId: step.id, count };
       return;
@@ -76,12 +111,13 @@ export function WalkProvider({ children }: { children: ReactNode }) {
       mark.current = null;
       next();
     }
-  }, [step, taskCount, blockCount, next]);
+  }, [step, taskCount, categoryCount, blockCount, next]);
 
   const value = useMemo<WalkValue>(
     () => ({
       startWalk,
       step,
+      anchorId: step ? anchorFor(step, made) : null,
       index,
       total: WALK_STEPS.length,
       last: index !== null && isLastStep(index),
@@ -89,7 +125,7 @@ export function WalkProvider({ children }: { children: ReactNode }) {
       back,
       end,
     }),
-    [startWalk, step, index, next, back, end],
+    [startWalk, step, made, index, next, back, end],
   );
 
   return (

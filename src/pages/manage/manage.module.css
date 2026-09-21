@@ -57,13 +57,9 @@
   font-size: 15px;
 }
 
+/* The cards sit on the page itself, as on Goals, instead of in a card within a card. */
 .panel {
-  padding: 22px 24px 24px;
-  border-radius: 22px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  min-height: 420px;
+  padding: 0;
 }
 
 .danger:hover {
@@ -372,15 +368,6 @@
   .tabs a {
     padding: 0 14px;
     font-size: 14px;
-  }
-
-  /* On a phone the cards sit on the page itself, as on Goals, instead of in a card within a card. */
-  .panel {
-    padding: 0;
-    min-height: 0;
-    background: none;
-    border: 0;
-    box-shadow: none;
   }
 
   .search {
