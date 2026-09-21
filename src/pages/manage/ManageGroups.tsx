@@ -112,7 +112,7 @@ export function ManageGroups() {
       </div>
 
       {adding ? (
-        <div className={styles.addInline}>
+        <div id="add-group" className={styles.addInline}>
           <input
             ref={addRef}
             className="field"
@@ -142,6 +142,7 @@ export function ManageGroups() {
       ) : (
         <button
           ref={addButtonRef}
+          id="add-group"
           type="button"
           className={`${ui.textButton} ${styles.addGroup}`}
           onClick={() => {
@@ -468,6 +469,7 @@ function AddCategory({ groupId, groupName }: { groupId: string; groupName: strin
     return (
       <button
         ref={buttonRef}
+        id={`add-category-${groupId}`}
         type="button"
         data-add-category
         className={`${ui.textButton} ${styles.addButton}`}
@@ -483,7 +485,7 @@ function AddCategory({ groupId, groupName }: { groupId: string; groupName: strin
   }
 
   return (
-    <div className={styles.addInline}>
+    <div id={`add-category-${groupId}`} className={styles.addInline}>
       <input
         ref={inputRef}
         className="field"

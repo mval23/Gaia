@@ -158,6 +158,7 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential, ac
 
   return (
     <li
+      data-walk-anchor={`task-${task.id}`}
       className={`${styles.taskRow} ${done ? styles.taskDone : ''} ${dragging ? styles.taskDragging : ''} ${essential ? styles.taskEssential : ''}`}
       // The completion toggle, name field and menu stop propagation, so other presses can start a drag.
       // On touch, holding opens the right-click menu, and moving on from the hold drags, as on iPadOS.

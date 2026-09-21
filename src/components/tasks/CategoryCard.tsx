@@ -130,7 +130,7 @@ export function CategoryCard({ category, group, tasks, date, onScheduleNext }: C
               ))}
             </ul>
           )}
-          <InlineAddTask categoryId={category.id} placeName={category.name} />
+          <InlineAddTask id={`add-task-${category.id}`} categoryId={category.id} placeName={category.name} />
         </div>
       )}
     </section>

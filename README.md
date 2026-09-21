@@ -58,9 +58,11 @@ rule in the code, not just a style choice.
 
 ## <img src="docs/assets/icons/sparkle.svg" width="22" height="22" alt="" /> A little tour
 
-In the app, **your planner ▸ Walk through it together** offers the same tour as
-six short stops on the real page. It never starts on its own, and leaving it
-halfway is a perfectly good ending.
+In the app, **your planner ▸ Walk through it together** offers the same tour on
+the real page, from Plan through Goals to Manage. At the end it offers to clear
+the sample away, then goes with you through your first group, category and task,
+and a time for it. It never starts on its own, and leaving it halfway is a
+perfectly good ending.
 
 ### <img src="docs/assets/icons/plan.svg" width="20" height="20" alt="" /> Plan: your day, chosen gently
 
