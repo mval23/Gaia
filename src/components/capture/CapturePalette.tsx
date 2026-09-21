@@ -7,14 +7,14 @@ import { Icon } from '../ui/Icon';
 import styles from './CapturePalette.module.css';
 
 /**
- * One line, then back to what you were doing. Nothing is asked: no category,
- * no date, no goal. Everything kept goes to the Inbox at the top of Later.
+ * One line, then back to what you were doing: keeping it closes the window. Nothing is asked: no category,
+ * no date, no goal. Each line becomes a task with no category yet, which waits
+ * in the Inbox at the top of Later until it is sorted (or simply done).
  */
 export function CapturePalette({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { dispatch } = useGaia();
-  const { announce } = useFeedback();
+  const { state, dispatch } = useGaia();
+  const { notify } = useFeedback();
   const [text, setText] = useState('');
-  const [kept, setKept] = useState<{ id: string; text: string }[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useFocusTrap(dialogRef, open);
@@ -22,7 +22,6 @@ export function CapturePalette({ open, onClose }: { open: boolean; onClose: () =
   useEffect(() => {
     if (open) {
       setText('');
-      setKept([]);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
@@ -32,11 +31,10 @@ export function CapturePalette({ open, onClose }: { open: boolean; onClose: () =
   const keep = () => {
     const line = text.trim();
     if (!line) return;
-    const id = uid('cap');
-    dispatch({ type: 'capture/add', id, text: line });
-    setKept((k) => [{ id, text: line }, ...k].slice(0, 4));
-    setText('');
-    announce(COPY.captureKept);
+    const previous = state;
+    dispatch({ type: 'task/add', id: uid('t'), title: line });
+    onClose();
+    notify(`“${line}” ${COPY.captureKept}`, previous);
   };
 
   return createPortal(
@@ -71,20 +69,9 @@ export function CapturePalette({ open, onClose }: { open: boolean; onClose: () =
           </button>
         </div>
         <div className={styles.foot}>
-          {kept.length > 0 ? (
-            <ul className={styles.kept} aria-label="Kept just now">
-              {kept.map((k) => (
-                <li key={k.id}>
-                  <Icon name="check" size={14} />
-                  {k.text}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.hint}>
-              <kbd>Enter</kbd> keeps it · <kbd>Esc</kbd> closes · it goes to the Inbox under Later
-            </p>
-          )}
+          <p className={styles.hint}>
+            <kbd>Enter</kbd> keeps it as a task · <kbd>Esc</kbd> closes · sort it later from the Inbox
+          </p>
         </div>
       </div>
     </div>,

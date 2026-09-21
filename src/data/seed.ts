@@ -1,4 +1,4 @@
-import type { Capture, Category, CheckIn, CheckInKind, GaiaState, Goal, Group, Habit, Settings, Task } from '../types';
+import type { Category, CheckIn, CheckInKind, GaiaState, Goal, Group, Habit, Settings, Task } from '../types';
 import { addDays, todayISO } from '../lib/dates';
 
 const DEFAULT_SETTINGS: Settings = {
@@ -127,12 +127,11 @@ export function createSeed(today = todayISO()): GaiaState {
   log('h-stats', 5, 'tiny');
   [3, 6, 10, 13].forEach((d) => log('h-run', d));
 
-  const t = (id: string, title: string, categoryId: string, extra: Partial<Task> = {}): Task => ({
+  const t = (id: string, title: string, categoryId: string | undefined, extra: Partial<Task> = {}): Task => ({
     id,
     title,
     categoryId,
     status: 'open',
-    priority: 'medium',
     notes: '',
     createdAt: created,
     blocks: [],
@@ -141,7 +140,6 @@ export function createSeed(today = todayISO()): GaiaState {
 
   const tasks: Task[] = [
     t('t-1', 'Prepare presentation', 'c-client-a', {
-      priority: 'high',
       due: addDays(today, 1),
       plannedFor: today,
       // Worked on across two sessions: a task can be scheduled many times.
@@ -151,21 +149,21 @@ export function createSeed(today = todayISO()): GaiaState {
       ],
     }),
     t('t-2', 'Review monthly report', 'c-client-a'),
-    t('t-3', 'Send documentation', 'c-client-a', { priority: 'low' }),
+    t('t-3', 'Send documentation', 'c-client-a'),
     // Someone else has this one for now.
     t('t-18', 'Signed contract', 'c-client-a', { status: 'waiting', waitingOn: 'Laura', waitingSince: addDays(today, -3) }),
     t('t-4', 'Update Power BI dashboard', 'c-client-b', {
       plannedFor: today,
       blocks: [{ id: 'b-4', date: today, startMin: 9 * 60, durationMin: 90 }],
     }),
-    t('t-5', 'Client follow-up', 'c-client-b', { priority: 'high', due: today, plannedFor: today, essentialFor: today }),
+    t('t-5', 'Client follow-up', 'c-client-b', { due: today, plannedFor: today, essentialFor: today }),
     t('t-6', 'Prepare quarterly summary', 'c-client-c'),
     t('t-7', 'Client call', 'c-client-c', {
       plannedFor: today,
       blocks: [{ id: 'b-7', date: today, startMin: 11 * 60 + 15, durationMin: 45 }],
     }),
     t('t-8', 'Weekly team sync notes', 'c-internal', { status: 'done', completedAt: `${today}T09:30:00` }),
-    t('t-9', 'Algorithms assignment', 'c-university', { priority: 'high', due: addDays(today, 4) }),
+    t('t-9', 'Algorithms assignment', 'c-university', { due: addDays(today, 4) }),
     t('t-10', 'Study statistics', 'c-university', {
       goalId: 'goal-stats',
       plannedFor: today,
@@ -176,19 +174,16 @@ export function createSeed(today = todayISO()): GaiaState {
     }),
     t('t-11', 'Ask professor about the exam format', 'c-university', { goalId: 'goal-stats' }),
     t('t-12', 'Book dentist appointment', 'c-health'),
-    t('t-13', 'Water the plants', 'c-home', { status: 'done', completedAt: `${today}T08:10:00`, priority: 'low' }),
-    t('t-14', 'Organize bookshelf', 'c-home', { priority: 'low' }),
+    t('t-13', 'Water the plants', 'c-home', { status: 'done', completedAt: `${today}T08:10:00` }),
+    t('t-14', 'Organize bookshelf', 'c-home'),
     t('t-15', 'Pay credit card bill', 'c-finance', { due: addDays(today, 2) }),
-    t('t-16', 'Move the charger out of the bedroom', 'c-home', { goalId: 'goal-rested', priority: 'low' }),
+    t('t-16', 'Move the charger out of the bedroom', 'c-home', { goalId: 'goal-rested' }),
     t('t-17', 'Renew library card', 'c-misc', {
       blocks: [{ id: 'b-17', date: addDays(today, 2), startMin: 17 * 60 + 30, durationMin: 30 }],
     }),
-  ];
-
-  // Two things kept in passing, not yet sorted.
-  const captures: Capture[] = [
-    { id: 'cap-1', text: 'Call the landlord about the heater', createdAt: `${today}T08:40:00` },
-    { id: 'cap-2', text: 'Idea: a reading corner by the window', createdAt: `${addDays(today, -2)}T21:10:00` },
+    // Two things kept in passing with Capture, not yet sorted.
+    t('t-20', 'Call the landlord about the heater', undefined, { createdAt: `${today}T08:40:00` }),
+    t('t-21', 'Idea: a reading corner by the window', undefined, { createdAt: `${addDays(today, -2)}T21:10:00` }),
   ];
 
   return {
@@ -199,15 +194,14 @@ export function createSeed(today = todayISO()): GaiaState {
     habits,
     checkIns,
     reflections: [],
-    captures,
     settings: { ...DEFAULT_SETTINGS },
   };
 }
 
 /**
  * A clean slate for "delete everything". It keeps one group and one category
- * because the app always needs somewhere to put a task, and a state with no
- * groups fails validation on the next load.
+ * so there is somewhere to sort into, and a state with no groups fails
+ * validation on the next load.
  */
 export function createEmpty(): GaiaState {
   return {
@@ -218,7 +212,6 @@ export function createEmpty(): GaiaState {
     habits: [],
     checkIns: [],
     reflections: [],
-    captures: [],
     settings: { ...DEFAULT_SETTINGS },
   };
 }

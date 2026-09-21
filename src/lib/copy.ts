@@ -19,7 +19,7 @@ export const COPY = {
   withSomeone: 'With someone else',
   inboxNote: 'to sort, whenever',
   captureHint: 'What’s on your mind?',
-  captureKept: 'Kept in your Inbox',
+  captureKept: 'is a task in your Inbox',
 } as const;
 
 /** "1 task", "3 habits". */

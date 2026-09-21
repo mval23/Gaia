@@ -489,7 +489,7 @@ footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-s
         <div class="layer">Execution<small>projects, tasks, recurring, waiting-for, ideas, completed, Capture inbox</small></div>
         <div class="gaia">Tasks with time blocks, <em>Later</em>, <em>let go</em>, finish-goals, done history.</div>
         <div class="prop"><div class="chips"><span class="chip have">Already in Gaia</span><span class="chip extend">Extend</span><span class="chip new">New</span></div>
-          <p>A finish-goal <em>is</em> a project, so no new type is needed. Add <b>Capture</b> (one keystroke from anywhere; sort it later, or never), a <b>with someone else</b> state for tasks, and <b>repeating tasks</b> for responsibilities like rent or laundry. Ideas live in Later.</p></div>
+          <p>A finish-goal <em>is</em> a project, so no new type is needed. Add <b>Capture</b> (one keystroke from anywhere; it becomes a task you can sort later, or never), a <b>with someone else</b> state for tasks, and <b>repeating tasks</b> for responsibilities like rent or laundry. Ideas live in Later.</p></div>
       </div>
 
       <div class="row" data-t="have extend reshape">
@@ -1007,7 +1007,7 @@ footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-s
           <ul class="list">
             <li>Habit fields: <b>why</b>, <b>if–then</b>, <b>coming back</b></li>
             <li><b>The one that matters</b>: one task marked with a star, plus up to two, on Plan</li>
-            <li><b>Capture</b> with <b>Ctrl I</b>, a button or the sidebar, into an <b>Inbox</b> at the top of Later, sorted with one menu</li>
+            <li><b>Capture</b> with <b>Ctrl I</b>, a button or the sidebar: each line is a task with no category yet, waiting in an <b>Inbox</b> at the top of Later until you <b>Sort</b> it</li>
             <li><b>With someone else</b>: a folded section for tasks you're waiting on (“Laura has it · since Tue”)</li>
             <li>Optional <b>milestone count</b> on goals</li>
             <li>Install on the home screen (PWA manifest and icon)</li>
@@ -1067,8 +1067,7 @@ footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-s
 <pre class="code"><span class="c">// Season 1</span>
 interface Habit { …; why?: string; ifThen?: { when: string; then: string }[]; comingBack?: string }
 type TaskStatus = 'open' | 'done' | 'let-go' | 'waiting';
-interface Task  { …; waitingOn?: string; waitingSince?: string; essentialFor?: string }   <span class="c">// one task per date</span>
-interface Capture { id: ID; text: string; createdAt: string }  <span class="c">// sorted into a task, habit or goal, or let go</span>
+interface Task  { …; categoryId?: ID; waitingOn?: string; waitingSince?: string; essentialFor?: string }   <span class="c">// one task per date; no category = Inbox</span>
 interface Goal  { …; milestone?: { target: number; current: number; unit?: string } }
 
 <span class="c">// Season 2 · keyed by date, so filling in an earlier day is just another entry</span>

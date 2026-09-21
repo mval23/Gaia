@@ -86,7 +86,7 @@
 
 /* Warmth rather than alarm: urgency is carried by the words, not the colour. */
 .now {
-  background: color-mix(in srgb, var(--priority-high) 14%, var(--surface));
+  background: color-mix(in srgb, #d98a8f 14%, var(--surface));
 }
 
 .weeks {

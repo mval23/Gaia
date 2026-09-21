@@ -5,6 +5,7 @@ import {
   categoriesInGroup,
   filterTasks,
   groupById,
+  isUncategorized,
   sortedGroups,
   type TaskSort,
   type TaskStatusFilter,
@@ -16,11 +17,12 @@ import { Select } from '../../components/ui/Select';
 import { MonetAccent } from '../../components/art/MonetAccent';
 import { GroupSection } from '../../components/tasks/GroupSection';
 import { CategoryCard } from '../../components/tasks/CategoryCard';
+import { InboxCard } from '../../components/tasks/InboxCard';
 import ui from '../../components/ui/ui.module.css';
 import styles from './manage.module.css';
 
 const STATUSES: TaskStatusFilter[] = ['open', 'done', 'scheduled', 'unscheduled', 'let-go'];
-const SORTS: TaskSort[] = ['due', 'title', 'priority'];
+const SORTS: TaskSort[] = ['due', 'title'];
 const NO_TASKS: Task[] = [];
 
 /**
@@ -53,10 +55,16 @@ export function ManageTasks() {
   // Built once, so each category reads its own list instead of re-filtering everything.
   const byCategory = useMemo(() => {
     const map = new Map<string, Task[]>();
-    for (const t of matching) map.set(t.categoryId, [...(map.get(t.categoryId) ?? []), t]);
+    for (const t of matching) if (t.categoryId) map.set(t.categoryId, [...(map.get(t.categoryId) ?? []), t]);
     return map;
   }, [matching]);
   const inCategory = (id: string) => byCategory.get(id) ?? NO_TASKS;
+  // Tasks with no category have no group either, so a group or category filter hides them.
+  const inbox = useMemo(
+    () => (validGroup || validCategory ? NO_TASKS : matching.filter((t) => isUncategorized(state, t))),
+    [state, matching, validGroup, validCategory],
+  );
+  const showInbox = !validGroup && !validCategory && (!narrowed || inbox.length > 0);
   const total = state.tasks.filter((t) => t.status !== 'let-go').length;
 
   const clearFilters = () => setParams({ q: null, group: null, category: null, status: null });
@@ -125,7 +133,6 @@ export function ManageTasks() {
         <Select aria-label="Sort tasks" value={sort ?? ''} onChange={(e) => setSort(e.target.value || null)}>
           <option value="">Sort by due date</option>
           <option value="title">Sort by title</option>
-          <option value="priority">Sort by priority</option>
         </Select>
         <div className={styles.filterSummary}>
           <span className={styles.count} role="status">
@@ -140,7 +147,7 @@ export function ManageTasks() {
         </div>
       </div>
 
-      {visibleGroups.length === 0 ? (
+      {visibleGroups.length === 0 && !showInbox ? (
         narrowed ? (
           <div className={styles.emptyFiltered}>
             <p>
@@ -158,6 +165,7 @@ export function ManageTasks() {
         )
       ) : (
         <div className={styles.tree}>
+          {showInbox && <InboxCard tasks={inbox} />}
           {visibleGroups.map(({ group, cats }) => (
             <GroupSection
               key={group.id}

@@ -174,7 +174,7 @@ function GroupSection({ group, index: i, groups, focusLater, dragId, target, sec
   const { isCollapsed, toggle } = useCollapsed();
   const cats = categoriesInGroup(state, group.id);
   const catIds = new Set(cats.map((c) => c.id));
-  const active = activeCount(state.tasks.filter((t) => catIds.has(t.categoryId)));
+  const active = activeCount(state.tasks.filter((t) => !!t.categoryId && catIds.has(t.categoryId)));
   const key = `manage-group:${group.id}`;
   const collapsed = isCollapsed(key);
   const bodyId = `group-body-${group.id}`;

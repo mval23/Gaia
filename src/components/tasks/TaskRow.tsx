@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Task } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { blocksOnDate, categoryById, goalById, groupById, nextBlock } from '../../store/selectors';
@@ -6,10 +6,11 @@ import { useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { useDayMoveItems } from '../../hooks/useDayMoveItems';
 import { joinMenuGroups, useTaskMenuParts } from '../../hooks/useTaskMenuParts';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
-import { formatShortDate, sinceLabel, todayISO } from '../../lib/dates';
+import { addDays, formatShortDate, sinceLabel, todayISO } from '../../lib/dates';
 import { COPY } from '../../lib/copy';
 import { formatClock, formatRange } from '../../lib/time';
 import { CompleteToggle } from '../ui/CompleteToggle';
+import { DatePickerButton } from '../ui/DatePickerButton';
 import { Icon } from '../ui/Icon';
 import { ContextMenu, Menu, useContextMenu, type MenuEntry } from '../ui/Menu';
 import { paint } from '../../lib/swatch';
@@ -25,11 +26,11 @@ interface TaskRowProps {
   showContext?: boolean;
   /** Drawn larger, as "the one that matters" on this day. */
   essential?: boolean;
+  /** An extra control before the menu, such as the Inbox's Sort. */
+  action?: ReactNode;
 }
 
-const PRIORITY_LABEL = { low: 'Low priority', medium: 'Medium priority', high: 'High priority' } as const;
-
-export function TaskRow({ task, date, onScheduleNext, showContext, essential }: TaskRowProps) {
+export function TaskRow({ task, date, onScheduleNext, showContext, essential, action }: TaskRowProps) {
   const { state, dispatch } = useGaia();
   const { notify, announce } = useFeedback();
   const { startTaskDrag } = useDragActions();
@@ -57,6 +58,20 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential }: 
     // Completed tasks that aren't on this day's timeline leave the list, so offer a way back.
     if (!done && date && !onThisDay) notify(`“${task.title}” completed`, previous);
   };
+
+  // The calendar beside each task: choose the day it is for. Moving it off the day
+  // being shown clears its sessions there, as "Tomorrow" does.
+  const planFor = (picked: string) => {
+    if (picked === task.plannedFor && (!date || picked === date)) return;
+    const previous = state;
+    if (date && picked !== date) dispatch({ type: 'task/unschedule', id: task.id, date });
+    dispatch({ type: 'task/plan', id: task.id, date: picked });
+    const today = todayISO();
+    const when =
+      picked === today ? 'today' : picked === addDays(today, 1) ? 'tomorrow' : formatShortDate(picked);
+    notify(`“${task.title}” planned for ${when}`, previous);
+  };
+  const canPlan = task.status === 'open';
 
   // "Tomorrow" leads the day items; Unschedule sits with the other time changes.
   const tomorrowItems = dayMoveItems.filter((item) => 'icon' in item && item.icon === 'arrowRight');
@@ -158,13 +173,19 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential }: 
         onEditingChange={setEditing}
       />
       {essential ? <span className={styles.essentialMeta}>{meta}</span> : meta}
-      <span
-        className={styles.priority}
-        data-priority={task.priority}
-        role="img"
-        aria-label={PRIORITY_LABEL[task.priority]}
-        title={PRIORITY_LABEL[task.priority]}
-      />
+      {action}
+      {canPlan ? (
+        <DatePickerButton
+          compact
+          value={task.plannedFor ?? date ?? todayISO()}
+          onChange={planFor}
+          label={`Plan “${task.title}” for a day`}
+          title={task.plannedFor ? `Planned for ${formatShortDate(task.plannedFor)}` : 'Plan for a day'}
+          className={`${styles.planButton} ${task.plannedFor ? styles.planButtonSet : ''}`}
+        />
+      ) : (
+        <span className={styles.planSpacer} aria-hidden="true" />
+      )}
       <Menu
         label={`More options for ${task.title}`}
         items={menuItems}

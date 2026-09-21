@@ -219,7 +219,8 @@ export function OutlookProvider({ children }: { children: ReactNode }) {
     );
     const desired = new Map<string, { calendarId: string; task: Task; block: TimeBlock }>();
     for (const task of snapshot.tasks) {
-      const calendarId = calendarOfCategory.get(task.categoryId);
+      // A task with no category has no group, so no calendar to mirror into.
+      const calendarId = task.categoryId ? calendarOfCategory.get(task.categoryId) : undefined;
       if (!calendarId || task.status === 'let-go') continue;
       for (const block of task.blocks) desired.set(block.id, { calendarId, task, block });
     }

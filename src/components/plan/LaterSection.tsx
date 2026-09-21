@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import type { Task } from '../../types';
 import { useGaia } from '../../store/GaiaProvider';
-import { categoriesInGroup, sortedGroups } from '../../store/selectors';
+import { categoriesInGroup, isUncategorized, sortedGroups } from '../../store/selectors';
 import { useCollapsed } from '../../hooks/useCollapsed';
 import { COPY } from '../../lib/copy';
 import { Icon } from '../ui/Icon';
@@ -32,6 +32,11 @@ export function LaterSection({ tasks, date, groupFilter, hideNumbers, onSchedule
 
   const groups = sortedGroups(state).filter((g) => groupFilter === 'all' || g.id === groupFilter);
   const byCategory = (categoryId: string) => tasks.filter((t) => t.categoryId === categoryId);
+  // No category yet: these wait in the Inbox, newest first, instead of under a category.
+  const inbox = tasks
+    .filter((t) => isUncategorized(state, t))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const sorted = tasks.length - inbox.length;
 
   return (
     <section className={styles.section} aria-labelledby="later-title">
@@ -47,18 +52,18 @@ export function LaterSection({ tasks, date, groupFilter, hideNumbers, onSchedule
           <span className="eyebrow">Later</span>
           {!hideNumbers && (
             <span className={styles.sectionMeta}>
-              {tasks.length} waiting
+              {sorted} waiting
             </span>
           )}
         </button>
       </h2>
 
       {/* Outside the fold: a line kept in passing should not disappear with Later. */}
-      <InboxList date={date} hideNumbers={hideNumbers} />
+      <InboxList tasks={inbox} date={date} hideNumbers={hideNumbers} onScheduleNext={onScheduleNext} />
 
       {!collapsed && (
         <div id={bodyId} className={styles.laterBody}>
-          {tasks.length === 0 && <p className={styles.empty}>{COPY.laterEmpty}</p>}
+          {sorted === 0 && <p className={styles.empty}>{COPY.laterEmpty}</p>}
           {groups.map((group) => {
             const cats = categoriesInGroup(state, group.id);
             const active = cats.reduce((n, c) => n + byCategory(c.id).length, 0);

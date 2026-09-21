@@ -22,8 +22,6 @@ export interface Category {
   order: number;
 }
 
-export type Priority = 'low' | 'medium' | 'high';
-
 /**
  * `let-go` is a deliberate, kind exit: the task keeps its history but is neither
  * open nor done. It never appears in a day list, a count, or a search default.
@@ -50,14 +48,16 @@ export interface TimeBlock extends Schedule {
  * A task only references its category. Its group is always derived from the
  * category, so the hierarchy is strictly Group → Category → Task.
  *
+ * A task may also have no category yet. It waits in the Inbox until it is
+ * sorted into one, or is simply done from there; nothing requires it to move.
+ *
  * `goalId` is an optional lens on top of that hierarchy, never a part of it.
  */
 export interface Task {
   id: ID;
   title: string;
-  categoryId: ID;
+  categoryId?: ID;
   status: TaskStatus;
-  priority: Priority;
   due?: string;
   notes: string;
   blocks: TimeBlock[];
@@ -74,13 +74,6 @@ export interface Task {
   waitingOn?: string;
   /** The day it went to someone else. Cleared when it comes back. */
   waitingSince?: string;
-}
-
-/** A thought kept in one line, to be sorted later or never. */
-export interface Capture {
-  id: ID;
-  text: string;
-  createdAt: string;
 }
 
 /** Only for goals that are truly countable. Never shown as a percentage. */
@@ -209,6 +202,5 @@ export interface GaiaState {
   habits: Habit[];
   checkIns: CheckIn[];
   reflections: Reflection[];
-  captures: Capture[];
   settings: Settings;
 }

@@ -35,12 +35,17 @@ export function tasksInCategory(state: GaiaState, categoryId: string): Task[] {
   return state.tasks.filter((t) => t.categoryId === categoryId);
 }
 
+/** No category yet, or one that is gone: the task waits in the Inbox. */
+export function isUncategorized(state: GaiaState, task: Task): boolean {
+  return !categoryById(state, task.categoryId);
+}
+
 export function activeCount(tasks: Task[]): number {
   return tasks.reduce((n, t) => n + (t.status === 'open' ? 1 : 0), 0);
 }
 
 export type TaskStatusFilter = 'open' | 'done' | 'scheduled' | 'unscheduled' | 'let-go';
-export type TaskSort = 'due' | 'title' | 'priority';
+export type TaskSort = 'due' | 'title';
 
 export interface TaskFilters {
   query?: string;
@@ -60,7 +65,7 @@ export function filterTasks(state: GaiaState, filters: TaskFilters): Task[] {
   const groupOf = new Map(state.categories.map((c) => [c.id, c.groupId]));
   const rows = state.tasks.filter((task) => {
     if (query && !task.title.toLowerCase().includes(query) && !task.notes.toLowerCase().includes(query)) return false;
-    if (groupId && groupOf.get(task.categoryId) !== groupId) return false;
+    if (groupId && (!task.categoryId || groupOf.get(task.categoryId) !== groupId)) return false;
     if (categoryId && task.categoryId !== categoryId) return false;
     // With someone else is still unfinished, so it counts as open here.
     if (status === 'open' && task.status !== 'open' && task.status !== 'waiting') return false;
@@ -77,7 +82,6 @@ export function filterTasks(state: GaiaState, filters: TaskFilters): Task[] {
     const done = Number(a.status === 'done') - Number(b.status === 'done');
     if (done) return done;
     if (sort === 'title') return a.title.localeCompare(b.title);
-    if (sort === 'priority') return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
     const dueA = a.due ?? '9999-99-99';
     const dueB = b.due ?? '9999-99-99';
     return dueA.localeCompare(dueB) || a.createdAt.localeCompare(b.createdAt);
@@ -105,15 +109,13 @@ export function nextBlock(task: Task, date: string): TimeBlock | undefined {
     .sort((a, b) => a.date.localeCompare(b.date) || a.startMin - b.startMin)[0];
 }
 
-const PRIORITY_RANK = { high: 0, medium: 1, low: 2 } as const;
-
-/** Unplanned tasks first (by priority), then the day's scheduled tasks in time order. */
+/** Unplanned tasks first (oldest first), then the day's scheduled tasks in time order. */
 export function compareDayList(a: Task, b: Task, date: string): number {
   const aFirst = blocksOnDate(a, date)[0];
   const bFirst = blocksOnDate(b, date)[0];
   if (!!aFirst !== !!bFirst) return aFirst ? 1 : -1;
   if (aFirst && bFirst) return aFirst.startMin - bFirst.startMin;
-  return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] || a.createdAt.localeCompare(b.createdAt);
+  return a.createdAt.localeCompare(b.createdAt);
 }
 
 export interface ScheduledBlock {
@@ -363,9 +365,9 @@ export function goalActivity(
 export function recentCategoryId(state: GaiaState): string | undefined {
   const ids = new Set(state.categories.map((c) => c.id));
   const newest = [...state.tasks]
-    .filter((t) => ids.has(t.categoryId))
+    .filter((t) => t.categoryId && ids.has(t.categoryId))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-  if (newest) return newest.categoryId;
+  if (newest?.categoryId) return newest.categoryId;
   const first = sortedGroups(state).flatMap((g) => categoriesInGroup(state, g.id))[0];
   return first?.id;
 }
