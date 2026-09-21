@@ -293,8 +293,11 @@ painting, drop it in `monet/`, add a crop to the list in
 
 ## License
 
-The code is released under the [MIT License](LICENSE). The Monet paintings are
-public domain and are not covered by it.
+The code is released under the [Apache License 2.0 with the Commons Clause](LICENSE).
+You may use, study, change and share it, forks included, but you may not sell
+it: no paid product, hosted service or support offering whose value comes
+mainly from Gaia. The Monet paintings are public domain and are not covered by
+it.
 
 ---
 
