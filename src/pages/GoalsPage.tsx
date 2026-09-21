@@ -360,15 +360,15 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
   );
 }
 
-/** Creates a task already pointing at this goal, in the goal's category. */
+/** Creates a task already pointing at this goal, in the goal's category if it has one. */
 function AddStep({ goal }: { goal: Goal }) {
-  const { state, dispatch } = useGaia();
+  const { dispatch } = useGaia();
   const { announce } = useFeedback();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState('');
-  const categoryId = goal.categoryId ?? state.categories[0]?.id;
+  const categoryId = goal.categoryId;
 
-  if (!categoryId || goal.status === 'completed' || goal.status === 'released') return null;
+  if (goal.status === 'completed' || goal.status === 'released') return null;
 
   const commit = () => {
     const title = value.trim();

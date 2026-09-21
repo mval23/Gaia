@@ -1,7 +1,9 @@
 import type { Task } from '../../types';
 import { COPY } from '../../lib/copy';
+import { formatShortDate, todayISO } from '../../lib/dates';
 import { Icon } from '../ui/Icon';
 import { TaskRow } from '../tasks/TaskRow';
+import { InlineAddTask } from '../tasks/InlineAddTask';
 import styles from './plan.module.css';
 import taskStyles from '../tasks/tasks.module.css';
 
@@ -54,6 +56,9 @@ export function TodaySection({ essential, tasks, date, gentle, hideNumbers, onSc
           </ul>
         )
       )}
+
+      {/* No category needed: it can be sorted later from the Inbox, or never. */}
+      <InlineAddTask plannedFor={date} placeName={date === todayISO() ? 'today’s list' : `the list for ${formatShortDate(date)}`} />
 
       {offerChoice && <p className={styles.hintLine}>{COPY.chooseOne}</p>}
     </section>

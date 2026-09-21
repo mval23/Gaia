@@ -19,7 +19,6 @@ const task: Task = {
   title: 'Write report',
   categoryId: 'c1',
   status: 'open',
-  priority: 'medium',
   notes: 'private',
   blocks: [],
   createdAt: '2026-09-01T00:00:00Z',

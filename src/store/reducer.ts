@@ -8,7 +8,6 @@ import type {
   Group,
   Habit,
   Milestone,
-  Priority,
   Reflection,
   Rhythm,
   Schedule,
@@ -21,7 +20,8 @@ import { isValidISODate, todayISO } from '../lib/dates';
 import { DEFAULT_RHYTHM, normalizeRhythm } from '../lib/rhythm';
 
 export type Action =
-  | { type: 'task/add'; id: string; categoryId: string; title: string }
+  /** Without a category (or with one that no longer exists) the task waits in the Inbox. */
+  | { type: 'task/add'; id: string; categoryId?: string; title: string; plannedFor?: string }
   | { type: 'task/update'; id: string; patch: Partial<Omit<Task, 'id' | 'createdAt' | 'blocks'>> }
   | { type: 'task/toggle'; id: string }
   | { type: 'task/delete'; id: string }
@@ -36,9 +36,6 @@ export type Action =
   | { type: 'task/plan'; id: string; date?: string }
   /** Makes a task "the one that matters" on `date`, or stops it being so (`date: undefined`). */
   | { type: 'task/essential'; id: string; date?: string }
-  /** Keeps one line in the Inbox. */
-  | { type: 'capture/add'; id: string; text: string }
-  | { type: 'capture/remove'; id: string }
   | { type: 'category/add'; id: string; groupId: string; name: string; color: string }
   | { type: 'category/update'; id: string; patch: Partial<Pick<Category, 'name' | 'color'>> }
   | { type: 'category/move'; id: string; groupId: string; index: number }
@@ -117,13 +114,14 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
   switch (action.type) {
     case 'task/add': {
       const title = action.title.trim();
-      if (!title || !state.categories.some((c) => c.id === action.categoryId)) return state;
+      if (!title) return state;
+      const categoryId = state.categories.some((c) => c.id === action.categoryId) ? action.categoryId : undefined;
       const task: Task = {
         id: action.id,
         title,
-        categoryId: action.categoryId,
+        categoryId,
         status: 'open',
-        priority: 'medium' as Priority,
+        plannedFor: isValidISODate(action.plannedFor) ? action.plannedFor : undefined,
         notes: '',
         createdAt: nowStamp(),
         blocks: [],
@@ -214,14 +212,6 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         }),
       };
     }
-
-    case 'capture/add': {
-      const text = action.text.trim();
-      if (!text) return state;
-      return { ...state, captures: [{ id: action.id, text, createdAt: nowStamp() }, ...state.captures] };
-    }
-    case 'capture/remove':
-      return { ...state, captures: state.captures.filter((c) => c.id !== action.id) };
 
     case 'category/add': {
       const name = action.name.trim();

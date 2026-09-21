@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type SyntheticEvent } from 'react';
 import { todayISO } from '../../lib/dates';
 import { MiniMonth } from '../plan/MiniMonth';
 import { Icon } from './Icon';
@@ -9,9 +9,20 @@ interface DatePickerButtonProps {
   value: string;
   onChange: (date: string) => void;
   className?: string;
+  /** Names the button and its calendar, e.g. "Plan “Water the plants” for a day". */
+  label?: string;
+  /** A small borderless button, for use inside a task row. */
+  compact?: boolean;
+  /** Shown as a tooltip on the button. */
+  title?: string;
 }
 
-export function DatePickerButton({ value, onChange, className }: DatePickerButtonProps) {
+// Inside a draggable row, a press on the button or the calendar must not start a
+// drag or open the row's own menu. The calendar is portalled, but React events
+// still bubble through the portal to the row.
+const contain = (e: SyntheticEvent) => e.stopPropagation();
+
+export function DatePickerButton({ value, onChange, className, label = 'Choose a date', compact, title }: DatePickerButtonProps) {
   const today = todayISO();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
@@ -20,13 +31,19 @@ export function DatePickerButton({ value, onChange, className }: DatePickerButto
       <button
         ref={ref}
         type="button"
-        className={`${ui.roundButton} ${className ?? ''}`}
-        aria-label="Choose a date"
+        className={`${compact ? `${ui.iconButton} ${ui.iconButtonSm}` : ui.roundButton} ${className ?? ''}`}
+        aria-label={label}
+        title={title}
         aria-haspopup="dialog"
         aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+        onPointerDown={contain}
+        onContextMenu={contain}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
       >
-        <Icon name="calendar" size={17} />
+        <Icon name="calendar" size={compact ? 15 : 17} />
       </button>
       <Popover
         anchorRef={ref}
@@ -35,19 +52,21 @@ export function DatePickerButton({ value, onChange, className }: DatePickerButto
           setOpen(false);
           if (reason === 'escape') ref.current?.focus();
         }}
-        label="Choose a date"
+        label={label}
         align="end"
         width={252}
       >
-        <MiniMonth
-          value={value}
-          today={today}
-          onPick={(picked) => {
-            onChange(picked);
-            setOpen(false);
-            ref.current?.focus();
-          }}
-        />
+        <div onPointerDown={contain} onClick={contain} onContextMenu={contain}>
+          <MiniMonth
+            value={value}
+            today={today}
+            onPick={(picked) => {
+              onChange(picked);
+              setOpen(false);
+              ref.current?.focus();
+            }}
+          />
+        </div>
       </Popover>
     </>
   );

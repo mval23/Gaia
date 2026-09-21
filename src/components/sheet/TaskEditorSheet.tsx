@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
-import type { Priority, Schedule, Task, TimeBlock } from '../../types';
+import type { Schedule, Task, TimeBlock } from '../../types';
 import { uid, useFeedback, useGaia } from '../../store/GaiaProvider';
 import { blocksOn, categoriesInGroup, categoryById, groupOfTask, sortedGroups } from '../../store/selectors';
 import { findFreeSlot } from '../../lib/layout';
@@ -10,8 +10,8 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { formatShortDate, isValidISODate, sinceLabel, todayISO } from '../../lib/dates';
 import { DAY_MIN, formatClock, formatDuration, formatRange, nowMinutes } from '../../lib/time';
 import { Icon, type IconName } from '../ui/Icon';
+import { COPY } from '../../lib/copy';
 import { Select } from '../ui/Select';
-import { SegmentedControl } from '../ui/SegmentedControl';
 import { paint } from '../../lib/swatch';
 import ui from '../ui/ui.module.css';
 import styles from './TaskEditorSheet.module.css';
@@ -111,8 +111,17 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
       >
         <div className={styles.head}>
           <p className={styles.crumb}>
-            <span className={styles.crumbDot} style={{ background: paint(category?.color) }} aria-hidden="true" />
-            {group?.name} · {category?.name}
+            {category ? (
+              <>
+                <span className={styles.crumbDot} style={{ background: paint(category.color) }} aria-hidden="true" />
+                {group ? `${group.name} · ${category.name}` : category.name}
+              </>
+            ) : (
+              <>
+                <Icon name="inbox" size={14} />
+                Inbox · {COPY.inboxNote}
+              </>
+            )}
           </p>
           <button type="button" className={ui.iconButton} onClick={onClose} aria-label="Close editor">
             <Icon name="close" size={18} />
@@ -182,10 +191,11 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
           <Row icon="folder" label="Category" htmlFor="editor-category">
             <Select
               id="editor-category"
-              value={task.categoryId}
-              onChange={(e) => patch({ categoryId: e.target.value })}
+              value={category?.id ?? ''}
+              onChange={(e) => patch({ categoryId: e.target.value || undefined })}
               wrapClassName={styles.full}
             >
+              <option value="">No category</option>
               {sortedGroups(state).map((g) => (
                 <optgroup key={g.id} label={g.name}>
                   {categoriesInGroup(state, g.id).map((c) => (
@@ -277,20 +287,6 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
               </ul>
             )}
           </section>
-
-          <Row icon="flag" label="Priority">
-            <SegmentedControl<Priority>
-              size="sm"
-              label="Priority"
-              value={task.priority}
-              options={[
-                { value: 'low', label: 'Low', swatch: 'var(--priority-low)' },
-                { value: 'medium', label: 'Medium', swatch: 'var(--priority-medium)' },
-                { value: 'high', label: 'High', swatch: 'var(--priority-high)' },
-              ]}
-              onChange={(priority) => patch({ priority })}
-            />
-          </Row>
 
           <Row icon="note" label="Notes" htmlFor="editor-notes">
             <textarea

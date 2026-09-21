@@ -272,7 +272,7 @@ export function TodayPage() {
               onScheduleNext={scheduleNext}
             />
 
-            {!essential && todayTasks.length === 0 && laterTasks.length === 0 && state.captures.length === 0 ? (
+            {!essential && todayTasks.length === 0 && laterTasks.length === 0 ? (
               <div className={styles.emptyState}>
                 <MonetAccent art="garden" variant="card" phrase="room to begin." />
               </div>

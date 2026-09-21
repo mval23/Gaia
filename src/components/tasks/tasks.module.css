@@ -120,6 +120,12 @@ button.cardToggle:hover {
   color: var(--text-secondary);
 }
 
+.inboxNote {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
 .renameInput {
   flex: 1;
   min-width: 0;
@@ -245,21 +251,47 @@ button.cardToggle:hover {
   white-space: nowrap;
 }
 
-.priority {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+/* The calendar beside each task. Quiet until the row is hovered, like the menu,
+   except when the task already has a day: then it stays, as a small signal. */
+.planButton {
+  width: 28px;
+  height: 28px;
+  color: var(--text-tertiary, var(--text-secondary));
+  opacity: 0.55;
+  transition: opacity 0.15s var(--ease), color 0.15s var(--ease), background-color 0.15s var(--ease);
+}
+
+.planButtonSet {
+  opacity: 1;
+  color: var(--text-secondary);
+}
+
+.taskRow:hover .planButton,
+.planButton:focus-visible,
+.planButton[aria-expanded='true'] {
+  opacity: 1;
+  color: var(--text);
+}
+
+/* Inbox rows: Sort, which category a task belongs to. */
+.taskRow .sortButton {
+  width: auto;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.taskRow .sortButton:hover {
+  color: var(--text);
+}
+
+.planSpacer {
+  width: 28px;
   flex-shrink: 0;
-  margin: 0 4px;
-  background: var(--priority-medium);
-}
-
-.priority[data-priority='high'] {
-  background: var(--priority-high);
-}
-
-.priority[data-priority='low'] {
-  background: var(--priority-low);
 }
 
 .rowMenu {

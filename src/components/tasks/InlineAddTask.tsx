@@ -3,8 +3,17 @@ import { uid, useFeedback, useGaia } from '../../store/GaiaProvider';
 import { Icon } from '../ui/Icon';
 import styles from './tasks.module.css';
 
-/** "+ Add task" that turns into an input; Enter creates the task inside this category. */
-export function InlineAddTask({ categoryId, categoryName }: { categoryId: string; categoryName: string }) {
+interface InlineAddTaskProps {
+  /** Leave out to add a task with no category; it waits in the Inbox until sorted. */
+  categoryId?: string;
+  /** Where the task lands, for the field's name and the announcement. */
+  placeName: string;
+  /** Also choose the task for this day. */
+  plannedFor?: string;
+}
+
+/** "+ Add task" that turns into an input; Enter creates the task in this category, or in none. */
+export function InlineAddTask({ categoryId, placeName, plannedFor }: InlineAddTaskProps) {
   const { dispatch } = useGaia();
   const { announce } = useFeedback();
   const [editing, setEditing] = useState(false);
@@ -15,8 +24,8 @@ export function InlineAddTask({ categoryId, categoryName }: { categoryId: string
   const add = () => {
     const title = value.trim();
     if (!title) return false;
-    dispatch({ type: 'task/add', id: uid('t'), categoryId, title });
-    announce(`Added “${title}” to ${categoryName}`);
+    dispatch({ type: 'task/add', id: uid('t'), categoryId, title, plannedFor });
+    announce(`Added “${title}” to ${placeName}`);
     setValue('');
     return true;
   };
@@ -46,7 +55,7 @@ export function InlineAddTask({ categoryId, categoryName }: { categoryId: string
         className={styles.addInput}
         value={value}
         placeholder="New task"
-        aria-label={`New task in ${categoryName}`}
+        aria-label={`New task in ${placeName}`}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

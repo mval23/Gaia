@@ -1,5 +1,4 @@
 import type {
-  Capture,
   CheckIn,
   CheckInKind,
   GaiaState,
@@ -27,13 +26,18 @@ const GOAL_KINDS: GoalKind[] = ['finish', 'ongoing'];
 const HABIT_STATUSES: HabitStatus[] = ['active', 'paused', 'archived'];
 const CHECKIN_KINDS: CheckInKind[] = ['done', 'tiny', 'rest'];
 
-/** Earlier saves stored a single `schedule`; tasks now hold a list of time blocks. */
-function migrateTask(raw: Task & { schedule?: Schedule }): Task {
-  const { schedule, ...task } = raw;
+/**
+ * Earlier saves stored a single `schedule`; tasks now hold a list of time blocks.
+ * They also carried a `priority`, which is gone. A category that no longer
+ * exists leaves the task uncategorized, in the Inbox, rather than lost.
+ */
+function migrateTask(raw: Task & { schedule?: Schedule; priority?: unknown }, categoryIds: Set<string>): Task {
+  const { schedule, priority, ...task } = raw;
   const blocks: TimeBlock[] = Array.isArray(raw.blocks) ? raw.blocks : [];
   if (schedule && !blocks.length) blocks.push({ id: `${raw.id}-b1`, ...schedule });
   return {
     ...task,
+    categoryId: raw.categoryId && categoryIds.has(raw.categoryId) ? raw.categoryId : undefined,
     blocks,
     status: TASK_STATUSES.includes(raw.status) ? raw.status : 'open',
     essentialFor: isValidISODate(raw.essentialFor) ? raw.essentialFor : undefined,
@@ -72,9 +76,28 @@ function migrateHabit(raw: Habit): Habit {
   };
 }
 
-function isCapture(raw: unknown): raw is Capture {
-  const c = raw as Capture;
+/** Capture used to keep lines apart from tasks. Saves from then still carry them. */
+interface LegacyCapture {
+  id: string;
+  text: string;
+  createdAt?: string;
+}
+
+function isLegacyCapture(raw: unknown): raw is LegacyCapture {
+  const c = raw as LegacyCapture;
   return !!c && typeof c.id === 'string' && typeof c.text === 'string' && c.text.trim() !== '';
+}
+
+/** A line kept before Capture made tasks becomes the uncategorized task it now would be. */
+function captureToTask(c: LegacyCapture): Task {
+  return {
+    id: c.id,
+    title: c.text.trim(),
+    status: 'open',
+    notes: '',
+    blocks: [],
+    createdAt: typeof c.createdAt === 'string' ? c.createdAt : new Date().toISOString(),
+  };
 }
 
 function isCheckIn(raw: unknown): raw is CheckIn {
@@ -109,16 +132,20 @@ export function migrateState(parsed: GaiaState, seed: GaiaState = createSeed()):
   const categoryIds = new Set((parsed.categories ?? []).map((c) => c.id));
   const habits = Array.isArray(parsed.habits) ? parsed.habits.map(migrateHabit) : [];
   const habitIds = new Set(habits.map((h) => h.id));
+  const { captures, ...rest } = parsed as GaiaState & { captures?: unknown };
+  const taskIds = new Set(parsed.tasks.map((t) => t.id));
+  const fromCaptures = Array.isArray(captures)
+    ? captures.filter(isLegacyCapture).filter((c) => !taskIds.has(c.id)).map(captureToTask)
+    : [];
   return {
-    ...parsed,
-    tasks: parsed.tasks.map(migrateTask),
+    ...rest,
+    tasks: [...parsed.tasks.map((t) => migrateTask(t, categoryIds)), ...fromCaptures],
     goals: Array.isArray(parsed.goals) ? parsed.goals.map((g) => migrateGoal(g, categoryIds)) : [],
     habits,
     checkIns: Array.isArray(parsed.checkIns)
       ? parsed.checkIns.filter((c) => isCheckIn(c) && habitIds.has(c.habitId))
       : [],
     reflections: Array.isArray(parsed.reflections) ? parsed.reflections : [],
-    captures: Array.isArray(parsed.captures) ? parsed.captures.filter(isCapture) : [],
     settings: { ...seed.settings, ...parsed.settings },
   };
 }

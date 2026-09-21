@@ -110,25 +110,3 @@
   border-radius: 5px;
   color: var(--text-secondary);
 }
-
-.kept {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.kept li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-wrap: anywhere;
-}
-
-.kept svg {
-  flex-shrink: 0;
-  color: var(--primary);
-}

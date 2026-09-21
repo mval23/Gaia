@@ -101,9 +101,6 @@ const shared = `
   --navy: #2b3445;
   --now: #e06c75;
   --danger: #b4565e;
-  --priority-high: #d98a8f;
-  --priority-medium: #c4b2c6;
-  --priority-low: #b9c0cb;
   --focus: #2b3445;
   --selected: #ffffff;
   --block-ink: #4c5669;
@@ -150,9 +147,6 @@ const sharedDark = `
   --navy: #e6e9ef;
   --now: #e8848c;
   --danger: #e0929a;
-  --priority-high: #d98a8f;
-  --priority-medium: #b9a8bb;
-  --priority-low: #8e97a5;
   --focus: #e6e9ef;
   --selected: #2b3342;
   --block-ink: #cbd3e0;

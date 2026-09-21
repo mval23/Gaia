@@ -72,8 +72,15 @@ Built as described below, with these details settled while building:
   day is still chosen, not capped.
 - Capture lives in `src/components/capture/`. The Plan header button is hidden on
   phones, where the top bar has a Capture pen. Inbox lines show no dates.
-  "Plan it for today" files the task in the category of the most recently added
-  task (`recentCategoryId`), and the toast says where it went, with Undo.
+- A task's category is optional (`categoryId?`). Capture adds a task with none,
+  and so does **Add task** under Today (planned for that day) and in the Inbox
+  card on Manage ▸ Tasks. Uncategorized tasks are the Inbox; a category that is
+  deleted from under a task on an old save also leaves it there.
+  `isUncategorized` in `selectors.ts` is the one test for it. Old saves' `captures`
+  become such tasks in `migrateState`.
+- Tasks have no priority. The calendar button at the end of each row, where the
+  priority dot was, picks the day the task is for (`task/plan`). Moving it off
+  the day on screen clears its sessions there, as *Tomorrow* does.
 - A task with someone else keeps any time blocks it had. It's off the Today and
   Later lists, not off the timeline.
 - Installing: `public/manifest.webmanifest` and icons from
@@ -101,11 +108,12 @@ https://claude.ai/artifact/R6DeUMVA6TV3TfnnDhJUQb. Where the canvas and this fil
 - **Capture**: **Ctrl I** from anywhere (next to Search's Ctrl K), a Capture
   button in Plan's header, and a Capture row in the sidebar. It opens a small
   one-line window: Enter keeps it, Esc closes, and nothing is asked (no category,
-  date or goal). Captures land in an **Inbox** at the top of Later, marked "to
-  sort, whenever". Each has a **Sort** menu: *Plan it for today*, *Make it a
-  task…*, *Make it a habit…*, *Make it a goal…* (each opens its editor
-  prefilled), and *Let it go*. Captures never age visibly: no growing count, no
-  dates that nag.
+  date or goal). Each line is a **task** straight away, with no category yet.
+  Those tasks sit in an **Inbox** at the top of Later, marked "to sort,
+  whenever", and can be done, planned or scheduled like any other. Each has a
+  **Sort** menu listing the categories by group, plus *Make it a habit…*
+  and *Make it a goal…* (each opens its editor prefilled). Inbox tasks never age
+  visibly: no growing count, no dates that nag.
 - Task status `'waiting'` with an optional `waitingOn` and `waitingSince`. The
   UI never calls it "waiting", because Later already says "10 waiting". It's a
   folded **With someone else** section on Plan, and each row shows who has it
@@ -186,8 +194,7 @@ in `src/store/reducer.ts`.
 // Season 1
 interface Habit { …; why?: string; ifThen?: { when: string; then: string }[]; comingBack?: string }
 type TaskStatus = 'open' | 'done' | 'let-go' | 'waiting';
-interface Task  { …; waitingOn?: string; waitingSince?: string; essentialFor?: string }   // one task per date
-interface Capture { id: ID; text: string; createdAt: string }
+interface Task  { …; categoryId?: ID; waitingOn?: string; waitingSince?: string; essentialFor?: string }   // one task per date; no category = Inbox; no priority
 interface Goal  { …; milestone?: { target: number; current: number; unit?: string } }
 
 // Season 2
@@ -243,6 +250,7 @@ Don't build these, even if an older plan asks for them:
 - A dashboard with many panels on the home screen.
 - Planned-vs-completed comparisons, or "X of N days" denominators.
 - A daily review or end-of-day card.
+- Task priority or importance levels. Choosing *the one that matters* and a day is enough.
 - Social media minutes or "avoidance" tracking.
 - An AI that summarises the user or writes the review.
 - A rewrite on FastAPI or SQLite, Wi-Fi-only access, or Tailscale.

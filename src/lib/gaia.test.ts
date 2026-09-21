@@ -33,6 +33,7 @@ import {
   totalCount,
   weekCount,
   filterTasks,
+  isUncategorized,
 } from '../store/selectors';
 
 describe('time', () => {
@@ -422,7 +423,6 @@ describe('migration', () => {
   it('fills in the new collections and keeps what was saved', () => {
     const before = legacy();
     const after = migrateState(before);
-    expect(after.captures).toEqual([]);
     expect(after.goals).toEqual([]);
     expect(after.habits).toEqual([]);
     expect(after.checkIns).toEqual([]);
@@ -691,13 +691,25 @@ describe('season 1', () => {
     expect(task(done, 't-18').waitingSince).toBeUndefined();
   });
 
-  it('keeps captures newest first, ignores blank ones, and lets them go', () => {
-    const blank = reducer(seed, { type: 'capture/add', id: 'c-x', text: '   ' });
+  it('captures a task with no category, ignores blank ones, and sorts it later', () => {
+    const blank = reducer(seed, { type: 'task/add', id: 'c-x', title: '   ' });
     expect(blank).toBe(seed);
-    const kept = reducer(seed, { type: 'capture/add', id: 'c-new', text: '  Buy stamps ' });
-    expect(kept.captures[0]).toMatchObject({ id: 'c-new', text: 'Buy stamps' });
-    const gone = reducer(kept, { type: 'capture/remove', id: 'c-new' });
-    expect(gone.captures.some((c) => c.id === 'c-new')).toBe(false);
+    const kept = reducer(seed, { type: 'task/add', id: 'c-new', title: '  Buy stamps ' });
+    expect(task(kept, 'c-new')).toMatchObject({ title: 'Buy stamps', status: 'open' });
+    expect(task(kept, 'c-new').categoryId).toBeUndefined();
+    expect(isUncategorized(kept, task(kept, 'c-new'))).toBe(true);
+    const sorted = reducer(kept, { type: 'task/update', id: 'c-new', patch: { categoryId: 'c-home' } });
+    expect(isUncategorized(sorted, task(sorted, 'c-new'))).toBe(false);
+    const back = reducer(sorted, { type: 'task/update', id: 'c-new', patch: { categoryId: undefined } });
+    expect(task(back, 'c-new').categoryId).toBeUndefined();
+  });
+
+  it('adds a task straight onto a day, with or without a category', () => {
+    const s = reducer(seed, { type: 'task/add', id: 't-day', title: 'Post the letter', plannedFor: day });
+    expect(task(s, 't-day').plannedFor).toBe(day);
+    expect(partitionDay(s, day).today.some((t) => t.id === 't-day')).toBe(true);
+    const unknown = reducer(seed, { type: 'task/add', id: 't-gone', categoryId: 'c-nope', title: 'Somewhere' });
+    expect(task(unknown, 't-gone').categoryId).toBeUndefined();
   });
 
   it('keeps a milestone whole and within its target', () => {
@@ -715,12 +727,22 @@ describe('season 1', () => {
     const raw = {
       ...seed,
       captures: [{ id: 'ok', text: 'Keep me', createdAt: day }, { id: 'bad', text: '' }, null],
-      tasks: [{ ...seed.tasks[0], essentialFor: 'not a date', waitingSince: 'soon' }],
+      tasks: [
+        { ...seed.tasks[0], essentialFor: 'not a date', waitingSince: 'soon', priority: 'high' },
+        { ...seed.tasks[1], categoryId: 'c-deleted' },
+      ],
       goals: [{ ...seed.goals[1], milestone: { target: 0, current: -3 } }],
       habits: [{ ...seed.habits[0], ifThen: [{ when: '', then: ' ' }, { when: 'If it rains', then: '' }] }],
     } as unknown as GaiaState;
     const s = migrateState(raw);
-    expect(s.captures.map((c) => c.id)).toEqual(['ok']);
+    // Captures kept before they were tasks become uncategorized tasks; blank ones are dropped.
+    expect('captures' in s).toBe(false);
+    expect(s.tasks.map((t) => t.id)).toEqual([seed.tasks[0].id, seed.tasks[1].id, 'ok']);
+    expect(s.tasks[2]).toMatchObject({ title: 'Keep me', status: 'open', blocks: [], createdAt: day });
+    expect(s.tasks[2].categoryId).toBeUndefined();
+    // Priority is gone, and a category that no longer exists leaves the task in the Inbox.
+    expect('priority' in s.tasks[0]).toBe(false);
+    expect(s.tasks[1].categoryId).toBeUndefined();
     expect(s.tasks[0].essentialFor).toBeUndefined();
     expect(s.tasks[0].waitingSince).toBeUndefined();
     expect(s.goals[0].milestone).toEqual({ target: 1, current: 0, unit: undefined });
@@ -778,13 +800,12 @@ describe('manage', () => {
 
   it('settles finished tasks at the bottom, then sorts by the chosen order', () => {
     const state = withTasks([
-      { title: 'B', status: 'done', priority: 'high' },
-      { title: 'C', priority: 'low', due: '2026-09-20' },
-      { title: 'A', priority: 'high', due: '2026-09-30' },
+      { title: 'B', status: 'done' },
+      { title: 'C', due: '2026-09-20' },
+      { title: 'A', due: '2026-09-30' },
     ]);
     expect(filterTasks(state, {}).map((t) => t.title)).toEqual(['C', 'A', 'B']);
     expect(filterTasks(state, { sort: 'title' }).map((t) => t.title)).toEqual(['A', 'C', 'B']);
-    expect(filterTasks(state, { sort: 'priority' }).map((t) => t.title)).toEqual(['A', 'C', 'B']);
   });
 
   it('says what goes with a deleted category, and nothing when it is empty', () => {
