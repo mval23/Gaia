@@ -58,7 +58,11 @@ export function TodaySection({ essential, tasks, date, gentle, hideNumbers, onSc
       )}
 
       {/* No category needed: it can be sorted later from the Inbox, or never. */}
-      <InlineAddTask plannedFor={date} placeName={date === todayISO() ? 'today’s list' : `the list for ${formatShortDate(date)}`} />
+      <InlineAddTask
+        id="today-add"
+        plannedFor={date}
+        placeName={date === todayISO() ? 'today’s list' : `the list for ${formatShortDate(date)}`}
+      />
 
       {offerChoice && <p className={styles.hintLine}>{COPY.chooseOne}</p>}
     </section>
