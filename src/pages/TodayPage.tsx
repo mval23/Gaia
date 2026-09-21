@@ -149,7 +149,7 @@ export function TodayPage() {
             <Icon name="sparkle" size={14} />
             {dayEyebrow(date, today)}
           </p>
-          <h1 className={styles.title}>
+          <h1 id="day-title" className={styles.title}>
             <time dateTime={date}>{formatLongDate(date)}</time>
           </h1>
           <CalendarLinks date={date} />

@@ -1,0 +1,127 @@
+/* The walk: a scrim with a hole cut in it, and a card beside what it points at. */
+
+.halo {
+  position: fixed;
+  z-index: 190;
+  border-radius: var(--radius-md);
+  /* Nothing is blocked: you can still use the very thing being pointed at,
+     and the walk never traps you anywhere. */
+  pointer-events: none;
+  box-shadow:
+    0 0 0 9999px var(--scrim),
+    0 0 0 2px var(--primary);
+  transition:
+    top 0.22s var(--ease),
+    left 0.22s var(--ease),
+    width 0.22s var(--ease),
+    height 0.22s var(--ease);
+}
+
+/* The popover is glass, which the scrim would show straight through. The walk
+   card needs to be read, so it cancels that padding and sits on solid panel. */
+.body {
+  margin: -6px;
+  padding: 15px 17px 13px;
+  border-radius: var(--radius-md);
+  background: var(--panel);
+}
+
+.count {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.title {
+  margin: 0 0 8px;
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.title:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.aside {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.actions button {
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  transition: background 0.14s var(--ease);
+}
+
+/* Leaving is offered as plainly as carrying on. */
+.actions .leave {
+  margin-right: auto;
+  padding-left: 0;
+  background: none;
+  color: var(--text-tertiary);
+}
+
+.actions .leave:hover {
+  color: var(--text-secondary);
+}
+
+.actions .back {
+  background: none;
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.actions .back:hover {
+  background: var(--hover);
+}
+
+.actions .next {
+  background: var(--primary);
+  color: var(--text-inverse);
+}
+
+.actions .next:hover {
+  background: var(--tint-strong);
+}
+
+.actions button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo {
+    transition: none;
+  }
+
+  .actions button {
+    transition: none;
+  }
+}

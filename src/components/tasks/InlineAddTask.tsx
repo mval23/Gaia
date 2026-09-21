@@ -6,6 +6,8 @@ import styles from './tasks.module.css';
 interface InlineAddTaskProps {
   /** Leave out to add a task with no category; it waits in the Inbox until sorted. */
   categoryId?: string;
+  /** Stays on whichever of the two shapes is showing, so the walk can point at it. */
+  id?: string;
   /** Where the task lands, for the field's name and the announcement. */
   placeName: string;
   /** Also choose the task for this day. */
@@ -13,7 +15,7 @@ interface InlineAddTaskProps {
 }
 
 /** "+ Add task" that turns into an input; Enter creates the task in this category, or in none. */
-export function InlineAddTask({ categoryId, placeName, plannedFor }: InlineAddTaskProps) {
+export function InlineAddTask({ categoryId, id, placeName, plannedFor }: InlineAddTaskProps) {
   const { dispatch } = useGaia();
   const { announce } = useFeedback();
   const [editing, setEditing] = useState(false);
@@ -34,6 +36,7 @@ export function InlineAddTask({ categoryId, placeName, plannedFor }: InlineAddTa
     return (
       <button
         ref={buttonRef}
+        id={id}
         type="button"
         className={styles.addTask}
         onClick={() => {
@@ -48,7 +51,7 @@ export function InlineAddTask({ categoryId, placeName, plannedFor }: InlineAddTa
   }
 
   return (
-    <div className={styles.addRow}>
+    <div id={id} className={styles.addRow}>
       <span className={styles.addCircle} aria-hidden="true" />
       <input
         ref={inputRef}

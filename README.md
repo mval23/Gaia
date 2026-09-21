@@ -58,6 +58,10 @@ rule in the code, not just a style choice.
 
 ## <img src="docs/assets/icons/sparkle.svg" width="22" height="22" alt="" /> A little tour
 
+In the app, **your planner ▸ Walk through it together** offers the same tour as
+six short stops on the real page. It never starts on its own, and leaving it
+halfway is a perfectly good ending.
+
 ### <img src="docs/assets/icons/plan.svg" width="20" height="20" alt="" /> Plan: your day, chosen gently
 
 Today's rhythms, the few things you picked for today, and a folded *Later* list

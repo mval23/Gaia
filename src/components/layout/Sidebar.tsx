@@ -10,6 +10,7 @@ import logoMark from '../../assets/brand/gaia-logo.webp';
 import { MonetImage } from '../art/MonetAccent';
 import { useAccount } from '../../auth/AuthGate';
 import { CAPTURE_KEYS, useCapture } from '../capture/CaptureProvider';
+import { useWalk } from '../walk/WalkProvider';
 import styles from './Sidebar.module.css';
 
 const NAV: { to: string; label: string; icon: IconName; match: (path: string) => boolean }[] = [
@@ -53,6 +54,7 @@ export function Sidebar() {
   const navigate = useNavigate();
   const account = useAccount();
   const { openCapture } = useCapture();
+  const { startWalk } = useWalk();
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const [collapsedPref, setCollapsedPref] = useState(readCollapsed);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -318,6 +320,17 @@ export function Sidebar() {
                 { kind: 'heading', label: account ? `Signed in as ${account.email}` : 'Your planner · saved on this device' },
                 { label: 'What’s coming', icon: 'flag', onSelect: () => navigate('/plans') },
                 { label: 'How to use Gaia', icon: 'sparkle', onSelect: () => navigate('/help') },
+                {
+                  label: 'Walk through it together',
+                  icon: 'arrowRight',
+                  // The walk starts on Plan, which may be where you already
+                  // are, so close the drawer here rather than waiting for a
+                  // route change that might not come.
+                  onSelect: () => {
+                    setDrawerOpen(false);
+                    startWalk();
+                  },
+                },
                 { label: 'Support', icon: 'heart', onSelect: () => navigate('/support') },
                 ...(account
                   ? ([

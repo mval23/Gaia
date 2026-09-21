@@ -351,6 +351,11 @@ export function HelpPage() {
         <section id="help-start" className={styles.section}>
           <div className={styles.eyebrow}>Getting started</div>
           <h2>Open Gaia</h2>
+          {/* Only true inside the app, so it has no twin in docs/index.html. */}
+          <p className={styles.intro}>
+            Already here? Under <b>your planner</b> in the menu, <b>Walk through it together</b> points these
+            things out on the real page, in six short stops. Leave it whenever you like.
+          </p>
           <div className={styles.two}>
             <div className={styles.card}>
               <h3>The easy way</h3>
