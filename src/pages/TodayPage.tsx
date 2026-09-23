@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Task } from '../types';
 import { uid, useFeedback, useGaia } from '../store/GaiaProvider';
 import { useMoveBlockDay } from '../hooks/useMoveBlockDay';
-import { blocksOn, habitsForDate, isGentleDay, partitionDay, resolveGroupParam } from '../store/selectors';
+import { blocksOn, habitsForDate, isGentleDay, partitionDay, resolveGroupParam, restsOn } from '../store/selectors';
 import { useDateParam, useParam } from '../hooks/useDateParam';
 import { useTaskEditor } from '../hooks/useTaskEditor';
 import { useHabitEditor } from '../hooks/useSheetParam';
@@ -140,6 +140,22 @@ export function TodayPage() {
     },
     [state, date, isToday, settings.dayStartHour, settings.dayEndHour, dispatch, notify, fmt],
   );
+
+  /**
+   * Keeps an hour for rest, in the evening by default: after work ends, or in
+   * the first free hour of the evening. It is real time, not a leftover.
+   */
+  const keepRest = useCallback(() => {
+    const busy = [
+      ...blocksOn(state, date).map(({ block }) => block),
+      ...restsOn(state, date).map((r) => ({ startMin: r.startMin, durationMin: r.durationMin })),
+    ];
+    const from = settings.workEndsMin ?? Math.max(settings.dayStartHour * 60, (settings.dayEndHour - 4) * 60);
+    const until = settings.dayEndHour * 60;
+    const startMin = findFreeSlot(busy, 60, from, until) ?? findFreeSlot(busy, 60, settings.dayStartHour * 60, until) ?? from;
+    dispatch({ type: 'rest/add', rest: { id: uid('rest'), date, startMin, durationMin: 60 } });
+    notify(`Rest kept ${formatRange(startMin, 60, fmt)}. Rest is not empty time.`);
+  }, [state, date, settings.workEndsMin, settings.dayStartHour, settings.dayEndHour, dispatch, notify, fmt]);
 
   const showReflection = dayOfWeek(date) === settings.reflectionWeekday;
 
@@ -303,6 +319,10 @@ export function TodayPage() {
                   : 'Nothing planned yet · drag a task here'
                 : `${blocks.length} ${blocks.length === 1 ? 'block' : 'blocks'}`}
             </span>
+            <button type="button" className={styles.restButton} onClick={keepRest}>
+              <Icon name="moon" size={15} />
+              Rest
+            </button>
           </div>
           <div className={styles.timelineSurface}>
             <TimeGrid

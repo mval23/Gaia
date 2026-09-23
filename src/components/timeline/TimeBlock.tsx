@@ -2,7 +2,7 @@ import type { KeyboardEvent, CSSProperties } from 'react';
 import type { Habit, Schedule, Task, TimeBlock as Block } from '../../types';
 import type { Placement } from '../../lib/layout';
 import type { OutlookEvent } from '../../integrations/outlook/events';
-import { useFeedback, useGaia } from '../../store/GaiaProvider';
+import { uid, useFeedback, useGaia } from '../../store/GaiaProvider';
 import { categoryById, groupById, groupOfTask } from '../../store/selectors';
 import { HOUR_PX, useDragActions } from '../../dnd/DragProvider';
 import { DAY_MIN, MIN_DURATION, SNAP_MIN, formatClock, formatDuration, formatRange } from '../../lib/time';
@@ -57,7 +57,7 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
   const contextMenu = useContextMenu();
 
   const toggle = () => {
-    dispatch({ type: 'task/toggle', id: task.id });
+    dispatch({ type: 'task/toggle', id: task.id, nextId: uid('t') });
     announce(done ? `${task.title} marked not done` : `${task.title} completed`);
   };
 
@@ -151,7 +151,7 @@ export function TimeBlock({ task, block, placement, dimmed, onOpen, onMoveDay }:
         size="sm"
         done={done}
         title={task.title}
-        onToggle={() => dispatch({ type: 'task/toggle', id: task.id })}
+        onToggle={toggle}
       />
       <div className={styles.blockText}>
         <span className={styles.blockTitle} title={task.title}>

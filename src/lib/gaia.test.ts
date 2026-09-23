@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatClock, formatDuration, formatRange, snap, summarizeDay } from './time';
 import { findFreeSlot, layoutLanes } from './layout';
-import { addDays, addMonths, dayOfWeek, monthGrid, startOfWeek, weekDates, weekdayOrder } from './dates';
+import { addDays, addMonths, dayOfWeek, monthGrid, startOfWeek, todayISO, weekDates, weekdayOrder } from './dates';
 import { DEFAULT_RHYTHM, isOnRhythm, normalizeRhythm, rhythmLabel, weeklyTarget } from './rhythm';
 import { createEmpty } from '../data/seed';
 import { mentionsBodyOrFood } from './sensitive';
@@ -9,8 +9,9 @@ import { whatGoesWith } from './copy';
 import { isState, migrateState } from '../store/persist';
 import tokens from '../styles/tokens.css?raw';
 import { CATEGORY_PALETTE, GROUP_PALETTE, paint } from './swatch';
-import type { CheckIn, GaiaState, Rhythm } from '../types';
+import type { CheckIn, GaiaState, Light, Rhythm } from '../types';
 import { createSeed } from '../data/seed';
+import { nextRepeatDate, normalizeRepeat, repeatLabel } from './repeat';
 import { STARTER_HABITS, hasHabitNamed, starterCategoryId } from '../data/starterHabits';
 import { reducer } from '../store/reducer';
 import {
@@ -25,8 +26,19 @@ import {
   goalsByStatus,
   habitsForDate,
   isHabitResting,
+  dayShape,
+  goalCheckIn,
+  goalCheckIns,
+  isComingBack,
+  isGentleDay,
   isQuiet,
   isReturning,
+  lightFor,
+  reflectionFor,
+  restsOn,
+  suggestedShape,
+  tendedIn,
+  timeByCategory,
   lastContactDate,
   recentCategoryId,
   partitionDay,
@@ -815,5 +827,162 @@ describe('manage', () => {
     expect(whatGoesWith(1, 0)).toBe('1 task');
     expect(whatGoesWith(5, 2)).toBe('5 tasks and 2 habits');
     expect(whatGoesWith(0, 1)).toBe('1 habit');
+  });
+});
+
+describe('season 2', () => {
+  const day = '2026-09-23';
+  const seed = createSeed(day);
+  const light = (patch: Partial<Light>) => ({ date: day, ...patch }) as Light;
+
+  it('suggests a shape from the light, and lets the person choose another', () => {
+    expect(suggestedShape(undefined)).toBeUndefined();
+    expect(suggestedShape(light({ shape: 'bright' }))).toBeUndefined();
+    expect(suggestedShape(light({ energy: 'low', sleep: 'rested', mind: 'calm' }))).toBe('gentle');
+    expect(suggestedShape(light({ energy: 'some', sleep: 'rough', mind: 'calm' }))).toBe('gentle');
+    expect(suggestedShape(light({ energy: 'good', sleep: 'okay', mind: 'heavy' }))).toBe('gentle');
+    expect(suggestedShape(light({ energy: 'some', sleep: 'okay', mind: 'calm' }))).toBe('steady');
+    expect(suggestedShape(light({ energy: 'good', sleep: 'rested', mind: 'calm' }))).toBe('bright');
+  });
+
+  it('keeps one light per day, and leaves an untapped day unlogged', () => {
+    const tapped = reducer(seed, { type: 'light/set', date: '2026-09-19', patch: { energy: 'low' } });
+    expect(lightFor(tapped, '2026-09-19')).toEqual({ date: '2026-09-19', energy: 'low' });
+    expect(isGentleDay(tapped, '2026-09-19')).toBe(true);
+
+    const chosen = reducer(tapped, { type: 'light/set', date: '2026-09-19', patch: { shape: 'bright' } });
+    expect(dayShape(chosen, '2026-09-19')).toBe('bright');
+
+    // Untapping everything is not the same as logging nothing at all.
+    const cleared = reducer(tapped, { type: 'light/set', date: '2026-09-19', patch: { energy: undefined } });
+    expect(lightFor(cleared, '2026-09-19')).toBeUndefined();
+    expect(dayShape(cleared, '2026-09-19')).toBe('steady');
+  });
+
+  it('says welcome back only after a quiet stretch, and never to someone new', () => {
+    expect(isComingBack(seed, day)).toBe(false);
+    const quiet: GaiaState = { ...seed, lights: [], checkIns: [], tasks: seed.tasks.map((t) => ({ ...t, completedAt: undefined })) };
+    // Nothing has ever been logged: there is nothing to come back from.
+    expect(isComingBack(quiet, day)).toBe(false);
+    const away: GaiaState = { ...quiet, lights: [{ date: addDays(day, -9), energy: 'some' }] };
+    expect(isComingBack(away, day)).toBe(true);
+    expect(isComingBack({ ...quiet, lights: [{ date: addDays(day, -1), energy: 'some' }] }, day)).toBe(false);
+  });
+
+  it('keeps one reflection per period, and a week and a month can both exist', () => {
+    const week = reducer(seed, {
+      type: 'reflection/save',
+      id: 'r-w',
+      weekStart: '2026-09-20',
+      period: 'week',
+      patch: { journal: '  the gym surprised me  ' },
+    });
+    expect(week.reflections).toHaveLength(1);
+    expect(week.reflections[0].journal).toBe('the gym surprised me');
+    const both = reducer(week, {
+      type: 'reflection/save',
+      id: 'r-m',
+      weekStart: '2026-09-01',
+      period: 'month',
+      patch: { oneThing: 'mornings for the thesis' },
+    });
+    expect(both.reflections).toHaveLength(2);
+    expect(reflectionFor(both, 'month', day)?.oneThing).toBe('mornings for the thesis');
+    expect(reflectionFor(both, 'week', day)?.journal).toBe('the gym surprised me');
+  });
+
+  it('keeps one goal check-in a week, and a snag only on a snagged week', () => {
+    const snagged = reducer(seed, {
+      type: 'goalCheckIn/set',
+      goalId: 'goal-stats',
+      date: '2026-09-20',
+      momentum: 'snagged',
+      snag: 'time',
+    });
+    expect(goalCheckIn(snagged, 'goal-stats', '2026-09-20')).toMatchObject({ momentum: 'snagged', snag: 'time' });
+
+    const moving = reducer(snagged, {
+      type: 'goalCheckIn/set',
+      goalId: 'goal-stats',
+      date: '2026-09-20',
+      momentum: 'moving',
+      snag: 'time',
+    });
+    expect(goalCheckIn(moving, 'goal-stats', '2026-09-20')).toMatchObject({ momentum: 'moving', snag: undefined });
+    expect(goalCheckIns(moving, 'goal-stats')[0].date).toBe('2026-09-20');
+
+    // A goal that does not exist is never given a word.
+    expect(reducer(seed, { type: 'goalCheckIn/set', goalId: 'nope', date: day, momentum: 'moving' })).toBe(seed);
+  });
+
+  it('plans the next one when a repeating task is finished, and only once', () => {
+    const repeating = reducer(seed, {
+      type: 'task/update',
+      id: 't-12',
+      patch: { repeat: { type: 'everyDays', days: 7 } },
+    });
+    const done = reducer(repeating, { type: 'task/toggle', id: 't-12', nextId: 't-next' });
+    const next = done.tasks.find((t) => t.id === 't-next');
+    expect(done.tasks.find((t) => t.id === 't-12')).toMatchObject({ status: 'done', repeat: undefined });
+    expect(next).toMatchObject({ status: 'open', title: 'Book dentist appointment' });
+    expect(next?.plannedFor).toBe(addDays(todayISO(), 7));
+    // Unchecking the finished one can never plan a second.
+    const undone = reducer(done, { type: 'task/toggle', id: 't-12', nextId: 't-third' });
+    expect(undone.tasks.some((t) => t.id === 't-third')).toBe(false);
+  });
+
+  it('counts a repeat from the day it was finished, so nothing piles up', () => {
+    expect(nextRepeatDate({ type: 'everyDays', days: 14 }, '2026-09-23')).toBe('2026-10-07');
+    // 2026-09-23 is a Wednesday; the next Monday is the 28th.
+    expect(nextRepeatDate({ type: 'daysOfWeek', days: [1] }, '2026-09-23')).toBe('2026-09-28');
+    expect(repeatLabel({ type: 'daysOfWeek', days: [1, 2, 3, 4, 5] })).toBe('every weekday');
+    expect(repeatLabel({ type: 'everyDays', days: 14 })).toBe('every 2 weeks');
+    expect(normalizeRepeat({ type: 'daysOfWeek', days: [9, 2, 2] } as never)).toEqual({ type: 'daysOfWeek', days: [2] });
+    expect(normalizeRepeat({ type: 'everyDays', days: 0 } as never)).toBeUndefined();
+  });
+
+  it('keeps rest as real time, counted as rest and never as a gap', () => {
+    const kept = reducer(seed, {
+      type: 'rest/add',
+      rest: { id: 'rest-x', date: day, startMin: 20 * 60, durationMin: 90, label: '  Series  ' },
+    });
+    expect(restsOn(kept, day)).toHaveLength(2);
+    const slices = timeByCategory(kept, [day]);
+    const rest = slices.find((s) => s.key === 'rest');
+    expect(rest?.name).toBe('Rest, on purpose');
+    expect(rest?.minutes).toBe(90 + 90);
+    const gone = reducer(kept, { type: 'rest/remove', id: 'rest-x' });
+    expect(restsOn(gone, day)).toHaveLength(1);
+  });
+
+  it('describes a week without a denominator', () => {
+    const week = weekDates(day, 0);
+    const tended = tendedIn(seed, week);
+    expect(tended.length).toBeGreaterThan(0);
+    for (const row of tended) {
+      expect(row.days).toHaveLength(7);
+      // Rest days are neither progress nor a miss, so they are not counted.
+      expect(row.count).toBe(row.days.filter((k) => k === 'done' || k === 'tiny').length);
+    }
+  });
+
+  it('turns an old gentle day into a day shape, and repairs the rest', () => {
+    const old = {
+      ...createSeed('2026-09-14'),
+      lights: [{ date: 'whenever', energy: 'low' }, { date: '2026-09-10', energy: 'nonsense' }],
+      goalCheckIns: [{ goalId: 'goal-gone', date: '2026-09-06', momentum: 'moving' }],
+      rests: [{ id: 'r1', date: '2026-09-10', startMin: 20 * 60, durationMin: 5000 }, { id: 'r2', date: 'soon' }],
+      reflections: [{ id: 'old', weekStart: '2026-09-06', wentWell: 'walks' }],
+      settings: { ...createSeed('2026-09-14').settings, gentleDayDate: '2026-09-12' },
+    } as unknown as GaiaState;
+    const s = migrateState(old);
+    expect(s.lights).toEqual([{ date: '2026-09-12', shape: 'gentle' }]);
+    expect(s.settings.gentleDayDate).toBeUndefined();
+    expect(isGentleDay(s, '2026-09-12')).toBe(true);
+    expect(s.goalCheckIns).toEqual([]);
+    expect(s.rests).toHaveLength(1);
+    expect(s.rests[0].durationMin).toBeLessThanOrEqual(24 * 60);
+    // Reflections written before months existed are weeks.
+    expect(s.reflections[0].period).toBe('week');
   });
 });

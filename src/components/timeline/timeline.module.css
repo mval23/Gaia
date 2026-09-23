@@ -355,3 +355,112 @@
 .blockOutlook .blockMeta {
   color: var(--text-tertiary);
 }
+
+/* ---------- Rest, on purpose ---------- */
+
+.restBlock {
+  background: var(--rest);
+  border: 1px solid var(--rest-edge);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+}
+
+.restIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: color-mix(in srgb, var(--rest-edge) 90%, var(--text));
+}
+
+.restPanel {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+
+.restField input {
+  width: 100%;
+}
+
+.restRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.restRange {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.restButtons {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.restButtons button {
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.restButtons button:hover {
+  color: var(--text);
+}
+
+.restNote {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.restLetGo {
+  justify-self: start;
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.restLetGo:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* ---------- The work-ends anchor ---------- */
+
+.anchor {
+  position: absolute;
+  left: 0;
+  right: 4px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  border-top: 1.5px dashed var(--anchor);
+  transform: translateY(-1px);
+}
+
+.anchor span {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--anchor);
+  background: var(--panel);
+  padding: 0 6px;
+  transform: translateY(-9px);
+}

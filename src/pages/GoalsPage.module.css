@@ -590,3 +590,69 @@
 .plusOne:hover {
   background: var(--hover);
 }
+
+/* ---------- How a goal has moved ---------- */
+
+.momentum {
+  display: grid;
+  gap: 8px;
+}
+
+.momentumList {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.momentumList li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.momentumDate {
+  width: 52px;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.momentumTag {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  background: var(--shape-steady);
+  color: var(--text);
+}
+
+.momentumTag[data-momentum='snagged'] {
+  background: var(--rest);
+}
+
+.momentumTag[data-momentum='resting'] {
+  background: color-mix(in srgb, var(--avatar) 26%, var(--surface));
+}
+
+.momentumTag[data-momentum='steady'] {
+  background: var(--panel-inset);
+  color: var(--text-secondary);
+}
+
+.momentumNote {
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.momentumLink {
+  justify-self: start;
+  font-size: 13px;
+}

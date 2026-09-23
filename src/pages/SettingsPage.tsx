@@ -144,6 +144,27 @@ export function SettingsPage() {
           <p className={styles.hint}>Waking hours are emphasised on timelines and used to work out open time.</p>
 
           <div className={styles.row}>
+            <label className={styles.label} htmlFor="work-ends">
+              Work ends
+            </label>
+            <Select
+              id="work-ends"
+              value={settings.workEndsMin === undefined ? '' : String(settings.workEndsMin)}
+              onChange={(e) => update({ workEndsMin: e.target.value === '' ? undefined : Number(e.target.value) })}
+            >
+              <option value="">No line</option>
+              {hours.slice(settings.dayStartHour + 1, settings.dayEndHour + 1).map((h) => (
+                <option key={h} value={h * 60}>
+                  {formatClock(h * 60, settings.timeFormat)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <p className={styles.hint}>
+            A soft line across the day, where you meant to stop. It holds nothing in place and blocks nothing.
+          </p>
+
+          <div className={styles.row}>
             <span className={styles.label}>Week starts</span>
             <SegmentedControl
               size="sm"

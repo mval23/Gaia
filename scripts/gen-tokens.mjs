@@ -170,7 +170,7 @@ const sharedDark = `
   --swatch-shift-l: -0.14;
 
   /* The day's shapes are quieter after dark, as everything else is. */
-  --shape-mix: 24%;`;
+  --shape-mix: 34%;`;
 
 const shape = `
   /* Shape */

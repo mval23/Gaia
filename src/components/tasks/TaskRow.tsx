@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import type { Task } from '../../types';
-import { useFeedback, useGaia } from '../../store/GaiaProvider';
+import { uid, useFeedback, useGaia } from '../../store/GaiaProvider';
 import { blocksOnDate, categoryById, goalById, groupById, nextBlock } from '../../store/selectors';
 import { useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { useDayMoveItems } from '../../hooks/useDayMoveItems';
@@ -8,6 +8,7 @@ import { joinMenuGroups, useTaskMenuParts } from '../../hooks/useTaskMenuParts';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
 import { addDays, formatShortDate, sinceLabel, todayISO } from '../../lib/dates';
 import { COPY } from '../../lib/copy';
+import { repeatLabel } from '../../lib/repeat';
 import { formatClock, formatRange } from '../../lib/time';
 import { CompleteToggle } from '../ui/CompleteToggle';
 import { DatePickerButton } from '../ui/DatePickerButton';
@@ -54,9 +55,10 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential, ac
 
   const toggle = () => {
     const previous = state;
-    dispatch({ type: 'task/toggle', id: task.id });
+    dispatch({ type: 'task/toggle', id: task.id, nextId: uid('t') });
     // Completed tasks that aren't on this day's timeline leave the list, so offer a way back.
-    if (!done && date && !onThisDay) notify(`“${task.title}” completed`, previous);
+    if (!done && task.repeat) notify(`“${task.title}” done. The next one is ${repeatLabel(task.repeat)}.`, previous);
+    else if (!done && date && !onThisDay) notify(`“${task.title}” completed`, previous);
   };
 
   // The calendar beside each task: choose the day it is for. Moving it off the day
@@ -135,6 +137,12 @@ export function TaskRow({ task, date, onScheduleNext, showContext, essential, ac
         </span>
       )}
       {!editing && !chip && task.due && !done && <span className={styles.due}>{formatDue(task.due)}</span>}
+      {!editing && task.repeat && !done && (
+        <span className={styles.repeatChip} title={`Comes back ${repeatLabel(task.repeat)}`}>
+          <Icon name="repeat" size={12} />
+          {repeatLabel(task.repeat)}
+        </span>
+      )}
       {!editing && withSomeone && (
         <span className={styles.withChip}>
           {task.waitingOn?.trim() ? `${task.waitingOn.trim()} has it` : COPY.withSomeone}

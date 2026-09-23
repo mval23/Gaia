@@ -490,3 +490,24 @@ button.cardToggle:hover {
 .essentialMeta .rowContext {
   max-width: none;
 }
+
+/* Things that come back. */
+.repeatChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--avatar) 16%, transparent);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+@container (max-width: 340px) {
+  .repeatChip {
+    display: none;
+  }
+}
