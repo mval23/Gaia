@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import type { DayShape, Energy, Light, Mind, Sleep } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { lightFor, lightLogged, suggestedShape } from '../../store/selectors';
@@ -39,7 +40,18 @@ export function LightPanel({ date, onDone }: { date: string; onDone?: () => void
   const suggested = suggestedShape(light);
   const shape = light?.shape ?? suggested;
 
-  const set = (patch: Partial<Omit<Light, 'date'>>) => dispatch({ type: 'light/set', date, patch });
+  /**
+   * Answering the third question is the end of it, so the panel gets out of the
+   * way on its own — after a beat, so the shape it lands on is seen first.
+   * Anything else (untapping, changing the shape) leaves it open.
+   */
+  const set = (patch: Partial<Omit<Light, 'date'>>) => {
+    dispatch({ type: 'light/set', date, patch });
+    const next = { ...light, ...patch };
+    if (next.energy && next.sleep && next.mind && !(light?.energy && light?.sleep && light?.mind)) {
+      window.setTimeout(() => onDone?.(), 550);
+    }
+  };
 
   const row = <T extends string>(
     label: string,
@@ -110,16 +122,16 @@ export function LightPanel({ date, onDone }: { date: string; onDone?: () => void
         <p className={styles.support}>
           <Icon name="heart" size={15} />
           <span>
-            Heavy days happen. If it stays heavy, <a href="/support">Support</a> lists people to talk to.
+            Heavy days happen. If it stays heavy, <Link to="/support">Support</Link> lists people to talk to.
           </span>
         </p>
       )}
 
       <div className={styles.foot}>
         {yesterdayBlank ? (
-          <a className={styles.footLink} href={`/?date=${yesterday}`} onClick={onDone}>
+          <Link className={styles.footLink} to={`/?date=${yesterday}`} onClick={onDone}>
             {formatShortDate(yesterday)} is blank · fill it in
-          </a>
+          </Link>
         ) : (
           <span className={styles.footNote}>{COPY.lightFoot}</span>
         )}

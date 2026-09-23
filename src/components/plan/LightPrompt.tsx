@@ -28,7 +28,10 @@ export function LightPrompt({ date, isToday }: { date: string; isToday: boolean 
   const key = `light-prompt:${date}`;
   const dismissed = isCollapsed(key);
 
-  if (!isToday || logged || dismissed) return null;
+  // The first tap makes the day logged, which would otherwise take this line —
+  // and the panel hanging off it — away mid-answer. While the panel is open the
+  // line stays; it steps aside once the panel is closed.
+  if (!open && (!isToday || logged || dismissed)) return null;
 
   const dismiss = () => toggle(key, true);
 
