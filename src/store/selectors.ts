@@ -1,5 +1,20 @@
-import type { Category, CheckInKind, GaiaState, Goal, Group, Habit, Task, TimeBlock } from '../types';
-import { addDays, startOfWeek, weekDates } from '../lib/dates';
+import type {
+  Category,
+  CheckInKind,
+  DayShape,
+  GaiaState,
+  Goal,
+  GoalCheckIn,
+  Group,
+  Habit,
+  Light,
+  Period,
+  Reflection,
+  Rest,
+  Task,
+  TimeBlock,
+} from '../types';
+import { addDays, monthDates, startOfMonth, startOfWeek, weekDates } from '../lib/dates';
 import { isOnRhythm, weeklyTarget } from '../lib/rhythm';
 
 export const GROUP_ALL = 'all';
@@ -374,6 +389,166 @@ export function recentCategoryId(state: GaiaState): string | undefined {
 
 /** The week a reflection belongs to. */
 export function reflectionForWeek(state: GaiaState, date: string) {
-  const weekStart = startOfWeek(date, state.settings.weekStart);
-  return state.reflections.find((r) => r.weekStart === weekStart);
+  return reflectionFor(state, 'week', date);
+}
+
+/* ---------- Today's light, and the shape of a day ---------- */
+
+export function lightFor(state: GaiaState, date: string): Light | undefined {
+  return state.lights.find((l) => l.date === date);
+}
+
+/** Whether the morning was described at all. A day with nothing tapped stays unlogged. */
+export function lightLogged(light: Light | undefined): boolean {
+  return !!light && (!!light.energy || !!light.sleep || !!light.mind);
+}
+
+/**
+ * The shape the light suggests. Low energy, a rough night or a heavy mind ask
+ * for a gentler day; a good morning has room for more. Never a score, and the
+ * person can always choose a different shape.
+ */
+export function suggestedShape(light: Light | undefined): DayShape | undefined {
+  if (!lightLogged(light)) return undefined;
+  const l = light as Light;
+  if (l.energy === 'low' || l.mind === 'heavy' || (l.sleep === 'rough' && l.energy !== 'good')) return 'gentle';
+  if (l.energy === 'good' && l.sleep !== 'rough' && l.mind === 'calm') return 'bright';
+  return 'steady';
+}
+
+/** What this day is shaped like: chosen if the person picked one, else suggested, else steady. */
+export function dayShape(state: GaiaState, date: string): DayShape {
+  const light = lightFor(state, date);
+  return light?.shape ?? suggestedShape(light) ?? 'steady';
+}
+
+/** A gentle day asks less: tiny versions, and no figures. */
+export function isGentleDay(state: GaiaState, date: string): boolean {
+  return dayShape(state, date) === 'gentle';
+}
+
+/** The lights of one week, in order, with gaps left as undefined. */
+export function weekLights(state: GaiaState, date: string): (Light | undefined)[] {
+  return weekDates(date, state.settings.weekStart).map((d) => lightFor(state, d));
+}
+
+/** The lights of one month, in order. */
+export function monthLights(state: GaiaState, date: string): (Light | undefined)[] {
+  return monthDates(date).map((d) => lightFor(state, d));
+}
+
+/** The last day this planner heard anything at all: a light, a check-in, or something finished. */
+export function lastActiveDate(state: GaiaState): string | undefined {
+  const days: string[] = [
+    ...state.lights.map((l) => l.date),
+    ...state.checkIns.map((c) => c.date),
+    ...state.tasks.filter((t) => t.completedAt).map((t) => (t.completedAt as string).slice(0, 10)),
+  ];
+  return days.length ? days.reduce((max, d) => (d > max ? d : max)) : undefined;
+}
+
+export const AWAY_DAYS = 4;
+
+/**
+ * After a few quiet days, Plan says welcome back — once, and without ever
+ * counting the gap. Someone who has never logged anything is not coming back.
+ */
+export function isComingBack(state: GaiaState, today: string): boolean {
+  const last = lastActiveDate(state);
+  if (!last || last > today) return false;
+  return last <= addDays(today, -AWAY_DAYS);
+}
+
+/* ---------- Looking back ---------- */
+
+/** The first day of the period a date belongs to: the key its reflection is filed under. */
+export function periodStart(state: GaiaState, period: Period, date: string): string {
+  return period === 'month' ? startOfMonth(date) : startOfWeek(date, state.settings.weekStart);
+}
+
+export function periodDates(state: GaiaState, period: Period, date: string): string[] {
+  return period === 'month' ? monthDates(date) : weekDates(date, state.settings.weekStart);
+}
+
+export function reflectionFor(state: GaiaState, period: Period, date: string): Reflection | undefined {
+  const start = periodStart(state, period, date);
+  return state.reflections.find((r) => r.weekStart === start && r.period === period);
+}
+
+export interface Tended {
+  habit: Habit;
+  /** One entry per day of the period, in order. */
+  days: (CheckInKind | undefined)[];
+  /** Days tended: rest is not counted, and nothing counts against you. */
+  count: number;
+}
+
+/** What each habit had of a week or a month, without a denominator. */
+export function tendedIn(state: GaiaState, dates: string[]): Tended[] {
+  const log = checkInIndex(state);
+  return state.habits
+    .filter((h) => h.status !== 'archived')
+    .map((habit) => {
+      const days = dates.map((d) => log.get(checkInKey(habit.id, d)));
+      return { habit, days, count: days.filter((k) => k && k !== 'rest').length };
+    })
+    .filter((t) => t.count > 0 || t.days.some(Boolean))
+    .sort((a, b) => b.count - a.count);
+}
+
+export interface TimeSlice {
+  key: string;
+  name: string;
+  color?: string;
+  minutes: number;
+}
+
+/**
+ * Where the hours that were placed went, rest included. There is deliberately
+ * nothing to compare it with: no plan, no target, no leftover.
+ */
+export function timeByCategory(state: GaiaState, dates: string[]): TimeSlice[] {
+  const days = new Set(dates);
+  const byKey = new Map<string, TimeSlice>();
+  const add = (key: string, name: string, color: string | undefined, minutes: number) => {
+    const slice = byKey.get(key) ?? { key, name, color, minutes: 0 };
+    slice.minutes += minutes;
+    byKey.set(key, slice);
+  };
+  for (const task of state.tasks) {
+    for (const block of task.blocks) {
+      if (!days.has(block.date)) continue;
+      const category = categoryById(state, task.categoryId);
+      add(category?.id ?? 'inbox', category?.name ?? 'Inbox', category?.color, block.durationMin);
+    }
+  }
+  for (const rest of state.rests) {
+    if (days.has(rest.date)) add('rest', 'Rest, on purpose', undefined, rest.durationMin);
+  }
+  return [...byKey.values()].sort((a, b) => b.minutes - a.minutes);
+}
+
+/* ---------- Goal momentum ---------- */
+
+export function goalCheckIn(state: GaiaState, goalId: string, weekStart: string): GoalCheckIn | undefined {
+  return state.goalCheckIns.find((c) => c.goalId === goalId && c.date === weekStart);
+}
+
+/** Every check-in a goal has, newest first: how it has moved. */
+export function goalCheckIns(state: GaiaState, goalId: string): GoalCheckIn[] {
+  return state.goalCheckIns.filter((c) => c.goalId === goalId).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function latestGoalCheckIn(state: GaiaState, goalId: string): GoalCheckIn | undefined {
+  return goalCheckIns(state, goalId)[0];
+}
+
+/* ---------- Rest ---------- */
+
+export function restsOn(state: GaiaState, date: string): Rest[] {
+  return state.rests.filter((r) => r.date === date).sort((a, b) => a.startMin - b.startMin);
+}
+
+export function restsByDate(state: GaiaState, dates: string[]): Map<string, Rest[]> {
+  return new Map(dates.map((d) => [d, restsOn(state, d)]));
 }

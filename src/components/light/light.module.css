@@ -1,0 +1,228 @@
+/* Today's light: one pill in the day header, one panel behind it. */
+
+.pill {
+  gap: 8px;
+}
+
+.pill[data-shape='gentle'] {
+  background: var(--shape-gentle);
+  border-color: transparent;
+  color: var(--shape-gentle-ink);
+}
+
+.pill[data-shape='steady'] {
+  background: var(--shape-steady);
+  border-color: transparent;
+  color: var(--shape-steady-ink);
+}
+
+.pill[data-shape='bright'] {
+  background: var(--shape-bright);
+  border-color: transparent;
+  color: var(--shape-bright-ink);
+}
+
+.pillDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* Three dots: what was tapped, without saying what it was. */
+.pillDots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.pillDots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0.35;
+}
+
+.pillDots span[data-on] {
+  background: currentColor;
+  opacity: 0.55;
+}
+
+/* ---------- The panel ---------- */
+
+.popover {
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.popoverHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+.panel {
+  display: grid;
+  gap: 11px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.rowLabel {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.taps {
+  display: flex;
+  gap: 6px;
+}
+
+.tap {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 4px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tap:hover {
+  color: var(--text);
+}
+
+.tap[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--avatar) 22%, var(--surface));
+  border-color: transparent;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.shape {
+  display: grid;
+  gap: 3px;
+  padding: 11px 13px;
+  border-radius: var(--radius);
+  background: var(--panel-inset);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.shape strong {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.shape[data-shape='gentle'] {
+  background: var(--shape-gentle);
+}
+
+.shape[data-shape='steady'] {
+  background: var(--shape-steady);
+}
+
+.shape[data-shape='bright'] {
+  background: var(--shape-bright);
+}
+
+.shapePick {
+  display: flex;
+  gap: 6px;
+}
+
+.shapeButton {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.shapeButton[aria-pressed='true'] {
+  border-color: transparent;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.shapeButton[aria-pressed='true'][data-shape='gentle'] {
+  background: var(--shape-gentle);
+}
+
+.shapeButton[aria-pressed='true'][data-shape='steady'] {
+  background: var(--shape-steady);
+}
+
+.shapeButton[aria-pressed='true'][data-shape='bright'] {
+  background: var(--shape-bright);
+}
+
+.support {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.support svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--danger);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  font-size: 12.5px;
+}
+
+.footNote,
+.footLink {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-tertiary);
+}
+
+.footLink {
+  color: var(--primary);
+}
+
+.footButton {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.footButton:hover {
+  color: var(--text);
+}

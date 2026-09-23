@@ -4,9 +4,9 @@ The roadmap for Gaia's next features, written for a build session. The same plan
 illustrated for people, is [`docs/plans.html`](plans.html). Keep the two in step:
 when a decision here changes, change the page too.
 
-**Status (19 Sep 2026):** Season 1 is built, on the `season-1` branch. Seasons 2–4
-are still a proposal. The open
-decisions at the end are Mariana's to make, so ask before assuming an answer.
+**Status (23 Sep 2026):** Seasons 1 and 2 are built. Seasons 3 and 4 are still a
+proposal. The open decisions at the end are Mariana's to make, so ask before
+assuming an answer.
 
 ## Where it came from
 
@@ -128,7 +128,36 @@ https://claude.ai/artifact/R6DeUMVA6TV3TfnnDhJUQb. Where the canvas and this fil
 - *Ready for the next season when* all tasks live in Gaia and the essential feels
   useful.
 
-### Season 2: Light (the day and the week)
+### Season 2: Light (the day and the week) · built
+
+Mockups of this season are on the design canvas:
+https://claude.ai/artifact/HTNpSxPibW3JN71GfgLbaZ. Details settled while building:
+
+- **One control, not two.** The light and the day's shape are the same idea, so
+  the day header's pill (where *Gentle day* used to be) carries both: it invites
+  three taps, then names the day. The panel behind it is `LightPanel`, shared by
+  the pill and, later, anything else that asks. Plan shows at most one extra
+  line, above Rhythms, in the morning only: the invitation, or *welcome back*.
+- `Light` rows hold `energy`, `sleep`, `mind` and an optional chosen `shape`;
+  the shape is otherwise suggested by `suggestedShape`. Tapping an answer again
+  clears it, and a row with nothing in it is removed, so the day is unlogged
+  rather than logged as nothing.
+- **Rest is its own entity** (`Rest`), not a `TimeBlock.kind`: blocks hang off
+  tasks, and rest has no task to belong to. Plan's day panel has a **Rest**
+  button that keeps an hour after *work ends*; the block opens a small panel to
+  rename, lengthen, shorten or let it go.
+- **Repeating tasks** use their own `Repeat` type (`daysOfWeek` or `everyDays`),
+  not the habit `Rhythm`: "about 3 times a week" means nothing for a task.
+  Finishing one plans the next from the day it was finished, and the repeat
+  travels with it, so unchecking can never plan a second.
+- **The weekly reflection moved** to Look back, where the week's own days are
+  there to read. Plan keeps a one-line invitation on the reflection weekday.
+- **Goals are asked once a week** on Look back, and each goal card shows its
+  last four weeks under "How it has moved".
+- Dragging a goal onto the timeline is **not** built. The snag offers do the
+  same work: *no time for it* makes a "Time for …" task planned for that day.
+
+Originally planned as:
 - **Today's light**: a morning card with three optional taps: energy
   (low/some/good), sleep (rough/okay/rested), mind (calm/full/heavy). Under two
   minutes. No score. Keyed by date, so an earlier day can be filled in with nothing
@@ -199,14 +228,15 @@ interface Goal  { …; milestone?: { target: number; current: number; unit?: str
 
 // Season 2
 interface Light { date: string; energy?: 'low' | 'some' | 'good'; sleep?: 'rough' | 'okay' | 'rested';
-                  mind?: 'calm' | 'full' | 'heavy'; nap?: boolean }
-type DayShape = 'gentle' | 'steady' | 'bright';          // gentleDayDate → { date, shape }
+                  mind?: 'calm' | 'full' | 'heavy'; shape?: DayShape }   // shape only when chosen
+type DayShape = 'gentle' | 'steady' | 'bright';          // gentleDayDate migrates into a Light
 type Momentum = 'moving' | 'steady' | 'snagged' | 'resting';
 interface GoalCheckIn { goalId: ID; date: string; momentum: Momentum;
                         snag?: 'clarity' | 'time' | 'energy' | 'setup'; note?: string }
 interface Reflection { …; period: 'week' | 'month'; journal?: string }   // old saves → 'week'
-interface TimeBlock { …; kind?: 'task' | 'rest' }
-interface Task  { …; repeat?: Rhythm }
+interface Rest extends Schedule { id: ID; label?: string }   // its own list, not a TimeBlock
+interface Task  { …; repeat?: Repeat }                      // daysOfWeek | everyDays
+interface Settings { …; workEndsMin?: number }              // the soft line on the day
 
 // Season 3
 interface Value { id: ID; word: string; note?: string }

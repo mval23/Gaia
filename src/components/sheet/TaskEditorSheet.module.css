@@ -215,7 +215,32 @@ select.sessionField {
   color: var(--danger);
 }
 
+/* Desktop keeps Close up top and Complete in the footer; a phone swaps them. */
+.sheet .narrow {
+  display: none;
+}
+
 @media (max-width: 767px) {
+  .sheet .wide {
+    display: none;
+  }
+
+  .sheet .narrow {
+    display: inline-flex;
+  }
+
+  .head .narrow {
+    flex-shrink: 0;
+  }
+
+  .footer .delete {
+    margin-left: 0;
+  }
+
+  .closeBottom {
+    margin-left: auto;
+  }
+
   .sheet {
     inset: 0;
     width: 100%;
@@ -234,7 +259,8 @@ select.sessionField {
   }
 
   .head {
-    padding-right: 10px;
+    padding-top: 12px;
+    padding-right: 12px;
   }
 
   .footer {
@@ -258,4 +284,19 @@ select.sessionField {
   margin: 6px 0 0;
   font-size: 12.5px;
   color: var(--text-tertiary);
+}
+
+/* What happens when a repeating task is finished. */
+.repeatNote {
+  margin: -4px 0 0;
+  padding-left: 160px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 560px) {
+  .repeatNote {
+    padding-left: 0;
+  }
 }

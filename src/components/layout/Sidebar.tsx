@@ -17,6 +17,7 @@ const NAV: { to: string; label: string; icon: IconName; match: (path: string) =>
   { to: '/', label: 'Plan', icon: 'plan', match: (p) => p === '/' },
   { to: '/calendar', label: 'Calendar', icon: 'calendar', match: (p) => p.startsWith('/calendar') },
   { to: '/goals', label: 'Goals & habits', icon: 'goal', match: (p) => p.startsWith('/goals') },
+  { to: '/look-back', label: 'Look back', icon: 'look', match: (p) => p.startsWith('/look-back') },
   { to: '/manage/tasks', label: 'Manage', icon: 'manage', match: (p) => p.startsWith('/manage') },
 ];
 

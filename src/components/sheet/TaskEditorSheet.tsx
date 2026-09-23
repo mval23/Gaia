@@ -7,7 +7,8 @@ import { blocksOn, categoriesInGroup, categoryById, groupOfTask, sortedGroups } 
 import { findFreeSlot } from '../../lib/layout';
 import { useTaskEditor } from '../../hooks/useTaskEditor';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { formatShortDate, isValidISODate, sinceLabel, todayISO } from '../../lib/dates';
+import { formatShortDate, fromISODate, isValidISODate, sinceLabel, todayISO, weekdayName } from '../../lib/dates';
+import type { Repeat } from '../../types';
 import { DAY_MIN, formatClock, formatDuration, formatRange, nowMinutes } from '../../lib/time';
 import { Icon, type IconName } from '../ui/Icon';
 import { COPY } from '../../lib/copy';
@@ -32,6 +33,15 @@ export function TaskEditorSheet() {
   return <Sheet key={task.id} task={task} onClose={closeTask} />;
 }
 
+/** One of the picker's choices, as a repeat. `date` decides which weekday "every …" means. */
+function repeatFromValue(value: string, date: string): Repeat | undefined {
+  if (!value) return undefined;
+  if (value === 'every-day') return { type: 'everyDays', days: 1 };
+  if (value === 'weekdays') return { type: 'daysOfWeek', days: [1, 2, 3, 4, 5] };
+  if (value === 'this-weekday') return { type: 'daysOfWeek', days: [fromISODate(date).getDay()] };
+  return { type: 'everyDays', days: Number(value) };
+}
+
 function Row({ icon, label, htmlFor, children }: { icon: IconName; label: string; htmlFor?: string; children: React.ReactNode }) {
   return (
     <div className={styles.row}>
@@ -41,6 +51,15 @@ function Row({ icon, label, htmlFor, children }: { icon: IconName; label: string
       </span>
       <div className={styles.rowControl}>{children}</div>
     </div>
+  );
+}
+
+function CompleteButton({ done, className, onToggle }: { done: boolean; className: string; onToggle: () => void }) {
+  return (
+    <button type="button" className={`${done ? ui.secondaryButton : ui.primaryButton} ${className}`} onClick={onToggle}>
+      <Icon name="check" size={17} />
+      {done ? 'Mark not done' : 'Complete'}
+    </button>
   );
 }
 
@@ -60,6 +79,16 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
   const whoRef = useRef<HTMLInputElement>(null);
   const blocks = task.blocks;
   const totalMin = blocks.reduce((n, b) => n + b.durationMin, 0);
+  // The repeat picker speaks in whole choices rather than in fields.
+  const repeatValue = !task.repeat
+    ? ''
+    : task.repeat.type === 'daysOfWeek'
+      ? task.repeat.days.length === 5
+        ? 'weekdays'
+        : 'this-weekday'
+      : task.repeat.days === 1
+        ? 'every-day'
+        : String(task.repeat.days);
   const pageDate = params.get('date');
   const fallbackDate = isValidISODate(pageDate) ? pageDate : todayISO();
 
@@ -76,6 +105,8 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  const toggleDone = () => dispatch({ type: 'task/toggle', id: task.id, nextId: uid('t') });
 
   const patch = (p: Partial<Omit<Task, 'blocks'>>) => dispatch({ type: 'task/update', id: task.id, patch: p });
 
@@ -123,9 +154,11 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
               </>
             )}
           </p>
-          <button type="button" className={ui.iconButton} onClick={onClose} aria-label="Close editor">
+          {/* On a phone, Complete sits up here and Close drops to the thumb, bottom right. */}
+          <button type="button" className={`${ui.iconButton} ${styles.wide}`} onClick={onClose} aria-label="Close editor">
             <Icon name="close" size={18} />
           </button>
+          <CompleteButton done={done} className={styles.narrow} onToggle={toggleDone} />
         </div>
 
         <div className={styles.body}>
@@ -207,6 +240,27 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
               ))}
             </Select>
           </Row>
+
+          <Row icon="repeat" label="Comes back" htmlFor="editor-repeat">
+            <Select
+              id="editor-repeat"
+              value={repeatValue}
+              onChange={(e) => patch({ repeat: repeatFromValue(e.target.value, fallbackDate) })}
+              wrapClassName={styles.full}
+            >
+              <option value="">Just once</option>
+              <option value="every-day">Every day</option>
+              <option value="weekdays">Every weekday</option>
+              <option value="this-weekday">{`Every ${weekdayName(task.plannedFor ?? fallbackDate)}`}</option>
+              <option value="14">Every 2 weeks</option>
+              <option value="30">Every 30 days</option>
+            </Select>
+          </Row>
+          {task.repeat && (
+            <p className={styles.repeatNote}>
+              Finishing it plans the next one, counted from the day you finish. Nothing piles up while you are away.
+            </p>
+          )}
 
           <Row icon="calendar" label="Due" htmlFor="editor-due">
             <input
@@ -307,14 +361,7 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
         </div>
 
         <div className={styles.footer}>
-          <button
-            type="button"
-            className={done ? ui.secondaryButton : ui.primaryButton}
-            onClick={() => dispatch({ type: 'task/toggle', id: task.id })}
-          >
-            <Icon name="check" size={17} />
-            {done ? 'Mark not done' : 'Complete'}
-          </button>
+          <CompleteButton done={done} className={styles.wide} onToggle={toggleDone} />
           {blocks.length > 0 && (
             <button
               type="button"
@@ -339,6 +386,10 @@ function Sheet({ task, onClose }: { task: Task; onClose: () => void }) {
             }}
           >
             <Icon name="trash" size={19} />
+          </button>
+          <button type="button" className={`${ui.secondaryButton} ${styles.narrow} ${styles.closeBottom}`} onClick={onClose}>
+            <Icon name="close" size={16} />
+            Close
           </button>
         </div>
       </div>

@@ -106,6 +106,19 @@ const shared = `
   --block-ink: #4c5669;
   --inverse-surface: #1f2735;
 
+  /* The shape of a day, and time kept for rest. Mixed from the painting's own
+     swatches, so they follow the palette and settle into the dark ground. */
+  --shape-mix: 34%;
+  --shape-gentle: color-mix(in srgb, var(--swatch-powder-blue) var(--shape-mix), var(--surface));
+  --shape-steady: color-mix(in srgb, var(--swatch-sage) var(--shape-mix), var(--surface));
+  --shape-bright: color-mix(in srgb, var(--swatch-peach) var(--shape-mix), var(--surface));
+  --shape-gentle-ink: var(--text);
+  --shape-steady-ink: var(--text);
+  --shape-bright-ink: var(--text);
+  --rest: color-mix(in srgb, var(--swatch-sand) var(--shape-mix), var(--surface));
+  --rest-edge: color-mix(in srgb, var(--swatch-sand) 70%, transparent);
+  --anchor: color-mix(in srgb, var(--swatch-sand) 60%, var(--text-tertiary));
+
   /* Glass: navigation, popovers, sheet only. Derived from the surface, so it
      follows both the theme and the palette without being restated. */
   --glass: color-mix(in srgb, var(--surface) 86%, transparent);
@@ -154,7 +167,10 @@ const sharedDark = `
 
   /* Swatches sink into the dark ground, so they glow less. */
   --swatch-lift: 82%;
-  --swatch-shift-l: -0.14;`;
+  --swatch-shift-l: -0.14;
+
+  /* The day's shapes are quieter after dark, as everything else is. */
+  --shape-mix: 34%;`;
 
 const shape = `
   /* Shape */

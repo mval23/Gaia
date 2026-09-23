@@ -45,6 +45,16 @@ export interface TimeBlock extends Schedule {
 }
 
 /**
+ * Time kept for rest: a series, a nap, an evening with nobody in it. It belongs
+ * to no task, because nothing about it has to be finished.
+ */
+export interface Rest extends Schedule {
+  id: ID;
+  /** What the rest is, in the person's words. Optional: rest needs no reason. */
+  label?: string;
+}
+
+/**
  * A task only references its category. Its group is always derived from the
  * category, so the hierarchy is strictly Group → Category → Task.
  *
@@ -74,7 +84,15 @@ export interface Task {
   waitingOn?: string;
   /** The day it went to someone else. Cleared when it comes back. */
   waitingSince?: string;
+  /** Things that come back: finishing one plans the next. */
+  repeat?: Repeat;
 }
+
+/**
+ * How often a task comes back. `daysOfWeek` matches Date.getDay(); `everyDays`
+ * counts from the day it was finished, so a task never piles up while you are away.
+ */
+export type Repeat = { type: 'daysOfWeek'; days: number[] } | { type: 'everyDays'; days: number };
 
 /** Only for goals that are truly countable. Never shown as a percentage. */
 export interface Milestone {
@@ -161,15 +179,63 @@ export interface CheckIn {
   kind: CheckInKind;
 }
 
+/** A week, or a month. Both are looked back on the same way. */
+export type Period = 'week' | 'month';
+
 export interface Reflection {
   id: ID;
-  /** startOfWeek(date): the natural key, so a week can only have one reflection. */
+  /**
+   * The first day of the period: startOfWeek(date) for a week, the 1st for a
+   * month. One reflection per period, so writing again edits the same one.
+   */
   weekStart: string;
+  /** Saves written before months existed are weeks. */
+  period: Period;
   wentWell?: string;
   wasHard?: string;
   oneThing?: string;
+  /** Anything else, in the person's words. Never inspected, never summarised. */
+  journal?: string;
   createdAt: string;
   updatedAt?: string;
+}
+
+/** Three descriptions of a morning. None of them is the wrong light. */
+export type Energy = 'low' | 'some' | 'good';
+export type Sleep = 'rough' | 'okay' | 'rested';
+export type Mind = 'calm' | 'full' | 'heavy';
+
+/** Gentle asks less of you, Bright has room for more. The day's shape, not a grade. */
+export type DayShape = 'gentle' | 'steady' | 'bright';
+
+/**
+ * One morning, described rather than scored. Every field is optional: a day
+ * with no entry is simply not logged, and an earlier day can be filled in
+ * whenever, with nothing marking it as late.
+ */
+export interface Light {
+  /** Local calendar date, YYYY-MM-DD. One entry per day. */
+  date: string;
+  energy?: Energy;
+  sleep?: Sleep;
+  mind?: Mind;
+  /** Only set when the person picked a shape themselves; otherwise it is suggested. */
+  shape?: DayShape;
+}
+
+/** How a goal is moving, in one word of the person's choosing. */
+export type Momentum = 'moving' | 'steady' | 'snagged' | 'resting';
+
+/** What a snagged goal is snagged on. Each one points at something small to change. */
+export type Snag = 'clarity' | 'time' | 'energy' | 'setup';
+
+export interface GoalCheckIn {
+  goalId: ID;
+  /** The first day of the week it belongs to: one check-in per goal per week. */
+  date: string;
+  momentum: Momentum;
+  snag?: Snag;
+  note?: string;
 }
 
 export type Theme = 'light' | 'dark' | 'system';
@@ -186,8 +252,14 @@ export interface Settings {
   dayEndHour: number;
   /** Hides every count and figure, for anyone who finds tracking stressful. */
   hideNumbers: boolean;
-  /** Gentle mode applies only to the date it names: tiny versions, no figures. */
+  /**
+   * Gentle mode applies only to the date it names: tiny versions, no figures.
+   * Kept for saves written before day shapes; `migrateState` turns it into a
+   * Light entry with shape 'gentle'.
+   */
   gentleDayDate?: string;
+  /** A soft line on the timeline where the working day is meant to end. */
+  workEndsMin?: number;
   /** Which weekday offers the reflection card. 0 = Sunday. */
   reflectionWeekday: number;
   /** The day a week begins on: 0 = Sunday, 1 = Monday. */
@@ -202,5 +274,8 @@ export interface GaiaState {
   habits: Habit[];
   checkIns: CheckIn[];
   reflections: Reflection[];
+  lights: Light[];
+  goalCheckIns: GoalCheckIn[];
+  rests: Rest[];
   settings: Settings;
 }

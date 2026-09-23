@@ -1,7 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Habit } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
-import { checkInFor } from '../../store/selectors';
+import { checkInFor, restsOn } from '../../store/selectors';
 import type { ScheduledBlock } from '../../store/selectors';
 import { HOUR_PX, useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { layoutLanes } from '../../lib/layout';
@@ -9,6 +9,7 @@ import { formatClock, nowMinutes } from '../../lib/time';
 import { todayISO } from '../../lib/dates';
 import type { OutlookEvent } from '../../integrations/outlook/events';
 import { TimeBlock, PreviewBlock, SuggestedBlock, OutlookBlock } from './TimeBlock';
+import { RestBlock } from './RestBlock';
 import styles from './timeline.module.css';
 
 /** A habit's preferred time, drawn as a suggestion rather than a commitment. */
@@ -167,15 +168,19 @@ function DayColumn({ date, items, suggestions, events, onOpenTask, onOpenHabit, 
     return registerColumn(id, { date, el: ref.current });
   }, [id, date, registerColumn]);
 
+  const rests = restsOn(state, date);
+
   const placements = useMemo(
     () =>
       layoutLanes([
         ...items.map(({ block }) => ({ id: block.id, startMin: block.startMin, durationMin: block.durationMin })),
         ...events.map((e) => ({ id: `ev-${e.key}`, startMin: e.startMin, durationMin: e.durationMin })),
+        // Rest is real time, so it takes a lane like everything else.
+        ...rests.map((r) => ({ id: `rest-${r.id}`, startMin: r.startMin, durationMin: r.durationMin })),
         // Suggestions share the lane maths so they never sit on top of real time.
         ...suggestions.map((s) => ({ id: `sug-${s.habit.id}`, startMin: s.startMin, durationMin: s.durationMin })),
       ]),
-    [items, suggestions, events],
+    [items, suggestions, events, rests],
   );
 
   const preview = session?.preview?.date === date ? session.preview : null;
@@ -223,6 +228,19 @@ function DayColumn({ date, items, suggestions, events, onOpenTask, onOpenHabit, 
           />
         );
       })}
+      {rests.map((rest) => (
+        <RestBlock key={rest.id} rest={rest} placement={placements.get(`rest-${rest.id}`) ?? { lane: 0, lanes: 1 }} />
+      ))}
+      {/* A soft line where the working day is meant to end. It holds nothing in place. */}
+      {state.settings.workEndsMin !== undefined && (
+        <div
+          className={styles.anchor}
+          style={{ top: (state.settings.workEndsMin / 60) * HOUR_PX }}
+          aria-hidden="true"
+        >
+          <span>work ends</span>
+        </div>
+      )}
       {preview && previewTask && <PreviewBlock task={previewTask} schedule={preview} />}
       {nowMin !== null && (
         <div className={styles.nowLine} style={{ top: (nowMin / 60) * HOUR_PX }} aria-hidden="true">

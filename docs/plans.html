@@ -1018,15 +1018,16 @@ footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-s
         </div>
       </div>
       <div class="phase">
-        <div class="ph"><b>Light</b><span>Season 2 · the day and the week</span></div>
+        <div class="ph"><b>Light</b><span>Season 2 · built</span></div>
         <div class="pb">
           <ul class="list">
             <li><b>Today's light</b> check-in, under two minutes, with filling in earlier days</li>
             <li><b>Day shapes</b> (Gentle already exists; add Steady and Bright) and a <b>welcome back</b> after quiet days</li>
             <li><b>Goal momentum</b> right after the weekly reflection, with <em>snagged, on what?</em> and each goal's timeline</li>
             <li><b>Look back</b>: weekly and monthly, with a journal field and the period's data pulled in</li>
-            <li><b>Rest blocks</b>, a <b>work ends</b> anchor, goals dragged onto the timeline, and <b>repeating tasks</b></li>
+            <li><b>Rest blocks</b>, a <b>work ends</b> anchor, and <b>repeating tasks</b> that plan the next one when you finish this one</li>
           </ul>
+          <p class="small"><a href="https://claude.ai/artifact/HTNpSxPibW3JN71GfgLbaZ">See every Season 2 screen on the design canvas →</a></p>
           <p class="gate"><b>Ready for the next season when</b> you've opened Today's light most mornings for two or three weeks and done one weekly and one monthly look back. This is the Life Hub's own gate.</p>
         </div>
       </div>
@@ -1072,14 +1073,14 @@ interface Goal  { …; milestone?: { target: number; current: number; unit?: str
 
 <span class="c">// Season 2 · keyed by date, so filling in an earlier day is just another entry</span>
 interface Light { date: string; energy?: 'low' | 'some' | 'good'; sleep?: 'rough' | 'okay' | 'rested';
-                  mind?: 'calm' | 'full' | 'heavy'; nap?: boolean }   <span class="c">// describes, never grades</span>
+                  mind?: 'calm' | 'full' | 'heavy'; shape?: DayShape }   <span class="c">// describes, never grades</span>
 type DayShape = 'gentle' | 'steady' | 'bright';          <span class="c">// replaces gentleDayDate with { date, shape }</span>
 type Momentum = 'moving' | 'steady' | 'snagged' | 'resting';
 interface GoalCheckIn { goalId: ID; date: string; momentum: Momentum;
                         snag?: 'clarity' | 'time' | 'energy' | 'setup'; note?: string }
 interface Reflection { …; period: 'week' | 'month'; journal?: string }   <span class="c">// existing saves become 'week'</span>
-interface TimeBlock { …; kind?: 'task' | 'rest' }
-interface Task  { …; repeat?: Rhythm }                    <span class="c">// reuses the habit rhythm type</span>
+interface Rest extends Schedule { id: ID; label?: string }   <span class="c">// rest belongs to no task</span>
+interface Task  { …; repeat?: Repeat }                      <span class="c">// daysOfWeek | everyDays</span>
 
 <span class="c">// Season 3</span>
 interface Value { id: ID; word: string; note?: string }

@@ -3,15 +3,18 @@ import type { Goal } from '../types';
 import { uid, useFeedback, useGaia } from '../store/GaiaProvider';
 import { useGoalEditor, useHabitEditor } from '../hooks/useSheetParam';
 import { useTaskEditor } from '../hooks/useTaskEditor';
+import { Link } from 'react-router-dom';
 import {
   categoryById,
   goalActivity,
+  goalCheckIns,
   goalsByStatus,
   habitsForGoal,
   isHabitResting,
   tasksForGoal,
 } from '../store/selectors';
 import { formatShortDate, todayISO } from '../lib/dates';
+import { MOMENTUM_WORD, SNAG_WORD } from '../lib/copy';
 import { rhythmLabel } from '../lib/rhythm';
 import { Icon } from '../components/ui/Icon';
 import { MonetAccent } from '../components/art/MonetAccent';
@@ -199,6 +202,37 @@ export function GoalsPage() {
 }
 
 /**
+ * How the goal has moved, in the person's own words, one word a week. The
+ * newest sits first; four weeks is enough to see a shape without a chart.
+ */
+function GoalMomentum({ goal }: { goal: Goal }) {
+  const { state } = useGaia();
+  const entries = goalCheckIns(state, goal.id).slice(0, 4);
+  if (entries.length === 0) return null;
+
+  return (
+    <div className={styles.momentum}>
+      <h4 className={styles.linkedTitle}>How it has moved</h4>
+      <ul className={styles.momentumList}>
+        {entries.map((entry) => (
+          <li key={entry.date}>
+            <span className={styles.momentumDate}>{formatShortDate(entry.date)}</span>
+            <span className={styles.momentumTag} data-momentum={entry.momentum}>
+              {MOMENTUM_WORD[entry.momentum].toLowerCase()}
+              {entry.snag ? ` · ${SNAG_WORD[entry.snag].toLowerCase()}` : ''}
+            </span>
+            {entry.note && <span className={styles.momentumNote}>{entry.note}</span>}
+          </li>
+        ))}
+      </ul>
+      <Link className={styles.momentumLink} to="/look-back">
+        This week's word →
+      </Link>
+    </div>
+  );
+}
+
+/**
  * A count the person keeps by hand. Small targets are drawn as one mark per
  * step, so the shape is the count itself rather than a percentage.
  */
@@ -312,6 +346,8 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
           {activity.windowDays} days
         </p>
       )}
+
+      {!closed && <GoalMomentum goal={goal} />}
 
       {(!closed || habits.length > 0 || tasks.length > 0) && (
         <div className={styles.linkedGrid}>

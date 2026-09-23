@@ -4,6 +4,7 @@ import { TodayPage } from './pages/TodayPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { ManageLayout } from './pages/manage/ManageLayout';
 import { GoalsPage } from './pages/GoalsPage';
+import { LookBackPage } from './pages/LookBackPage';
 import { SupportPage } from './pages/SupportPage';
 import { HelpPage } from './pages/HelpPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -18,6 +19,7 @@ export function App() {
         <Route index element={<TodayPage />} />
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="goals" element={<GoalsPage />} />
+        <Route path="look-back" element={<LookBackPage />} />
         <Route path="support" element={<SupportPage />} />
         <Route path="help" element={<HelpPage />} />
         <Route path="settings" element={<SettingsPage />} />

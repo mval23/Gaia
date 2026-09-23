@@ -1,5 +1,18 @@
-import type { Category, CheckIn, CheckInKind, GaiaState, Goal, Group, Habit, Settings, Task } from '../types';
-import { addDays, todayISO } from '../lib/dates';
+import type {
+  Category,
+  CheckIn,
+  CheckInKind,
+  GaiaState,
+  Goal,
+  GoalCheckIn,
+  Group,
+  Habit,
+  Light,
+  Rest,
+  Settings,
+  Task,
+} from '../types';
+import { addDays, startOfWeek, todayISO } from '../lib/dates';
 
 const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
@@ -10,6 +23,7 @@ const DEFAULT_SETTINGS: Settings = {
   hideNumbers: false,
   reflectionWeekday: 0,
   weekStart: 0,
+  workEndsMin: 18 * 60,
 };
 
 export function createSeed(today = todayISO()): GaiaState {
@@ -186,6 +200,32 @@ export function createSeed(today = todayISO()): GaiaState {
     t('t-21', 'Idea: a reading corner by the window', undefined, { createdAt: `${addDays(today, -2)}T21:10:00` }),
   ];
 
+  // A fortnight of mornings, described rather than scored, with real gaps.
+  const lights: Light[] = [
+    { date: today, energy: 'some', sleep: 'rested', mind: 'calm' },
+    { date: addDays(today, -1), energy: 'good', sleep: 'okay', mind: 'full' },
+    { date: addDays(today, -2), energy: 'low', sleep: 'rough', mind: 'heavy' },
+    { date: addDays(today, -3), energy: 'some', sleep: 'okay', mind: 'calm' },
+    { date: addDays(today, -5), energy: 'good', sleep: 'rested', mind: 'calm' },
+    { date: addDays(today, -6), energy: 'some', sleep: 'rough', mind: 'full' },
+    { date: addDays(today, -8), energy: 'good', sleep: 'rested', mind: 'calm' },
+    { date: addDays(today, -9), energy: 'some', sleep: 'okay', mind: 'calm' },
+  ];
+
+  // Four weeks of one goal's own words for how it is moving.
+  const goalCheckIns: GoalCheckIn[] = [
+    { goalId: 'goal-stats', date: startOfWeek(addDays(today, -7)), momentum: 'moving', note: 'Two evenings on the problem sets.' },
+    { goalId: 'goal-stats', date: startOfWeek(addDays(today, -14)), momentum: 'snagged', snag: 'clarity', note: 'Wrote down the next three topics.' },
+    { goalId: 'goal-rested', date: startOfWeek(addDays(today, -7)), momentum: 'steady' },
+    { goalId: 'goal-rested', date: startOfWeek(addDays(today, -21)), momentum: 'resting', note: 'Away for the week, on purpose.' },
+  ];
+
+  // Evenings kept for rest. Nothing asks what they were spent on.
+  const rests: Rest[] = [
+    { id: 'rest-1', date: today, startMin: 20 * 60, durationMin: 90, label: 'Series, on purpose' },
+    { id: 'rest-2', date: addDays(today, -2), startMin: 15 * 60, durationMin: 45, label: 'Nap' },
+  ];
+
   return {
     groups,
     categories,
@@ -194,6 +234,9 @@ export function createSeed(today = todayISO()): GaiaState {
     habits,
     checkIns,
     reflections: [],
+    lights,
+    goalCheckIns,
+    rests,
     settings: { ...DEFAULT_SETTINGS },
   };
 }
@@ -212,6 +255,9 @@ export function createEmpty(): GaiaState {
     habits: [],
     checkIns: [],
     reflections: [],
+    lights: [],
+    goalCheckIns: [],
+    rests: [],
     settings: { ...DEFAULT_SETTINGS },
   };
 }
