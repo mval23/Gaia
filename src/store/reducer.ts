@@ -3,27 +3,35 @@ import type {
   CheckInKind,
   GaiaState,
   Goal,
+  GoalCheckIn,
   GoalKind,
   GoalStatus,
   Group,
   Habit,
+  Light,
   Milestone,
+  Momentum,
+  Period,
   Reflection,
+  Rest,
   Rhythm,
   Schedule,
   Settings,
+  Snag,
   Task,
   TimeBlock,
 } from '../types';
 import { MIN_DURATION, DAY_MIN, clamp } from '../lib/time';
 import { isValidISODate, todayISO } from '../lib/dates';
+import { nextRepeatDate } from '../lib/repeat';
 import { DEFAULT_RHYTHM, normalizeRhythm } from '../lib/rhythm';
 
 export type Action =
   /** Without a category (or with one that no longer exists) the task waits in the Inbox. */
   | { type: 'task/add'; id: string; categoryId?: string; title: string; plannedFor?: string }
   | { type: 'task/update'; id: string; patch: Partial<Omit<Task, 'id' | 'createdAt' | 'blocks'>> }
-  | { type: 'task/toggle'; id: string }
+  /** `nextId` is used only when a repeating task is finished and the next one is planned. */
+  | { type: 'task/toggle'; id: string; nextId?: string }
   | { type: 'task/delete'; id: string }
   /** Adds another scheduled session to a task. */
   | { type: 'block/add'; taskId: string; block: TimeBlock }
@@ -55,13 +63,25 @@ export type Action =
   /** Upserts the single entry for (habitId, date). */
   | { type: 'checkin/set'; habitId: string; date: string; kind: CheckInKind }
   | { type: 'checkin/clear'; habitId: string; date: string }
-  /** Upserts by `weekStart`; an entirely empty reflection is never stored. */
+  /** Upserts by `weekStart` and period; an entirely empty reflection is never stored. */
   | {
       type: 'reflection/save';
       id: string;
       weekStart: string;
-      patch: Partial<Pick<Reflection, 'wentWell' | 'wasHard' | 'oneThing'>>;
+      period: Period;
+      patch: Partial<Pick<Reflection, 'wentWell' | 'wasHard' | 'oneThing' | 'journal'>>;
     }
+  /** Upserts the single light for a date. An entry with nothing in it is removed. */
+  | { type: 'light/set'; date: string; patch: Partial<Omit<Light, 'date'>> }
+  | { type: 'light/clear'; date: string }
+  /** Upserts the single check-in for (goalId, week). */
+  | { type: 'goalCheckIn/set'; goalId: string; date: string; momentum: Momentum; snag?: Snag; note?: string }
+  | { type: 'goalCheckIn/clear'; goalId: string; date: string }
+  /** Time kept for rest. It belongs to no task, and asks nothing of anyone. */
+  | { type: 'rest/add'; rest: Rest }
+  | { type: 'rest/update'; id: string; schedule: Schedule }
+  | { type: 'rest/setLabel'; id: string; label?: string }
+  | { type: 'rest/remove'; id: string }
   | { type: 'settings/update'; patch: Partial<Settings> }
   | { type: 'state/replace'; state: GaiaState };
 
@@ -147,14 +167,40 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         }
         return next;
       });
-    case 'task/toggle':
+    case 'task/toggle': {
+      const task = state.tasks.find((t) => t.id === action.id);
+      if (!task) return state;
+      const finishing = task.status === 'open' || task.status === 'waiting';
       // Open or with someone else becomes done. Anything else comes back as open,
       // so a let-go task is never stranded.
-      return mapTask(state, action.id, (t) =>
-        t.status === 'open' || t.status === 'waiting'
-          ? { ...t, status: 'done', completedAt: nowStamp(), waitingSince: undefined }
-          : { ...t, status: 'open', completedAt: undefined },
-      );
+      const next = finishing
+        ? { ...task, status: 'done' as const, completedAt: nowStamp(), waitingSince: undefined }
+        : { ...task, status: 'open' as const, completedAt: undefined };
+
+      // Finishing a repeating task plans the next one. The repeat travels with it,
+      // so unchecking this one can never plan a second.
+      const repeat = finishing ? task.repeat : undefined;
+      if (!repeat || !action.nextId) {
+        return { ...state, tasks: state.tasks.map((t) => (t.id === task.id ? next : t)) };
+      }
+      const nextDate = nextRepeatDate(repeat, todayISO());
+      const upcoming: Task = {
+        ...task,
+        id: action.nextId,
+        status: 'open',
+        completedAt: undefined,
+        createdAt: nowStamp(),
+        blocks: [],
+        plannedFor: nextDate,
+        plannedMoves: undefined,
+        essentialFor: undefined,
+        repeat,
+      };
+      return {
+        ...state,
+        tasks: [...state.tasks.map((t) => (t.id === task.id ? { ...next, repeat: undefined } : t)), upcoming],
+      };
+    }
     case 'task/delete':
       return { ...state, tasks: state.tasks.filter((t) => t.id !== action.id) };
     case 'block/add':
@@ -404,22 +450,70 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
 
     case 'reflection/save': {
       if (!isValidISODate(action.weekStart)) return state;
-      const existing = state.reflections.find((r) => r.weekStart === action.weekStart);
+      const is = (r: Reflection) => r.weekStart === action.weekStart && r.period === action.period;
+      const existing = state.reflections.find(is);
       const merged = { ...existing, ...action.patch };
       const entry: Reflection = {
         id: existing?.id ?? action.id,
         weekStart: action.weekStart,
+        period: action.period,
         wentWell: trimmed(merged.wentWell),
         wasHard: trimmed(merged.wasHard),
         oneThing: trimmed(merged.oneThing),
+        journal: trimmed(merged.journal),
         createdAt: existing?.createdAt ?? nowStamp(),
         updatedAt: existing ? nowStamp() : undefined,
       };
-      const others = state.reflections.filter((r) => r.weekStart !== action.weekStart);
+      const others = state.reflections.filter((r) => !is(r));
       // Nothing written means nothing stored: skipping a week leaves no trace.
-      const empty = !entry.wentWell && !entry.wasHard && !entry.oneThing;
+      const empty = !entry.wentWell && !entry.wasHard && !entry.oneThing && !entry.journal;
       return { ...state, reflections: empty ? others : [...others, entry] };
     }
+
+    case 'light/set': {
+      if (!isValidISODate(action.date)) return state;
+      const existing = state.lights.find((l) => l.date === action.date);
+      const entry: Light = { ...existing, ...action.patch, date: action.date };
+      const others = state.lights.filter((l) => l.date !== action.date);
+      // Untapping everything leaves the day unlogged, rather than logged as nothing.
+      const empty = !entry.energy && !entry.sleep && !entry.mind && !entry.shape;
+      return { ...state, lights: empty ? others : [...others, entry] };
+    }
+    case 'light/clear':
+      return { ...state, lights: state.lights.filter((l) => l.date !== action.date) };
+
+    case 'goalCheckIn/set': {
+      if (!isValidISODate(action.date) || !state.goals.some((g) => g.id === action.goalId)) return state;
+      const others = state.goalCheckIns.filter((c) => !(c.goalId === action.goalId && c.date === action.date));
+      const entry: GoalCheckIn = {
+        goalId: action.goalId,
+        date: action.date,
+        momentum: action.momentum,
+        // A snag only belongs to a snagged week.
+        snag: action.momentum === 'snagged' ? action.snag : undefined,
+        note: trimmed(action.note),
+      };
+      return { ...state, goalCheckIns: [...others, entry] };
+    }
+    case 'goalCheckIn/clear':
+      return {
+        ...state,
+        goalCheckIns: state.goalCheckIns.filter((c) => !(c.goalId === action.goalId && c.date === action.date)),
+      };
+
+    case 'rest/add': {
+      if (!isValidISODate(action.rest.date)) return state;
+      return { ...state, rests: [...state.rests, { ...action.rest, ...normalizeSchedule(action.rest) }] };
+    }
+    case 'rest/update':
+      return {
+        ...state,
+        rests: state.rests.map((r) => (r.id === action.id ? { ...r, ...normalizeSchedule(action.schedule) } : r)),
+      };
+    case 'rest/setLabel':
+      return { ...state, rests: state.rests.map((r) => (r.id === action.id ? { ...r, label: trimmed(action.label) } : r)) };
+    case 'rest/remove':
+      return { ...state, rests: state.rests.filter((r) => r.id !== action.id) };
 
     case 'settings/update':
       return { ...state, settings: { ...state.settings, ...action.patch } };

@@ -167,3 +167,162 @@
   color: var(--text-secondary);
 }
 
+
+/* ---------- Today's light, in one line ---------- */
+
+.lightLine {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius);
+  background: var(--panel-inset);
+  padding-right: 6px;
+}
+
+.lightLineButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 4px 0 12px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--text-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.lightLineButton:hover {
+  color: var(--text);
+}
+
+.lightLineIcon {
+  color: color-mix(in srgb, var(--avatar) 70%, var(--text));
+  flex-shrink: 0;
+}
+
+.lightLineText {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lightLineHint {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* ---------- Welcome back ---------- */
+
+.dayNote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 14px 10px 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.dayNoteText {
+  flex: 1;
+  min-width: 180px;
+  display: grid;
+  gap: 3px;
+}
+
+.dayNoteTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 19px;
+  color: var(--text);
+}
+
+.dayNoteBody {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.dayNoteAction {
+  padding: 9px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-strong);
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.dayNoteAction:hover {
+  background: var(--hover);
+}
+
+.dayNoteClose {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dayNoteClose:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* ---------- The week's invitation ---------- */
+
+.reflectionInvite {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--panel-inset);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.reflectionInvite:hover {
+  background: var(--tint-weak);
+}
+
+.reflectionInviteIcon {
+  color: color-mix(in srgb, var(--avatar) 70%, var(--text));
+  flex-shrink: 0;
+}
+
+.reflectionInviteText {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.reflectionInviteTitle {
+  font-family: var(--font-heading);
+  font-size: 17px;
+}
+
+.reflectionInviteMeta {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}

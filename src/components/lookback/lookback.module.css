@@ -1,0 +1,154 @@
+/* The two cards a person writes in: the reflection, and how goals are moving. */
+
+.card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.meta {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+.prompt {
+  display: grid;
+  gap: 5px;
+}
+
+.promptLabel {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.promptInput {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* ---------- Momentum ---------- */
+
+.goal {
+  display: grid;
+  gap: 9px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.goal:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.goalTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.goalTitle svg {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pick {
+  padding: 6px 13px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.pick:hover {
+  color: var(--text);
+}
+
+.pick[aria-pressed='true'] {
+  border-color: transparent;
+  color: var(--text);
+  font-weight: 500;
+  background: var(--shape-steady);
+}
+
+.pick[aria-pressed='true'][data-momentum='snagged'] {
+  background: var(--rest);
+}
+
+.pick[aria-pressed='true'][data-momentum='resting'] {
+  background: color-mix(in srgb, var(--avatar) 26%, var(--surface));
+}
+
+.pickSnag[aria-pressed='true'] {
+  background: var(--rest);
+}
+
+.snag {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--panel-inset);
+}
+
+.snagLabel {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.offer span {
+  flex: 1;
+  min-width: 140px;
+}
+
+.offerButton {
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.offerButton:hover {
+  background: var(--hover);
+}
+
+.note {
+  display: grid;
+}

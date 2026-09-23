@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Task } from '../types';
 import { uid, useFeedback, useGaia } from '../store/GaiaProvider';
 import { useMoveBlockDay } from '../hooks/useMoveBlockDay';
-import { blocksOn, habitsForDate, partitionDay, resolveGroupParam } from '../store/selectors';
+import { blocksOn, habitsForDate, isGentleDay, partitionDay, resolveGroupParam } from '../store/selectors';
 import { useDateParam, useParam } from '../hooks/useDateParam';
 import { useTaskEditor } from '../hooks/useTaskEditor';
 import { useHabitEditor } from '../hooks/useSheetParam';
@@ -16,13 +16,15 @@ import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { DatePickerButton } from '../components/ui/DatePickerButton';
 import { Icon } from '../components/ui/Icon';
 import { MonetAccent } from '../components/art/MonetAccent';
+import { LightPill } from '../components/light/LightPill';
+import { LightPrompt } from '../components/plan/LightPrompt';
 import { RhythmsSection } from '../components/plan/RhythmsSection';
 import { TodaySection } from '../components/plan/TodaySection';
 import { LaterSection } from '../components/plan/LaterSection';
 import { WithSomeoneSection } from '../components/plan/WithSomeoneSection';
 import { useCapture } from '../components/capture/CaptureProvider';
 import { CalendarLinks } from '../components/plan/CalendarLinks';
-import { WeeklyReflection } from '../components/plan/WeeklyReflection';
+import { ReflectionInvite } from '../components/plan/ReflectionInvite';
 import { TimeGrid, type Suggestion } from '../components/timeline/TimeGrid';
 import { useOutlookEvents } from '../integrations/outlook/OutlookProvider';
 import { SplitHandle } from '../components/ui/SplitHandle';
@@ -65,8 +67,9 @@ export function TodayPage() {
 
   const groupFilter = resolveGroupParam(state, groupRaw);
 
-  // A gentle day belongs to one date, so tomorrow starts fresh.
-  const gentle = settings.gentleDayDate === date;
+  // A day's shape belongs to that date, so tomorrow starts fresh. A gentle day
+  // asks less of you: tiny versions, and no figures.
+  const gentle = isGentleDay(state, date);
   const hideNumbers = settings.hideNumbers || gentle;
 
   const blocks = useMemo(() => blocksOn(state, date, groupFilter), [state, date, groupFilter]);
@@ -187,17 +190,7 @@ export function TodayPage() {
                 Today
               </button>
             )}
-            <button
-              type="button"
-              className={`${ui.pillButton} ${styles.gentleToggle}`}
-              aria-pressed={gentle}
-              title="Tiny versions only, and no figures"
-              onClick={() =>
-                dispatch({ type: 'settings/update', patch: { gentleDayDate: gentle ? undefined : date } })
-              }
-            >
-              Gentle day
-            </button>
+            <LightPill date={date} className={styles.gentleToggle} />
           </div>
           {hideNumbers ? (
             <p className={styles.summary}>
@@ -250,9 +243,11 @@ export function TodayPage() {
           hidden={singlePanel && mobilePanel !== 'tasks'}
         >
           <div className={styles.panelScroll}>
+            <LightPrompt date={date} isToday={isToday} />
+
             <RhythmsSection date={date} groupFilter={groupFilter} gentle={gentle} />
 
-            {showReflection && <WeeklyReflection date={date} />}
+            {showReflection && <ReflectionInvite date={date} />}
 
             <TodaySection
               essential={essential}

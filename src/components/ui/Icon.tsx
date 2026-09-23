@@ -68,6 +68,37 @@ const paths = {
     </>
   ),
   flag: <path d="M5.5 21V4.5M5.5 4.5h11l-2 4 2 4h-11" />,
+  // Looking back: the same circle, walked round again.
+  look: (
+    <>
+      <path d="M4.2 12a7.8 7.8 0 1 1 2.3 5.5" />
+      <path d="M4.2 18.4v-5h5" />
+      <path d="M12 8.4V12l2.4 1.4" />
+    </>
+  ),
+  // Today's light: the morning, described rather than scored.
+  light: (
+    <>
+      <circle cx="12" cy="13" r="4.2" />
+      <path d="M12 4.5v1.8M4.8 13H3M21 13h-1.8M6.9 7.9 5.6 6.6M17.1 7.9l1.3-1.3M8.4 20h7.2" />
+    </>
+  ),
+  // Rest, on purpose.
+  moon: <path d="M20 14.6A8.6 8.6 0 0 1 9.4 4a8.6 8.6 0 1 0 10.6 10.6z" />,
+  // A soft line where the working day is meant to end.
+  anchor: (
+    <>
+      <circle cx="12" cy="5.4" r="2.4" />
+      <path d="M12 7.8v11.8M6.2 12.4H4.2a7.8 7.8 0 0 0 15.6 0h-2" />
+    </>
+  ),
+  // Things that come back.
+  repeat: (
+    <>
+      <path d="M4.2 12a7.8 7.8 0 0 1 13.3-5.5M19.8 12a7.8 7.8 0 0 1-13.3 5.5" />
+      <path d="M17.8 3.2v3.6h-3.6M6.2 20.8v-3.6h3.6" />
+    </>
+  ),
   // "The one that matters". Filled with currentColor where it is chosen.
   star: <path d="m12 3.75 2.5 5.1 5.6.8-4.05 3.95.95 5.6L12 16.55l-5 2.65.95-5.6L3.9 9.65l5.6-.8z" />,
   // Capture: a pen, because it is only ever one line.

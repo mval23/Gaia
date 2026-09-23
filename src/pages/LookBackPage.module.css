@@ -1,0 +1,359 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 32px;
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding: 16px 4px 0;
+}
+
+.titleBlock {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(28px, 2.4vw, 40px);
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--panel-inset);
+}
+
+.tab {
+  padding: 8px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tab[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
+
+.range {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 44px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.arrow:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.rangeLabel {
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Columns ---------- */
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1023px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.side {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.card {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.meta {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.rule {
+  height: 1px;
+  background: var(--border);
+}
+
+.band {
+  display: grid;
+  gap: 11px;
+}
+
+.bandTitle {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* ---------- The light ---------- */
+
+.weekLights {
+  display: flex;
+  gap: 8px;
+}
+
+.monthLights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.lightDay {
+  flex: 1;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  min-width: 0;
+}
+
+.monthLights .lightDay {
+  flex: 0 0 auto;
+}
+
+.lightSquare {
+  width: 100%;
+  min-width: 22px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--panel-inset);
+  border: 1px dashed var(--border-strong);
+}
+
+.monthLights .lightSquare {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.lightSquare[data-shape] {
+  border-color: transparent;
+  border-style: solid;
+}
+
+.lightSquare[data-shape='gentle'] {
+  background: var(--shape-gentle);
+}
+
+.lightSquare[data-shape='steady'] {
+  background: var(--shape-steady);
+}
+
+.lightSquare[data-shape='bright'] {
+  background: var(--shape-bright);
+}
+
+/* ---------- What you tended ---------- */
+
+.tendedList {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tendedRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tendedName {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dots {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.dots span {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  background: var(--tint-weak);
+}
+
+.dots span[data-kind='done'] {
+  background: color-mix(in srgb, var(--swatch-sage) 80%, transparent);
+}
+
+.dots span[data-kind='tiny'] {
+  background: color-mix(in srgb, var(--swatch-sage) 40%, transparent);
+}
+
+.dots span[data-kind='rest'] {
+  background: color-mix(in srgb, var(--avatar) 40%, transparent);
+}
+
+/* ---------- Where the time went ---------- */
+
+.bar {
+  display: flex;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--tint-weak);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+
+.accent {
+  margin-top: 4px;
+}
+
+/* ---------- Weeks behind a month ---------- */
+
+.weekList {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.weekList li {
+  display: grid;
+  gap: 2px;
+}
+
+.weekList .meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Reflection and momentum cards (shared module) ---------- */
+
+@media (max-width: 767px) {
+  .card {
+    padding: 16px 16px;
+    border-radius: 18px;
+  }
+
+  .controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}

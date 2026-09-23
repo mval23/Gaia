@@ -1,13 +1,22 @@
 import type {
   CheckIn,
   CheckInKind,
+  DayShape,
+  Energy,
   GaiaState,
   Goal,
+  GoalCheckIn,
   GoalKind,
   GoalStatus,
   Habit,
   HabitStatus,
+  Light,
+  Mind,
+  Momentum,
+  Rest,
   Schedule,
+  Sleep,
+  Snag,
   Task,
   TaskStatus,
   TimeBlock,
@@ -15,8 +24,9 @@ import type {
 import { createSeed } from '../data/seed';
 import { isValidISODate } from '../lib/dates';
 import { normalizeRhythm } from '../lib/rhythm';
+import { normalizeRepeat } from '../lib/repeat';
 import { DAY_MIN, clamp } from '../lib/time';
-import { normalizeMilestone } from './reducer';
+import { normalizeMilestone, normalizeSchedule } from './reducer';
 
 const KEY = 'gaia:v1';
 
@@ -25,6 +35,12 @@ const GOAL_STATUSES: GoalStatus[] = ['active', 'paused', 'completed', 'released'
 const GOAL_KINDS: GoalKind[] = ['finish', 'ongoing'];
 const HABIT_STATUSES: HabitStatus[] = ['active', 'paused', 'archived'];
 const CHECKIN_KINDS: CheckInKind[] = ['done', 'tiny', 'rest'];
+const ENERGIES: Energy[] = ['low', 'some', 'good'];
+const SLEEPS: Sleep[] = ['rough', 'okay', 'rested'];
+const MINDS: Mind[] = ['calm', 'full', 'heavy'];
+const SHAPES: DayShape[] = ['gentle', 'steady', 'bright'];
+const MOMENTUMS: Momentum[] = ['moving', 'steady', 'snagged', 'resting'];
+const SNAGS: Snag[] = ['clarity', 'time', 'energy', 'setup'];
 
 /**
  * Earlier saves stored a single `schedule`; tasks now hold a list of time blocks.
@@ -41,6 +57,7 @@ function migrateTask(raw: Task & { schedule?: Schedule; priority?: unknown }, ca
     blocks,
     status: TASK_STATUSES.includes(raw.status) ? raw.status : 'open',
     essentialFor: isValidISODate(raw.essentialFor) ? raw.essentialFor : undefined,
+    repeat: normalizeRepeat(raw.repeat),
     waitingSince: isValidISODate(raw.waitingSince) ? raw.waitingSince : undefined,
   };
 }
@@ -100,6 +117,35 @@ function captureToTask(c: LegacyCapture): Task {
   };
 }
 
+/** Keeps only what the three questions allow; anything else is left unlogged. */
+function migrateLight(raw: Light): Light | null {
+  if (!raw || !isValidISODate(raw.date)) return null;
+  const light: Light = {
+    date: raw.date,
+    energy: ENERGIES.includes(raw.energy as Energy) ? raw.energy : undefined,
+    sleep: SLEEPS.includes(raw.sleep as Sleep) ? raw.sleep : undefined,
+    mind: MINDS.includes(raw.mind as Mind) ? raw.mind : undefined,
+    shape: SHAPES.includes(raw.shape as DayShape) ? raw.shape : undefined,
+  };
+  return light.energy || light.sleep || light.mind || light.shape ? light : null;
+}
+
+function isGoalCheckIn(raw: unknown, goalIds: Set<string>): raw is GoalCheckIn {
+  const c = raw as GoalCheckIn;
+  return (
+    !!c &&
+    typeof c.goalId === 'string' &&
+    goalIds.has(c.goalId) &&
+    isValidISODate(c.date) &&
+    MOMENTUMS.includes(c.momentum)
+  );
+}
+
+function migrateRest(raw: Rest): Rest | null {
+  if (!raw || typeof raw.id !== 'string' || !isValidISODate(raw.date)) return null;
+  return { id: raw.id, label: raw.label, ...normalizeSchedule(raw) };
+}
+
 function isCheckIn(raw: unknown): raw is CheckIn {
   const c = raw as CheckIn;
   return !!c && typeof c.habitId === 'string' && isValidISODate(c.date) && CHECKIN_KINDS.includes(c.kind);
@@ -132,6 +178,17 @@ export function migrateState(parsed: GaiaState, seed: GaiaState = createSeed()):
   const categoryIds = new Set((parsed.categories ?? []).map((c) => c.id));
   const habits = Array.isArray(parsed.habits) ? parsed.habits.map(migrateHabit) : [];
   const habitIds = new Set(habits.map((h) => h.id));
+  const goals = Array.isArray(parsed.goals) ? parsed.goals.map((g) => migrateGoal(g, categoryIds)) : [];
+  const goalIds = new Set(goals.map((g) => g.id));
+
+  const lights = Array.isArray(parsed.lights)
+    ? parsed.lights.map(migrateLight).filter((l): l is Light => l !== null)
+    : [];
+  // A gentle day was the first day shape. It becomes one, so the day keeps its shape.
+  const { gentleDayDate, ...settings } = parsed.settings ?? {};
+  if (isValidISODate(gentleDayDate) && !lights.some((l) => l.date === gentleDayDate)) {
+    lights.push({ date: gentleDayDate, shape: 'gentle' });
+  }
   const { captures, ...rest } = parsed as GaiaState & { captures?: unknown };
   const taskIds = new Set(parsed.tasks.map((t) => t.id));
   const fromCaptures = Array.isArray(captures)
@@ -140,13 +197,24 @@ export function migrateState(parsed: GaiaState, seed: GaiaState = createSeed()):
   return {
     ...rest,
     tasks: [...parsed.tasks.map((t) => migrateTask(t, categoryIds)), ...fromCaptures],
-    goals: Array.isArray(parsed.goals) ? parsed.goals.map((g) => migrateGoal(g, categoryIds)) : [],
+    goals,
     habits,
     checkIns: Array.isArray(parsed.checkIns)
       ? parsed.checkIns.filter((c) => isCheckIn(c) && habitIds.has(c.habitId))
       : [],
-    reflections: Array.isArray(parsed.reflections) ? parsed.reflections : [],
-    settings: { ...seed.settings, ...parsed.settings },
+    // Every reflection written before months existed is a week's.
+    reflections: Array.isArray(parsed.reflections)
+      ? parsed.reflections.map((r) => ({ ...r, period: r.period === 'month' ? 'month' : ('week' as const) }))
+      : [],
+    lights,
+    goalCheckIns: Array.isArray(parsed.goalCheckIns)
+      ? parsed.goalCheckIns.filter((c): c is GoalCheckIn => isGoalCheckIn(c, goalIds)).map((c) => ({
+          ...c,
+          snag: c.momentum === 'snagged' && SNAGS.includes(c.snag as Snag) ? c.snag : undefined,
+        }))
+      : [],
+    rests: Array.isArray(parsed.rests) ? parsed.rests.map(migrateRest).filter((r): r is Rest => r !== null) : [],
+    settings: { ...seed.settings, ...settings },
   };
 }
 

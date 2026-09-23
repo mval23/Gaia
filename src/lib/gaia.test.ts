@@ -544,11 +544,12 @@ describe('the day', () => {
       type: 'reflection/save',
       id: 'r-1',
       weekStart,
+      period: 'week',
       patch: { wentWell: '  the walks  ' },
     });
     expect(saved.reflections).toHaveLength(1);
     expect(saved.reflections[0].wentWell).toBe('the walks');
-    const again = reducer(saved, { type: 'reflection/save', id: 'r-2', weekStart, patch: { wasHard: 'evenings' } });
+    const again = reducer(saved, { type: 'reflection/save', id: 'r-2', weekStart, period: 'week', patch: { wasHard: 'evenings' } });
     expect(again.reflections).toHaveLength(1);
     expect(again.reflections[0].id).toBe('r-1');
     expect(again.reflections[0].wentWell).toBe('the walks');
@@ -557,6 +558,7 @@ describe('the day', () => {
       type: 'reflection/save',
       id: 'r-3',
       weekStart,
+      period: 'week',
       patch: { wentWell: '', wasHard: '' },
     });
     expect(cleared.reflections).toHaveLength(0);

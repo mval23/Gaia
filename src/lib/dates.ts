@@ -48,6 +48,24 @@ export function weekDates(iso: string, weekStart = 0): string[] {
   return Array.from({ length: 7 }, (_, i) => addDays(start, i));
 }
 
+/** The first day of the month containing `iso`: the key a monthly look back is filed under. */
+export function startOfMonth(iso: string): string {
+  return `${iso.slice(0, 7)}-01`;
+}
+
+/** Every date in the month containing `iso`, in order. */
+export function monthDates(iso: string): string[] {
+  const d = fromISODate(iso);
+  const days = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  const first = startOfMonth(iso);
+  return Array.from({ length: days }, (_, i) => addDays(first, i));
+}
+
+/** "September", for the month's own look back. */
+export function monthName(iso: string, style: 'long' | 'short' = 'long'): string {
+  return fromISODate(iso).toLocaleDateString('en-US', { month: style });
+}
+
 /** The weekday indexes of a week in order, for column headers. */
 export function weekdayOrder(weekStart = 0): number[] {
   return Array.from({ length: 7 }, (_, i) => (weekStart + i) % 7);
