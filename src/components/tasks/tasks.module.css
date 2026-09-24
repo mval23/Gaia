@@ -181,7 +181,8 @@ button.cardToggle:hover {
 
 .taskTitle {
   flex: 1;
-  min-width: 0;
+  /* A name never shrinks to one letter: the chips beside it give way first. */
+  min-width: 6.5em;
   padding: 4px 0;
   text-align: left;
   font-size: 15px;
@@ -411,7 +412,7 @@ button.cardToggle:hover {
   }
 }
 
-@container (max-width: 400px) {
+@container (max-width: 430px) {
   .rowContext {
     display: none;
   }
@@ -432,24 +433,13 @@ button.cardToggle:hover {
   color: var(--text-secondary);
 }
 
-@container (max-width: 340px) {
+@container (max-width: 420px) {
   .goalChip {
     display: none;
   }
 }
 
 /* "The one that matters": the same row, given room. */
-.taskEssential {
-  min-height: 52px;
-}
-
-.taskEssential .taskTitle {
-  font-family: var(--font-heading);
-  font-size: 20px;
-  line-height: 1.25;
-  white-space: normal;
-}
-
 /* Who has it, while it is with someone else. */
 .withChip {
   flex-shrink: 1;
@@ -466,25 +456,56 @@ button.cardToggle:hover {
   color: var(--text-secondary);
 }
 
+/*
+ * "The one that matters" is two rows, not a row that wraps: the name and its
+ * controls on the first, the chips under the name on the second. Wrapping put
+ * the menu on a line of its own as soon as the column narrowed.
+ */
 .taskEssential {
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 10px;
   row-gap: 2px;
+  min-height: 52px;
   padding-block: 6px;
 }
 
-/* Title and menu share the first line; chips and context get the second. */
-.taskEssential .taskTitle {
-  flex: 1 1 calc(100% - 120px);
+/* The completion toggle: the only child placed by position rather than class. */
+.taskEssential > :first-child {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.taskEssential .taskTitle,
+.taskEssential .titleInput {
+  grid-column: 2;
+  grid-row: 1;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.taskEssential .planButton,
+.taskEssential .planSpacer {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.taskEssential .rowMenu {
+  grid-column: 4;
+  grid-row: 1;
 }
 
 .essentialMeta {
-  order: 3;
-  flex-basis: 100%;
+  grid-column: 2 / -1;
+  grid-row: 2;
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   min-width: 0;
-  padding-left: 34px;
 }
 
 .essentialMeta .rowContext {
