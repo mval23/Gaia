@@ -134,6 +134,7 @@
   display: grid;
   align-content: start;
   gap: 16px;
+  min-width: 0;
   padding: 20px 22px;
   border-radius: 22px;
   background: var(--panel);
@@ -190,6 +191,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+  min-width: 0;
 }
 
 .lightDay {
@@ -247,13 +249,13 @@
 }
 
 .tendedRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
+  gap: 4px 14px;
 }
 
 .tendedName {
-  flex: 1;
   min-width: 0;
   font-size: 14.5px;
   overflow: hidden;
@@ -263,8 +265,20 @@
 
 .dots {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
-  flex-shrink: 0;
+  min-width: 0;
+}
+
+/* A week's seven days sit between the name and its count; a month's thirty-one
+   take a line of their own, under both. */
+.week .tendedRow {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.month .dots {
+  grid-column: 1 / -1;
+  order: 1;
 }
 
 .dots span {
@@ -272,6 +286,7 @@
   height: 13px;
   border-radius: 4px;
   background: var(--tint-weak);
+  flex-shrink: 0;
 }
 
 .dots span[data-kind='done'] {
