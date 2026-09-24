@@ -105,7 +105,10 @@ export function LookBackPage() {
       </header>
 
       <div className={styles.columns}>
-        <section className={styles.card} aria-labelledby="period-itself">
+        <section
+          className={`${styles.card} ${period === 'month' ? styles.month : styles.week}`}
+          aria-labelledby="period-itself"
+        >
           <div className={styles.cardHead}>
             <h2 id="period-itself" className="eyebrow">
               {period === 'month' ? 'The month itself' : 'The week itself'}
