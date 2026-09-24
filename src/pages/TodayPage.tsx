@@ -9,7 +9,7 @@ import { useHabitEditor } from '../hooks/useSheetParam';
 import { useDragActions } from '../dnd/DragProvider';
 import { SINGLE_PANEL_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
 import { addDays, dayOfWeek, formatLongDate, fromISODate, relativeDayLabel } from '../lib/dates';
-import { findFreeSlot } from '../lib/layout';
+import { findFreeSlot, restSlot } from '../lib/layout';
 import { COPY, FULL_DAY_RATIO } from '../lib/copy';
 import { formatDuration, formatRange, nowMinutes, summarizeDay } from '../lib/time';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
@@ -150,12 +150,16 @@ export function TodayPage() {
       ...blocksOn(state, date).map(({ block }) => block),
       ...restsOn(state, date).map((r) => ({ startMin: r.startMin, durationMin: r.durationMin })),
     ];
-    const from = settings.workEndsMin ?? Math.max(settings.dayStartHour * 60, (settings.dayEndHour - 4) * 60);
-    const until = settings.dayEndHour * 60;
-    const startMin = findFreeSlot(busy, 60, from, until) ?? findFreeSlot(busy, 60, settings.dayStartHour * 60, until) ?? from;
+    const startMin = restSlot(busy, {
+      // On today the hours already gone are not on offer; other days are open.
+      nowMin: isToday ? nowMinutes() : null,
+      workEndsMin: settings.workEndsMin,
+      dayStartHour: settings.dayStartHour,
+      dayEndHour: settings.dayEndHour,
+    });
     dispatch({ type: 'rest/add', rest: { id: uid('rest'), date, startMin, durationMin: 60 } });
     notify(`Rest kept ${formatRange(startMin, 60, fmt)}. Rest is not empty time.`);
-  }, [state, date, settings.workEndsMin, settings.dayStartHour, settings.dayEndHour, dispatch, notify, fmt]);
+  }, [state, date, isToday, settings.workEndsMin, settings.dayStartHour, settings.dayEndHour, dispatch, notify, fmt]);
 
   const showReflection = dayOfWeek(date) === settings.reflectionWeekday;
 

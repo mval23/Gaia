@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatClock, formatDuration, formatRange, snap, summarizeDay } from './time';
-import { findFreeSlot, layoutLanes } from './layout';
+import { findFreeSlot, layoutLanes, restSlot } from './layout';
 import { addDays, addMonths, dayOfWeek, monthGrid, startOfWeek, todayISO, weekDates, weekdayOrder } from './dates';
 import { DEFAULT_RHYTHM, isOnRhythm, normalizeRhythm, rhythmLabel, weeklyTarget } from './rhythm';
 import { createEmpty } from '../data/seed';
@@ -984,5 +984,36 @@ describe('season 2', () => {
     expect(s.rests[0].durationMin).toBeLessThanOrEqual(24 * 60);
     // Reflections written before months existed are weeks.
     expect(s.reflections[0].period).toBe('week');
+  });
+});
+
+describe('keeping an hour for rest', () => {
+  const day = { dayStartHour: 7, dayEndHour: 23, workEndsMin: 18 * 60 };
+  const at = (h: number, m = 0) => h * 60 + m;
+
+  it('takes the evening when the day is still ahead', () => {
+    expect(restSlot([], { ...day, nowMin: at(9, 20) })).toBe(at(18));
+    // Another day has no clock at all: the evening is open from the start.
+    expect(restSlot([], { ...day, nowMin: null })).toBe(at(18));
+  });
+
+  it('never lands in an hour that has already gone', () => {
+    // The bug: at 20:40 it offered 18:00, which was two hours in the past.
+    expect(restSlot([], { ...day, nowMin: at(20, 40) })).toBe(at(20, 45));
+    expect(restSlot([], { ...day, nowMin: at(18, 3) })).toBe(at(18, 15));
+  });
+
+  it('steps over what is already on the day', () => {
+    const busy = [{ startMin: at(18), durationMin: 90 }];
+    expect(restSlot(busy, { ...day, nowMin: at(17) })).toBe(at(19, 30));
+    // The whole evening taken: it looks from now instead, rather than giving up.
+    const full = [{ startMin: at(18), durationMin: 5 * 60 }];
+    expect(restSlot(full, { ...day, nowMin: at(15) })).toBe(at(15));
+  });
+
+  it('still keeps an hour when bedtime is closer than an hour away', () => {
+    expect(restSlot([], { ...day, nowMin: at(22, 50) })).toBe(at(23));
+    // And never past the end of the day.
+    expect(restSlot([], { ...day, nowMin: at(23, 40) })).toBe(at(23));
   });
 });

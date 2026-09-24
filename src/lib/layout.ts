@@ -1,3 +1,5 @@
+import { DAY_MIN, SNAP_MIN } from './time';
+
 export interface Span {
   id: string;
   startMin: number;
@@ -45,6 +47,27 @@ export function layoutLanes(spans: Span[]): Map<string, Placement> {
 }
 
 /** First free start (snapped) of `duration` minutes at or after `from`, within [from, until]. */
+/**
+ * Where an hour of rest goes when the day panel is asked for one: the evening,
+ * after work ends, but never an hour that has already gone. `nowMin` is null on
+ * any day but today, where the whole day is still ahead.
+ */
+export function restSlot(
+  busy: { startMin: number; durationMin: number }[],
+  options: { nowMin: number | null; workEndsMin?: number; dayStartHour: number; dayEndHour: number; durationMin?: number },
+): number {
+  const { nowMin, workEndsMin, dayStartHour, dayEndHour } = options;
+  const duration = options.durationMin ?? 60;
+  const earliest =
+    nowMin === null ? dayStartHour * 60 : Math.min(Math.ceil(nowMin / SNAP_MIN) * SNAP_MIN, DAY_MIN - duration);
+  const evening = workEndsMin ?? Math.max(dayStartHour * 60, (dayEndHour - 4) * 60);
+  const from = Math.max(evening, earliest);
+  // Late on, there may be nothing left before bedtime; an hour of rest is still
+  // worth keeping, so the window stretches to hold one.
+  const until = Math.min(Math.max(dayEndHour * 60, from + duration), DAY_MIN);
+  return findFreeSlot(busy, duration, from, until) ?? findFreeSlot(busy, duration, earliest, until) ?? from;
+}
+
 export function findFreeSlot(
   busy: { startMin: number; durationMin: number }[],
   duration: number,
