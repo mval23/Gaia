@@ -4,8 +4,11 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthGate } from './auth/AuthGate';
 import { OutlookProvider } from './integrations/outlook/OutlookProvider';
 import { App } from './App';
+import { startPush } from './lib/push';
 import './styles/tokens.css';
 import './styles/global.css';
+
+startPush();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useFeedback } from '../../store/GaiaProvider';
+import { isAppleMobile, isStandalone } from '../../lib/device';
 import ui from '../ui/ui.module.css';
 import settings from '../../pages/SettingsPage.module.css';
 
@@ -8,13 +9,6 @@ interface InstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
-
-const isStandalone = () =>
-  typeof window !== 'undefined' &&
-  (window.matchMedia?.('(display-mode: standalone)').matches ||
-    (navigator as Navigator & { standalone?: boolean }).standalone === true);
-
-const isAppleMobile = () => typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
 
 /** Keep Gaia on the home screen, where the browser allows it. Shown only when it can help. */
 export function InstallGaia() {

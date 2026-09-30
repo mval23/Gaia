@@ -1,5 +1,5 @@
 import type { Rhythm } from '../types';
-import { dayOfWeek } from './dates';
+import { dayOfWeek } from './dates.js';
 
 /** A flexible rhythm is the default: it forgives a quiet day without any bookkeeping. */
 export const DEFAULT_RHYTHM = { type: 'timesPerWeek', times: 3 } as const satisfies Rhythm;
