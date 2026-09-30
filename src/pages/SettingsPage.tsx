@@ -13,6 +13,7 @@ import { MonetAccent } from '../components/art/MonetAccent';
 import { useOutlook } from '../integrations/outlook/OutlookProvider';
 import { StarterHabits } from '../components/settings/StarterHabits';
 import { InstallGaia } from '../components/settings/InstallGaia';
+import { Notifications } from '../components/settings/Notifications';
 import ui from '../components/ui/ui.module.css';
 import styles from './SettingsPage.module.css';
 
@@ -224,6 +225,8 @@ export function SettingsPage() {
           </section>
 
           {account && <GaiaAccount email={account.email} signOut={account.signOut} />}
+
+          {account && <Notifications />}
 
           <MicrosoftAccount />
 

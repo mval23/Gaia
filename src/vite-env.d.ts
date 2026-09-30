@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY?: string;
   /** The same key under Supabase's newer name; used when VITE_SUPABASE_ANON_KEY is unset. */
   readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;
+  /** The public half of the key pair phones use to trust Gaia's notifications. */
+  readonly VITE_VAPID_PUBLIC_KEY?: string;
 }
 
 interface ImportMeta {

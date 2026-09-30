@@ -202,10 +202,13 @@ src/
     GaiaProvider.tsx  state, toasts, undo, and the theme stamped on <html>
   auth/               Gaia accounts (AuthGate, Supabase) and Microsoft sign-in
   integrations/       the Outlook calendar link
-  lib/                pure helpers: dates, time, layout, rhythm, copy, sensitive
+  lib/                pure helpers: dates, time, layout, rhythm, copy, sensitive,
+                      reminders (what a phone is sent, and when); push.ts signs a phone up
   components/         ui kit, tasks, habits, plan sections, timeline, sheets, layout
   pages/              Plan (TodayPage), Calendar, Goals, Settings, Support, Manage/*
   styles/             tokens.css (all colour) and global.css
+api/                  Vercel functions: remind (every five minutes) and push-test
+supabase/             schema.sql (tables and privacy), reminders.sql (the five-minute job)
 docs/
   index.html          the illustrated docs page
   screenshots/        the images in this README
@@ -256,6 +259,29 @@ Import from a file on the site once you have signed in.
 
 Environment variable changes only take effect after a new deploy.
 `.env.example` lists them all.
+
+### Phone notifications
+
+Once accounts are on, Gaia can send a few quiet notifications, each optional:
+when a task's time block starts, *the one that matters* in the morning, Look
+back on its day, and in the evening an invitation to note your habits, sent only
+on a day with nothing logged yet. On an iPhone they need iOS 16.4 or newer and
+Gaia added to the home screen from Safari. Set it up once:
+
+1. **Keys:** run `npx web-push generate-vapid-keys` in this folder.
+2. **Supabase:** run `supabase/schema.sql` again (it only adds what's missing).
+   Copy the *secret* (`service_role`) key from *Project Settings ▸ API Keys*.
+3. **Vercel:** add `VITE_VAPID_PUBLIC_KEY` (the public key), `VAPID_PRIVATE_KEY`,
+   `SUPABASE_SECRET_KEY` and `CRON_SECRET` (any long random string), then
+   redeploy. Only the first of these reaches the app; the rest stay on the server.
+4. **Supabase again:** in `supabase/reminders.sql`, put in your Vercel address
+   and `CRON_SECRET`, and run it in the SQL Editor (don't commit the filled-in
+   copy). It calls `/api/remind` every five minutes.
+5. **On the phone:** open Gaia from the home screen, go to Settings ▸
+   Notifications, tap *Turn on for this device*, then *Send a test*.
+
+Notifications run on the phone's own clock, and signing out turns them off on
+that device.
 
 ### Microsoft sign-in
 

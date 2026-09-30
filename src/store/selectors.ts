@@ -14,8 +14,9 @@ import type {
   Task,
   TimeBlock,
 } from '../types';
-import { addDays, monthDates, startOfMonth, startOfWeek, weekDates } from '../lib/dates';
-import { isOnRhythm, weeklyTarget } from '../lib/rhythm';
+// Also run by the reminder server (api/) in Node, which needs the extensions spelled out.
+import { addDays, monthDates, startOfMonth, startOfWeek, weekDates } from '../lib/dates.js';
+import { isOnRhythm, weeklyTarget } from '../lib/rhythm.js';
 
 export const GROUP_ALL = 'all';
 

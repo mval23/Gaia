@@ -264,6 +264,27 @@ export interface Settings {
   reflectionWeekday: number;
   /** The day a week begins on: 0 = Sunday, 1 = Monday. */
   weekStart: number;
+  /** What Gaia may say on a phone. Absent until notifications are first turned on. */
+  reminders?: Reminders;
+}
+
+/**
+ * Notifications, each one optional. Times are minutes from midnight, on the
+ * phone's own clock. None of them ever mentions what didn't happen.
+ */
+export interface Reminders {
+  /** When a task's time block starts, `blockLeadMin` early. */
+  blocks: boolean;
+  blockLeadMin: number;
+  /** The one that matters, in the morning. Only on a day that has one. */
+  morning: boolean;
+  morningMin: number;
+  /** On the reflection weekday and the month's last day, until it's written. */
+  lookBack: boolean;
+  lookBackMin: number;
+  /** An invitation to note the day's habits, only when nothing is logged yet. */
+  evening: boolean;
+  eveningMin: number;
 }
 
 export interface GaiaState {

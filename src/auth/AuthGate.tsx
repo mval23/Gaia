@@ -4,6 +4,7 @@ import type { GaiaState } from '../types';
 import { GaiaProvider, useGaia } from '../store/GaiaProvider';
 import { CloudSync, forgetLocalCopy, openPlanner } from '../store/cloud';
 import { cloudConfigured, supabase } from './supabase';
+import { turnOffHere } from '../lib/push';
 import { LoginPage } from '../pages/LoginPage';
 import styles from '../pages/LoginPage.module.css';
 
@@ -95,6 +96,8 @@ function Planner({ user, children }: { user: User; children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await opened?.sync.flush();
+    // Notifications show task titles, so they stop on a device nobody is signed in to.
+    await turnOffHere().catch(() => undefined);
     await supabase.auth.signOut();
     forgetLocalCopy(user.id);
   }, [opened, user.id]);

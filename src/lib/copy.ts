@@ -34,6 +34,24 @@ export const COPY = {
   snagQuestion: 'Snagged on what?',
 } as const;
 
+/**
+ * What a notification says. Each one is an invitation that makes sense on its
+ * own, so none of them needs to say what hasn't happened.
+ */
+export const NUDGE = {
+  blockNow: 'Its time starts now',
+  blockSoon: 'Its time starts at',
+  morningTitle: 'The one that matters',
+  weekTitle: 'Your week, when you have five minutes.',
+  monthTitle: 'Your month, as it was',
+  bothTitle: 'Your week and your month',
+  lookBackBody: 'Look back is there whenever you are.',
+  eveningTitle: 'Anything to note from today?',
+  eveningBody: 'Tiny counts, and so does rest.',
+  testTitle: 'Gaia can reach this phone',
+  testBody: 'This is how a reminder will look.',
+} as const;
+
 /** The three shapes a day can take. Gentle asks less; Bright has room for more. */
 export const SHAPE_WORD = {
   gentle: 'Gentle day',

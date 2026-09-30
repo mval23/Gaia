@@ -86,8 +86,8 @@ Built as described below, with these details settled while building:
 - Installing: `public/manifest.webmanifest` and icons from
   `scripts/brand-assets.mjs`, plus an "On your home screen" section in Settings
   that appears only where the browser can install (Chrome and Edge) or on an
-  iPhone. There's no service worker yet, so an installed Gaia still needs a
-  connection to open.
+  iPhone. The only service worker (`public/sw.js`) shows notifications and
+  caches nothing, so an installed Gaia still needs a connection to open.
 - The starter card is `src/components/settings/StarterHabits.tsx` and its data is
   in `src/data/starterHabits.ts`. It hides once all three habits exist.
 
@@ -177,6 +177,33 @@ Originally planned as:
 - *Ready for the next season when* Today's light has been used most mornings for
   two or three weeks, and one weekly and one monthly look back are done.
 
+### Between seasons: phone notifications · built
+
+Asked for by Mariana on 27 Sep 2026 and built then. She uses the online version
+on an iPhone, so they arrive only once Gaia is on the home screen.
+
+- **Four kinds, each optional**, chosen in Settings ▸ Notifications and stored
+  in `Settings.reminders` (so every device shares them): a task's time block
+  starting (at the start or up to 15 min early), *the one that matters* in the
+  morning (only on a day that has one), Look back on the reflection weekday and
+  the month's last day (until that reflection is written, and one notification
+  when both fall on the same day), and an evening invitation to note habits.
+- **The evening one is Mariana's decision**, and it sits close to the rule
+  against an end-of-day card. It's allowed because it comes only when *nothing*
+  is logged that day, never on a Gentle day or a day with no habits on it, and
+  its words ("Anything to note from today? Tiny counts, and so does rest.")
+  never name or count what's left. Keep it that way.
+- Each device turns itself on. Signing out turns that device off, because the
+  notifications show task titles.
+- How it works: `src/lib/push.ts` signs the phone up into `push_subscriptions`
+  with its time zone. Supabase's `pg_cron` (`supabase/reminders.sql`) calls
+  `api/remind.ts` on Vercel every five minutes. That reads each planner and
+  works out what's due with `dueNudges` in `src/lib/reminders.ts`. `push_sent`
+  makes sure each nudge goes once. The wording is `NUDGE` in `src/lib/copy.ts`.
+- `api/` runs in plain Node, so `reminders.ts` and everything it imports
+  (`selectors`, `dates`, `rhythm`, `time`, `copy`) spell imports with `.js`.
+  Keep new imports in those files that way.
+
 ### Season 3: Compass (direction)
 - **Compass** section: a few values in the user's own words, roles, and one
   provisional heading sentence. Goals can point at a value (`valueId`), as an
@@ -238,6 +265,11 @@ interface Rest extends Schedule { id: ID; label?: string }   // its own list, no
 interface Task  { …; repeat?: Repeat }                      // daysOfWeek | everyDays
 interface Settings { …; workEndsMin?: number }              // the soft line on the day
 
+// Between seasons
+interface Settings { …; reminders?: Reminders }   // absent until notifications are first turned on
+interface Reminders { blocks: boolean; blockLeadMin: number; morning: boolean; morningMin: number;
+                      lookBack: boolean; lookBackMin: number; evening: boolean; eveningMin: number }
+
 // Season 3
 interface Value { id: ID; word: string; note?: string }
 interface Compass { values: Value[]; roles: string[]; heading?: string; updatedAt: string }
@@ -279,7 +311,8 @@ Don't build these, even if an older plan asks for them:
 - Streaks, in any form.
 - A dashboard with many panels on the home screen.
 - Planned-vs-completed comparisons, or "X of N days" denominators.
-- A daily review or end-of-day card.
+- A daily review or end-of-day card. (The evening notification isn't one; see
+  *Between seasons*.)
 - Task priority or importance levels. Choosing *the one that matters* and a day is enough.
 - Social media minutes or "avoidance" tracking.
 - An AI that summarises the user or writes the review.
