@@ -116,6 +116,11 @@ const shared = `
   --shape-steady-ink: var(--text);
   --shape-bright-ink: var(--text);
   --rest: color-mix(in srgb, var(--swatch-sand) var(--shape-mix), var(--surface));
+  /* A value is a lens: one lavender, for the things that point at one, and for
+     a pattern Gaia is still only asking about. */
+  --lens: color-mix(in srgb, var(--swatch-lavender) 22%, var(--surface));
+  --lens-edge: color-mix(in srgb, var(--swatch-lavender) 55%, transparent);
+  --lens-ink: var(--text);
   --rest-edge: color-mix(in srgb, var(--swatch-sand) 70%, transparent);
   --anchor: color-mix(in srgb, var(--swatch-sand) 60%, var(--text-tertiary));
 

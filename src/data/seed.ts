@@ -2,6 +2,7 @@ import type {
   Category,
   CheckIn,
   CheckInKind,
+  Compass,
   GaiaState,
   Goal,
   GoalCheckIn,
@@ -13,6 +14,13 @@ import type {
   Task,
 } from '../types';
 import { addDays, startOfWeek, todayISO } from '../lib/dates';
+import { seedEvidence } from './evidence';
+
+/**
+ * Empty on purpose, in the sample planner too. The compass is somebody's own
+ * words about where they're heading; sample values would be nobody's.
+ */
+const emptyCompass = (today: string): Compass => ({ values: [], roles: [], updatedAt: `${today}T00:00:00` });
 
 const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
@@ -237,6 +245,9 @@ export function createSeed(today = todayISO()): GaiaState {
     lights,
     goalCheckIns,
     rests,
+    compass: emptyCompass(today),
+    evidence: seedEvidence(`${today}T00:00:00`),
+    patternAnswers: [],
     settings: { ...DEFAULT_SETTINGS },
   };
 }
@@ -258,6 +269,10 @@ export function createEmpty(): GaiaState {
     lights: [],
     goalCheckIns: [],
     rests: [],
+    compass: emptyCompass(todayISO()),
+    // Not personal data: the reading behind how Gaia works stays on the shelf.
+    evidence: seedEvidence(),
+    patternAnswers: [],
     settings: { ...DEFAULT_SETTINGS },
   };
 }

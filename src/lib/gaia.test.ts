@@ -9,9 +9,11 @@ import { whatGoesWith } from './copy';
 import { isState, migrateState } from '../store/persist';
 import tokens from '../styles/tokens.css?raw';
 import { CATEGORY_PALETTE, GROUP_PALETTE, paint } from './swatch';
-import type { CheckIn, GaiaState, Light, Rhythm } from '../types';
+import type { CheckIn, GaiaState, Habit, Light, Rhythm } from '../types';
 import { createSeed } from '../data/seed';
 import { nextRepeatDate, normalizeRepeat, repeatLabel } from './repeat';
+import { PATTERN_DAYS, findPatterns, nextPattern } from './patterns';
+import { seedEvidence } from '../data/evidence';
 import { STARTER_HABITS, hasHabitNamed, starterCategoryId } from '../data/starterHabits';
 import { reducer } from '../store/reducer';
 import {
@@ -46,6 +48,11 @@ import {
   weekCount,
   filterTasks,
   isUncategorized,
+  compassWritten,
+  evidenceOf,
+  pointingAt,
+  pointingCount,
+  valueById,
 } from '../store/selectors';
 
 describe('time', () => {
@@ -1015,5 +1022,279 @@ describe('keeping an hour for rest', () => {
     expect(restSlot([], { ...day, nowMin: at(22, 50) })).toBe(at(23));
     // And never past the end of the day.
     expect(restSlot([], { ...day, nowMin: at(23, 40) })).toBe(at(23));
+  });
+});
+
+describe('the compass, and values as lenses', () => {
+  const today = '2026-09-30';
+  const base = (): GaiaState => {
+    const state = createEmpty();
+    return {
+      ...state,
+      compass: { ...state.compass, values: [{ id: 'v-steady', word: 'Steadiness', note: 'a pace I can keep' }] },
+      goals: [
+        {
+          id: 'g1',
+          title: 'Feel more rested',
+          kind: 'ongoing',
+          status: 'active',
+          categoryId: 'c-everyday',
+          valueId: 'v-steady',
+          createdAt: `${today}T08:00:00`,
+        },
+      ],
+      habits: [
+        {
+          id: 'h1',
+          title: 'Evening shutdown',
+          categoryId: 'c-everyday',
+          goalId: 'g1',
+          rhythm: { type: 'timesPerWeek', times: 3 },
+          status: 'active',
+          createdAt: `${today}T08:00:00`,
+        },
+        {
+          id: 'h2',
+          title: 'Short walk',
+          categoryId: 'c-everyday',
+          valueId: 'v-steady',
+          rhythm: { type: 'timesPerWeek', times: 3 },
+          status: 'active',
+          createdAt: `${today}T08:00:00`,
+        },
+      ],
+    };
+  };
+
+  it('keeps a word once, and knows when nothing is written', () => {
+    const empty = createEmpty();
+    expect(compassWritten(empty)).toBe(false);
+
+    const one = reducer(empty, { type: 'value/add', id: 'v1', word: '  Curiosity  ', note: ' learn one thing ' });
+    expect(one.compass.values).toEqual([{ id: 'v1', word: 'Curiosity', note: 'learn one thing' }]);
+    expect(compassWritten(one)).toBe(true);
+
+    // The same word twice would be two lenses on one thing.
+    const again = reducer(one, { type: 'value/add', id: 'v2', word: 'curiosity' });
+    expect(again.compass.values).toHaveLength(1);
+    // And a word with nothing in it is not a value.
+    expect(reducer(one, { type: 'value/add', id: 'v3', word: '   ' }).compass.values).toHaveLength(1);
+  });
+
+  it('writes a sentence and the roles, and drops the empties', () => {
+    const state = reducer(createEmpty(), {
+      type: 'compass/update',
+      patch: { heading: '  Making room for the thesis.  ', roles: ['daughter', ' ', 'student '] },
+    });
+    expect(state.compass.heading).toBe('Making room for the thesis.');
+    expect(state.compass.roles).toEqual(['daughter', 'student']);
+    // Clearing the sentence leaves nothing behind, rather than an empty string.
+    expect(reducer(state, { type: 'compass/update', patch: { heading: '' } }).compass.heading).toBeUndefined();
+  });
+
+  it('reads what points at a value, directly or through a goal', () => {
+    const state = base();
+    expect(valueById(state, 'v-steady')?.word).toBe('Steadiness');
+    const { goals, habits } = pointingAt(state, 'v-steady');
+    expect(goals.map((g) => g.id)).toEqual(['g1']);
+    // h1 reaches it through its goal, h2 on its own.
+    expect(habits.map((h) => h.id)).toEqual(['h1', 'h2']);
+    expect(pointingCount(state, 'v-steady')).toBe(3);
+
+    const archived: GaiaState = { ...state, habits: state.habits.map((h) => ({ ...h, status: 'archived' as const })) };
+    expect(pointingAt(archived, 'v-steady').habits).toHaveLength(0);
+  });
+
+  it('lets a value go without taking anything with it', () => {
+    const state = reducer(base(), { type: 'value/remove', id: 'v-steady' });
+    expect(state.compass.values).toHaveLength(0);
+    // A lens, not a folder: everything stays exactly where it was.
+    expect(state.goals).toHaveLength(1);
+    expect(state.goals[0].categoryId).toBe('c-everyday');
+    expect(state.goals[0].valueId).toBeUndefined();
+    expect(state.habits).toHaveLength(2);
+    expect(state.habits[0].goalId).toBe('g1');
+    expect(state.habits.every((h) => h.valueId === undefined)).toBe(true);
+  });
+
+  it('never stores a value that is not there', () => {
+    const state = base();
+    expect(reducer(state, { type: 'goal/update', id: 'g1', patch: { valueId: 'v-gone' } }).goals[0].valueId).toBe(
+      'v-steady',
+    );
+    expect(reducer(state, { type: 'habit/update', id: 'h2', patch: { valueId: 'v-gone' } }).habits[1].valueId).toBe(
+      'v-steady',
+    );
+  });
+});
+
+describe('patterns in your own rows', () => {
+  const today = '2026-09-30';
+  const habit: Habit = {
+    id: 'h1',
+    title: 'Evening shutdown',
+    categoryId: 'c-everyday',
+    rhythm: { type: 'timesPerWeek', times: 3 },
+    status: 'active',
+    createdAt: '2026-08-01T08:00:00',
+  };
+
+  /** Bright mornings, and the evenings before them. */
+  const mornings = (bright: number, after: number): GaiaState => {
+    const days = Array.from({ length: bright }, (_, i) => addDays(today, -i * 2));
+    return {
+      ...createEmpty(),
+      habits: [habit],
+      lights: days.map((date) => ({ date, energy: 'good' as const, shape: 'bright' as const })),
+      checkIns: days.slice(0, after).map((date) => ({ habitId: 'h1', date: addDays(date, -1), kind: 'done' as const })),
+    };
+  };
+
+  it('says nothing until there is enough to see', () => {
+    expect(findPatterns(mornings(4, 4), today)).toEqual([]);
+    // Enough mornings, but they do not follow the habit.
+    expect(findPatterns(mornings(8, 3), today)).toEqual([]);
+  });
+
+  it('asks about bright mornings that follow a habit', () => {
+    const found = findPatterns(mornings(8, 7), today);
+    const pattern = found.find((p) => p.id === 'bright-after:h1');
+    expect(pattern).toBeDefined();
+    expect(pattern!.question).toContain('Evening shutdown');
+    expect(pattern!.question.endsWith('?')).toBe(true);
+    expect(pattern!.evidence).toBe('7 of the 8 mornings you called bright came after it.');
+  });
+
+  it('asks where a category’s hours land', () => {
+    const blocks = Array.from({ length: 7 }, (_, i) => ({
+      id: `b${i}`,
+      date: addDays(today, -i),
+      startMin: 9 * 60,
+      durationMin: 60,
+    }));
+    const state: GaiaState = {
+      ...createEmpty(),
+      tasks: [
+        {
+          id: 't1',
+          title: 'Thesis',
+          categoryId: 'c-everyday',
+          status: 'open',
+          notes: '',
+          blocks,
+          createdAt: '2026-08-01T08:00:00',
+        },
+      ],
+    };
+    const pattern = findPatterns(state, today).find((p) => p.id === 'hours-land:c-everyday:early');
+    expect(pattern?.evidence).toBe('7 of the 7 Everyday blocks you placed started before 12:00.');
+    expect(pattern?.question).toContain('before lunch');
+
+    // The same hours in the evening ask the other question, and never both.
+    const evening = { ...state, tasks: state.tasks.map((t) => ({ ...t, blocks: blocks.map((b) => ({ ...b, startMin: 19 * 60 })) })) };
+    const ids = findPatterns(evening, today).map((p) => p.id);
+    expect(ids).toContain('hours-land:c-everyday:late');
+    expect(ids).not.toContain('hours-land:c-everyday:early');
+  });
+
+  it('asks about the weeks that kept time for rest', () => {
+    const weekStart = (n: number) => startOfWeek(addDays(today, -7 * n), 0);
+    const kept = [1, 2];
+    const state: GaiaState = {
+      ...createEmpty(),
+      habits: [habit],
+      rests: kept.map((n) => ({ id: `r${n}`, date: weekStart(n), startMin: 20 * 60, durationMin: 60 })),
+      checkIns: kept.flatMap((n) =>
+        [0, 1, 2].map((d) => ({ habitId: 'h1', date: addDays(weekStart(n), d), kind: 'done' as const })),
+      ),
+    };
+    const pattern = findPatterns(state, today).find((p) => p.id === 'rest-weeks');
+    expect(pattern?.question).toContain('Does that match how it feels?');
+    expect(pattern?.evidence).toContain('2 weeks you kept rest');
+  });
+
+  it('asks one at a time, and remembers the answer', () => {
+    const state = mornings(8, 7);
+    const first = nextPattern(state, today);
+    expect(first?.id).toBe('bright-after:h1');
+
+    // "Not really" is never asked again.
+    const no = reducer(state, { type: 'pattern/answer', id: first!.id, verdict: 'not-really', date: today });
+    expect(nextPattern(no, today)).toBeUndefined();
+
+    // "Not sure" is not a no: it comes back when there is more to look at.
+    const unsure = reducer(state, { type: 'pattern/answer', id: first!.id, verdict: 'unsure', date: today });
+    expect(nextPattern(unsure, today)).toBeUndefined();
+    const longAgo: GaiaState = {
+      ...state,
+      patternAnswers: [{ id: first!.id, verdict: 'unsure', date: addDays(today, -PATTERN_DAYS) }],
+    };
+    expect(nextPattern(longAgo, today)?.id).toBe('bright-after:h1');
+  });
+
+  it('keeps a confirmed pattern as the person’s own, beside the research', () => {
+    const state = mornings(8, 7);
+    const pattern = nextPattern(state, today)!;
+    const after = reducer(state, {
+      type: 'pattern/answer',
+      id: pattern.id,
+      verdict: 'true',
+      date: today,
+      keep: { id: 'ev-mine', title: pattern.observation, note: 'Confirmed from a pattern in Look back.' },
+    });
+    const kept = after.evidence.find((e) => e.id === 'ev-mine');
+    expect(kept?.kind).toBe('pattern');
+    expect(kept?.title).toBe('Bright mornings usually follow a day I tend Evening shutdown.');
+    expect(nextPattern(after, today)).toBeUndefined();
+    // The shelf it ships with is untouched.
+    expect(evidenceOf(after, 'source').length).toBe(seedEvidence().length);
+  });
+});
+
+describe('older saves meet the compass', () => {
+  it('gets an empty compass and the shelf Gaia ships with', () => {
+    // A save written before any of this existed.
+    const { compass, evidence, patternAnswers, ...old } = createEmpty();
+    const state = migrateState(old as GaiaState);
+    expect(compassWritten(state)).toBe(false);
+    expect(state.compass.values).toEqual([]);
+    expect(state.evidence.length).toBe(seedEvidence().length);
+    expect(state.evidence.every((e) => e.kind === 'source' && e.verified === false)).toBe(true);
+    expect(state.patternAnswers).toEqual([]);
+  });
+
+  it('leaves a shelf that was cleared on purpose cleared', () => {
+    const state = migrateState({ ...createEmpty(), evidence: [] });
+    expect(state.evidence).toEqual([]);
+  });
+
+  it('drops a value a goal or habit no longer has', () => {
+    const base = createEmpty();
+    const parsed: GaiaState = {
+      ...base,
+      compass: { values: [{ id: 'v-keep', word: 'Health' }], roles: [], updatedAt: '2026-09-01T00:00:00' },
+      goals: [
+        { id: 'g1', title: 'Rest', kind: 'ongoing', status: 'active', valueId: 'v-gone', createdAt: '2026-09-01T00:00:00' },
+      ],
+      habits: [
+        {
+          id: 'h1',
+          title: 'Walk',
+          categoryId: 'c-everyday',
+          valueId: 'v-keep',
+          rhythm: { type: 'timesPerWeek', times: 3 },
+          status: 'active',
+          createdAt: '2026-09-01T00:00:00',
+        },
+      ],
+      patternAnswers: [
+        { id: 'rest-weeks', verdict: 'true', date: '2026-09-20' },
+        { id: 'broken', verdict: 'maybe', date: '2026-09-20' } as never,
+      ],
+    };
+    const state = migrateState(parsed);
+    expect(state.goals[0].valueId).toBeUndefined();
+    expect(state.habits[0].valueId).toBe('v-keep');
+    expect(state.patternAnswers.map((a) => a.id)).toEqual(['rest-weeks']);
   });
 });

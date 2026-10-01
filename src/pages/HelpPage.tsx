@@ -2,6 +2,7 @@ import { useState, type MouseEvent } from 'react';
 import type { Palette, Theme } from '../types';
 import { useGaia } from '../store/GaiaProvider';
 import { Icon, type IconName } from '../components/ui/Icon';
+import { WhyItWorks } from '../components/help/WhyItWorks';
 import logoMark from '../assets/brand/gaia-logo.webp';
 import styles from './HelpPage.module.css';
 
@@ -17,6 +18,7 @@ const DOCS = Object.fromEntries(
 
 const LINKS = [
   { id: 'why', label: 'Why' },
+  { id: 'works', label: 'Why it works' },
   { id: 'tour', label: 'Tour' },
   { id: 'habits', label: 'Habits' },
   { id: 'palettes', label: 'Palettes' },
@@ -236,6 +238,8 @@ export function HelpPage() {
             ))}
           </div>
         </section>
+
+        <WhyItWorks />
 
         {/* Tour */}
         <section id="help-tour" className={styles.section}>

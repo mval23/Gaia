@@ -1,6 +1,8 @@
 import type {
   Category,
   CheckInKind,
+  Evidence,
+  EvidenceKind,
   GaiaState,
   Goal,
   GoalCheckIn,
@@ -11,6 +13,7 @@ import type {
   Light,
   Milestone,
   Momentum,
+  PatternVerdict,
   Period,
   Reflection,
   Rest,
@@ -20,6 +23,7 @@ import type {
   Snag,
   Task,
   TimeBlock,
+  Value,
 } from '../types';
 import { MIN_DURATION, DAY_MIN, clamp } from '../lib/time';
 import { isValidISODate, todayISO } from '../lib/dates';
@@ -82,6 +86,23 @@ export type Action =
   | { type: 'rest/update'; id: string; schedule: Schedule }
   | { type: 'rest/setLabel'; id: string; label?: string }
   | { type: 'rest/remove'; id: string }
+  /** The heading sentence and the roles. Everything in the compass is optional. */
+  | { type: 'compass/update'; patch: { heading?: string; roles?: string[] } }
+  | { type: 'value/add'; id: string; word: string; note?: string }
+  | { type: 'value/update'; id: string; patch: { word?: string; note?: string } }
+  /** Takes away the word. What pointed at it stays exactly where it was. */
+  | { type: 'value/remove'; id: string }
+  | { type: 'evidence/add'; id: string; kind: EvidenceKind; title: string; url?: string; note?: string; verified?: boolean }
+  | { type: 'evidence/update'; id: string; patch: Partial<Omit<Evidence, 'id' | 'createdAt'>> }
+  | { type: 'evidence/remove'; id: string }
+  /** What the person said about a pattern. "That's true" keeps it as theirs. */
+  | {
+      type: 'pattern/answer';
+      id: string;
+      verdict: PatternVerdict;
+      date: string;
+      keep?: { id: string; title: string; note?: string };
+    }
   | { type: 'settings/update'; patch: Partial<Settings> }
   | { type: 'state/replace'; state: GaiaState };
 
@@ -363,6 +384,9 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
           next.categoryId = g.categoryId;
         }
         if ('milestone' in action.patch) next.milestone = normalizeMilestone(action.patch.milestone);
+        if (action.patch.valueId && !state.compass.values.some((v) => v.id === action.patch.valueId)) {
+          next.valueId = g.valueId;
+        }
         return next;
       });
     case 'goal/setStatus': {
@@ -418,6 +442,9 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         }
         if (action.patch.goalId && !state.goals.some((g) => g.id === action.patch.goalId)) {
           next.goalId = h.goalId;
+        }
+        if (action.patch.valueId && !state.compass.values.some((v) => v.id === action.patch.valueId)) {
+          next.valueId = h.valueId;
         }
         if (action.patch.rhythm) next.rhythm = normalizeRhythm(action.patch.rhythm);
         if (action.patch.preferredStartMin !== undefined) {
@@ -514,6 +541,101 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
       return { ...state, rests: state.rests.map((r) => (r.id === action.id ? { ...r, label: trimmed(action.label) } : r)) };
     case 'rest/remove':
       return { ...state, rests: state.rests.filter((r) => r.id !== action.id) };
+
+    case 'compass/update': {
+      const compass = { ...state.compass, updatedAt: nowStamp() };
+      if ('heading' in action.patch) compass.heading = trimmed(action.patch.heading);
+      if (action.patch.roles) compass.roles = action.patch.roles.map((r) => r.trim()).filter(Boolean);
+      return { ...state, compass };
+    }
+    case 'value/add': {
+      const word = action.word.trim();
+      if (!word) return state;
+      // The same word twice would be two lenses on one thing.
+      if (state.compass.values.some((v) => v.word.toLowerCase() === word.toLowerCase())) return state;
+      const value: Value = { id: action.id, word, note: trimmed(action.note) };
+      return {
+        ...state,
+        compass: { ...state.compass, values: [...state.compass.values, value], updatedAt: nowStamp() },
+      };
+    }
+    case 'value/update':
+      return {
+        ...state,
+        compass: {
+          ...state.compass,
+          updatedAt: nowStamp(),
+          values: state.compass.values.map((v) =>
+            v.id === action.id
+              ? {
+                  ...v,
+                  word: action.patch.word?.trim() || v.word,
+                  note: 'note' in action.patch ? trimmed(action.patch.note) : v.note,
+                }
+              : v,
+          ),
+        },
+      };
+    case 'value/remove': {
+      if (!state.compass.values.some((v) => v.id === action.id)) return state;
+      // A value is a lens, never a folder: letting one go leaves every goal and
+      // habit where it was, with its whole history.
+      return {
+        ...state,
+        compass: {
+          ...state.compass,
+          values: state.compass.values.filter((v) => v.id !== action.id),
+          updatedAt: nowStamp(),
+        },
+        goals: state.goals.map((g) => (g.valueId === action.id ? { ...g, valueId: undefined } : g)),
+        habits: state.habits.map((h) => (h.valueId === action.id ? { ...h, valueId: undefined } : h)),
+      };
+    }
+
+    case 'evidence/add': {
+      const title = action.title.trim();
+      if (!title) return state;
+      const entry: Evidence = {
+        id: action.id,
+        kind: action.kind,
+        title,
+        url: trimmed(action.url),
+        note: trimmed(action.note),
+        // Only a source can be read; the others are the person's own.
+        verified: action.kind === 'source' ? !!action.verified : undefined,
+        createdAt: nowStamp(),
+      };
+      return { ...state, evidence: [...state.evidence, entry] };
+    }
+    case 'evidence/update':
+      return {
+        ...state,
+        evidence: state.evidence.map((e) =>
+          e.id === action.id ? { ...e, ...action.patch, title: action.patch.title?.trim() || e.title } : e,
+        ),
+      };
+    case 'evidence/remove':
+      return { ...state, evidence: state.evidence.filter((e) => e.id !== action.id) };
+
+    case 'pattern/answer': {
+      if (!isValidISODate(action.date)) return state;
+      const answers = [
+        ...state.patternAnswers.filter((a) => a.id !== action.id),
+        { id: action.id, verdict: action.verdict, date: action.date },
+      ];
+      const keep = action.verdict === 'true' ? action.keep : undefined;
+      const title = keep?.title.trim();
+      // "That's true" turns a dashed guess into something of theirs, kept beside
+      // the research. The other answers only keep it out of the way.
+      const evidence =
+        keep && title
+          ? [
+              ...state.evidence.filter((e) => e.id !== keep.id),
+              { id: keep.id, kind: 'pattern' as const, title, note: trimmed(keep.note), createdAt: nowStamp() },
+            ]
+          : state.evidence;
+      return { ...state, patternAnswers: answers, evidence };
+    }
 
     case 'settings/update':
       return { ...state, settings: { ...state.settings, ...action.patch } };

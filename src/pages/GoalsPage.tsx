@@ -12,12 +12,14 @@ import {
   habitsForGoal,
   isHabitResting,
   tasksForGoal,
+  valueById,
 } from '../store/selectors';
 import { formatShortDate, todayISO } from '../lib/dates';
 import { MOMENTUM_WORD, SNAG_WORD } from '../lib/copy';
 import { rhythmLabel } from '../lib/rhythm';
 import { Icon } from '../components/ui/Icon';
 import { MonetAccent } from '../components/art/MonetAccent';
+import { CompassCard } from '../components/compass/CompassCard';
 import { HabitsColumn } from '../components/habits/HabitsColumn';
 import { SplitHandle } from '../components/ui/SplitHandle';
 import { useStoredNumber } from '../hooks/useStoredNumber';
@@ -72,6 +74,9 @@ export function GoalsPage() {
         </div>
         <MonetAccent className={styles.accent} art="seine" variant="strip" fill phrase="make room for what matters" />
       </header>
+
+      {/* The only new thing on this page, and the first thing on it. */}
+      <CompassCard />
 
       <div ref={columnsRef} className={styles.columns} style={{ ['--split' as string]: split }}>
         <section id="goals-column" className={styles.column} aria-labelledby="goals-title">
@@ -288,6 +293,7 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
   const habits = habitsForGoal(state, goal.id);
   const tasks = tasksForGoal(state, goal.id).filter((t) => t.status !== 'let-go');
   const activity = goalActivity(state, goal, today);
+  const value = valueById(state, goal.valueId);
   const closed = goal.status === 'completed' || goal.status === 'released';
 
   return (
@@ -313,6 +319,12 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
             {goal.status === 'released' ? ' · let go' : ''}
           </p>
         </div>
+        {value && (
+          <span className={styles.lens}>
+            <Icon name="compass" size={12} />
+            {value.word}
+          </span>
+        )}
         <button
           type="button"
           className={`${ui.iconButton} ${ui.iconButtonSm}`}

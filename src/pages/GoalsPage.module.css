@@ -656,3 +656,17 @@
   justify-self: start;
   font-size: 13px;
 }
+
+/* The value a goal points at: a lens on the card, never a folder it sits in. */
+.lens {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--lens);
+  font-size: 11.5px;
+  color: var(--lens-ink);
+  white-space: nowrap;
+}

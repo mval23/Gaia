@@ -135,6 +135,13 @@ const paths = {
       <circle cx="12" cy="12" r="3.25" />
     </>
   ),
+  // A needle, not a map: it points, and nothing lives inside it.
+  compass: (
+    <>
+      <circle cx="12" cy="12" r="8.25" />
+      <path d="m14.9 9.1-1.7 4.1-4.1 1.7 1.7-4.1z" />
+    </>
+  ),
   // An open loop: a rhythm returns without closing into a chain.
   rhythm: (
     <>

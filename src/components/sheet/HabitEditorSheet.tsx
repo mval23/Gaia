@@ -292,6 +292,23 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
         </Select>
       </SheetRow>
 
+      {state.compass.values.length > 0 && (
+        <SheetRow label="Part of" hint="The looser lens: a habit can point at a value without belonging to any goal.">
+          <Select
+            aria-label="Value"
+            value={habit.valueId ?? ''}
+            onChange={(e) => patch({ valueId: e.target.value || undefined })}
+          >
+            <option value="">Nothing in particular</option>
+            {state.compass.values.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.word}
+              </option>
+            ))}
+          </Select>
+        </SheetRow>
+      )}
+
       <p className={styles.note}>
         {rhythmLabel(habit.rhythm)}
         {total > 0 && !state.settings.hideNumbers ? ` · ${total} logged so far` : ''}
