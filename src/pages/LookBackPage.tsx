@@ -26,6 +26,7 @@ import { Icon } from '../components/ui/Icon';
 import { MonetAccent } from '../components/art/MonetAccent';
 import { ReflectionCard } from '../components/lookback/ReflectionCard';
 import { MomentumCard } from '../components/lookback/MomentumCard';
+import { PatternCard } from '../components/lookback/PatternCard';
 import ui from '../components/ui/ui.module.css';
 import styles from './LookBackPage.module.css';
 
@@ -206,6 +207,8 @@ export function LookBackPage() {
         <div className={styles.side}>
           <ReflectionCard period={period} date={date} />
           {period === 'week' && <MomentumCard weekStart={start} date={date} />}
+          {/* Patterns look at the last thirty days, so they belong to this week only. */}
+          {period === 'week' && start === periodStart(state, period, today) && <PatternCard />}
           {period === 'month' && (
             <section className={styles.card} aria-labelledby="month-weeks">
               <div className={styles.cardHead}>

@@ -1,8 +1,11 @@
 import type {
   CheckIn,
   CheckInKind,
+  Compass,
   DayShape,
   Energy,
+  Evidence,
+  EvidenceKind,
   GaiaState,
   Goal,
   GoalCheckIn,
@@ -13,6 +16,8 @@ import type {
   Light,
   Mind,
   Momentum,
+  PatternAnswer,
+  PatternVerdict,
   Rest,
   Schedule,
   Sleep,
@@ -20,6 +25,7 @@ import type {
   Task,
   TaskStatus,
   TimeBlock,
+  Value,
 } from '../types';
 import { createSeed } from '../data/seed';
 import { isValidISODate } from '../lib/dates';
@@ -41,6 +47,8 @@ const MINDS: Mind[] = ['calm', 'full', 'heavy'];
 const SHAPES: DayShape[] = ['gentle', 'steady', 'bright'];
 const MOMENTUMS: Momentum[] = ['moving', 'steady', 'snagged', 'resting'];
 const SNAGS: Snag[] = ['clarity', 'time', 'energy', 'setup'];
+const EVIDENCE_KINDS: EvidenceKind[] = ['source', 'observation', 'pattern'];
+const VERDICTS: PatternVerdict[] = ['true', 'not-really', 'unsure'];
 
 /**
  * Earlier saves stored a single `schedule`; tasks now hold a list of time blocks.
@@ -62,21 +70,23 @@ function migrateTask(raw: Task & { schedule?: Schedule; priority?: unknown }, ca
   };
 }
 
-function migrateGoal(raw: Goal, categoryIds: Set<string>): Goal {
+function migrateGoal(raw: Goal, categoryIds: Set<string>, valueIds: Set<string>): Goal {
   return {
     ...raw,
     title: typeof raw.title === 'string' ? raw.title.trim() : '',
     kind: GOAL_KINDS.includes(raw.kind) ? raw.kind : 'ongoing',
     status: GOAL_STATUSES.includes(raw.status) ? raw.status : 'active',
     categoryId: raw.categoryId && categoryIds.has(raw.categoryId) ? raw.categoryId : undefined,
+    valueId: raw.valueId && valueIds.has(raw.valueId) ? raw.valueId : undefined,
     milestone: raw.milestone && typeof raw.milestone === 'object' ? normalizeMilestone(raw.milestone) : undefined,
   };
 }
 
-function migrateHabit(raw: Habit): Habit {
+function migrateHabit(raw: Habit, valueIds: Set<string>): Habit {
   return {
     ...raw,
     title: typeof raw.title === 'string' ? raw.title.trim() : '',
+    valueId: raw.valueId && valueIds.has(raw.valueId) ? raw.valueId : undefined,
     rhythm: normalizeRhythm(raw.rhythm),
     status: HABIT_STATUSES.includes(raw.status) ? raw.status : 'active',
     preferredStartMin:
@@ -130,6 +140,36 @@ function migrateLight(raw: Light): Light | null {
   return light.energy || light.sleep || light.mind || light.shape ? light : null;
 }
 
+const text = (value: unknown): string | undefined => {
+  const t = typeof value === 'string' ? value.trim() : '';
+  return t ? t : undefined;
+};
+
+/** Keeps the words, drops the empties. A compass with nothing in it is simply empty. */
+function migrateCompass(raw: Compass | undefined, at: string): Compass {
+  const values = Array.isArray(raw?.values)
+    ? raw.values
+        .filter((v): v is Value => !!v && typeof v.id === 'string' && !!text(v.word))
+        .map((v) => ({ id: v.id, word: text(v.word)!, note: text(v.note) }))
+    : [];
+  return {
+    values,
+    roles: Array.isArray(raw?.roles) ? raw.roles.map(text).filter((r): r is string => !!r) : [],
+    heading: text(raw?.heading),
+    updatedAt: typeof raw?.updatedAt === 'string' ? raw.updatedAt : at,
+  };
+}
+
+function isEvidence(raw: unknown): raw is Evidence {
+  const e = raw as Evidence;
+  return !!e && typeof e.id === 'string' && EVIDENCE_KINDS.includes(e.kind) && !!text(e.title);
+}
+
+function isPatternAnswer(raw: unknown): raw is PatternAnswer {
+  const a = raw as PatternAnswer;
+  return !!a && typeof a.id === 'string' && VERDICTS.includes(a.verdict) && isValidISODate(a.date);
+}
+
 function isGoalCheckIn(raw: unknown, goalIds: Set<string>): raw is GoalCheckIn {
   const c = raw as GoalCheckIn;
   return (
@@ -176,9 +216,11 @@ export function isState(value: unknown): value is GaiaState {
  */
 export function migrateState(parsed: GaiaState, seed: GaiaState = createSeed()): GaiaState {
   const categoryIds = new Set((parsed.categories ?? []).map((c) => c.id));
-  const habits = Array.isArray(parsed.habits) ? parsed.habits.map(migrateHabit) : [];
+  const compass = migrateCompass(parsed.compass, seed.compass.updatedAt);
+  const valueIds = new Set(compass.values.map((v) => v.id));
+  const habits = Array.isArray(parsed.habits) ? parsed.habits.map((h) => migrateHabit(h, valueIds)) : [];
   const habitIds = new Set(habits.map((h) => h.id));
-  const goals = Array.isArray(parsed.goals) ? parsed.goals.map((g) => migrateGoal(g, categoryIds)) : [];
+  const goals = Array.isArray(parsed.goals) ? parsed.goals.map((g) => migrateGoal(g, categoryIds, valueIds)) : [];
   const goalIds = new Set(goals.map((g) => g.id));
 
   const lights = Array.isArray(parsed.lights)
@@ -214,6 +256,11 @@ export function migrateState(parsed: GaiaState, seed: GaiaState = createSeed()):
         }))
       : [],
     rests: Array.isArray(parsed.rests) ? parsed.rests.map(migrateRest).filter((r): r is Rest => r !== null) : [],
+    compass,
+    // A save written before the evidence page existed gets the shelf it ships
+    // with, once. Afterwards the list is the person's, empty or not.
+    evidence: Array.isArray(parsed.evidence) ? parsed.evidence.filter(isEvidence) : seed.evidence,
+    patternAnswers: Array.isArray(parsed.patternAnswers) ? parsed.patternAnswers.filter(isPatternAnswer) : [],
     settings: { ...seed.settings, ...settings },
   };
 }

@@ -229,6 +229,13 @@ docs/
 - **No form submits.** Every control in an editor writes as it changes.
 - **Undo works by snapshotting the whole state** before a destructive action and
   passing it to `notify(message, previous)`.
+- **A lens is never a folder.** A goal, and now a value, is something a task or
+  a habit can point at. Dropping one clears the link and nothing else: no
+  cascade, and no history lost.
+- **Gaia asks; it never concludes.** A pattern in someone's own rows is drawn
+  dashed and phrased as a question, and becomes a statement only when they say
+  it is true. It counts check-ins, lights, blocks and rests; it never reads
+  what anyone wrote in a reflection or a journal.
 - **Old saves still load.** `migrateState` fills in anything that did not exist
   when they were written, and existing data always wins.
 

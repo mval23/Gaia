@@ -1033,14 +1033,15 @@ footer .phr { font-family: var(--serif); font-style: italic; color: var(--text-s
         </div>
       </div>
       <div class="phase">
-        <div class="ph"><b>Compass</b><span>Season 3 · direction</span></div>
+        <div class="ph"><b>Compass</b><span>Season 3 · built</span></div>
         <div class="pb">
           <ul class="list">
-            <li><b>Compass</b> section: values, roles, one provisional sentence</li>
-            <li>Goals can point at a value, as an optional lens</li>
-            <li><b>Patterns in your data</b> in Look back, phrased as questions</li>
-            <li><b>Why Gaia works this way</b> in Help, seeded from the design brief</li>
+            <li><b>Compass</b> at the top of Goals &amp; habits: a few words, one provisional sentence, and who you are to people right now. Left empty it folds to one line and stops asking</li>
+            <li>A goal <em>or</em> a habit can <b>point at</b> a value. Letting a value go takes the word away and leaves every goal, habit and task exactly where it was</li>
+            <li><b>Something you might notice</b> in Look back: one pattern at a time, drawn dashed and asked as a question. <em>That's true</em> keeps it as yours; <em>not really</em> never asks again</li>
+            <li><b>Why Gaia works this way</b> in Help: the research the design brief rests on, every source marked <b>not yet read</b> until someone opens it, beside your own observations</li>
           </ul>
+          <p class="small"><a href="https://claude.ai/artifact/NRTtX2P39q3mxmLAhApQ53">See every Season 3 screen on the design canvas →</a></p>
           <p class="gate"><b>Ready for the next season when</b> a pattern has come up in Look back that you recognised, or didn't, and either way it felt fair.</p>
         </div>
       </div>
@@ -1083,12 +1084,13 @@ interface Reflection { …; period: 'week' | 'month'; journal?: string }   <span
 interface Rest extends Schedule { id: ID; label?: string }   <span class="c">// rest belongs to no task</span>
 interface Task  { …; repeat?: Repeat }                      <span class="c">// daysOfWeek | everyDays</span>
 
-<span class="c">// Season 3</span>
+<span class="c">// Season 3 · a value is a lens: nothing lives inside it</span>
 interface Value { id: ID; word: string; note?: string }
 interface Compass { values: Value[]; roles: string[]; heading?: string; updatedAt: string }
-interface Goal  { …; valueId?: ID }
-interface Evidence { id: ID; kind: 'source' | 'observation' | 'reading'; title: string;
-                     url?: string; verified?: boolean; note?: string }
+interface Goal  { …; valueId?: ID }                          <span class="c">// and Habit, the looser lens</span>
+interface Evidence { id: ID; kind: 'source' | 'observation' | 'pattern'; title: string;
+                     url?: string; verified?: boolean; note?: string; shapes?: string; createdAt: string }
+interface PatternAnswer { id: string; verdict: 'true' | 'not-really' | 'unsure'; date: string }   <span class="c">// patterns themselves are never stored</span>
 
 <span class="c">// Season 4 · a proposal holds an action; only approve() dispatches it</span>
 interface Proposal { id: ID; reason: string; action: Action; status: 'open' | 'added' | 'set-aside'; createdAt: string }</pre>

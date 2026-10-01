@@ -2,6 +2,8 @@ import type {
   Category,
   CheckInKind,
   DayShape,
+  Evidence,
+  EvidenceKind,
   GaiaState,
   Goal,
   GoalCheckIn,
@@ -13,6 +15,7 @@ import type {
   Rest,
   Task,
   TimeBlock,
+  Value,
 } from '../types';
 // Also run by the reminder server (api/) in Node, which needs the extensions spelled out.
 import { addDays, monthDates, startOfMonth, startOfWeek, weekDates } from '../lib/dates.js';
@@ -542,6 +545,49 @@ export function goalCheckIns(state: GaiaState, goalId: string): GoalCheckIn[] {
 
 export function latestGoalCheckIn(state: GaiaState, goalId: string): GoalCheckIn | undefined {
   return goalCheckIns(state, goalId)[0];
+}
+
+/* ---------- The compass ---------- */
+
+export function valueById(state: GaiaState, id: string | undefined): Value | undefined {
+  return id ? state.compass.values.find((v) => v.id === id) : undefined;
+}
+
+/** Whether anything has been written in the compass at all. */
+export function compassWritten(state: GaiaState): boolean {
+  const { heading, values, roles } = state.compass;
+  return !!heading?.trim() || values.length > 0 || roles.length > 0;
+}
+
+export interface PointedAt {
+  goals: Goal[];
+  habits: Habit[];
+}
+
+/**
+ * What points at a value: a goal directly, a habit directly, or a habit
+ * through its goal. Only ever a reading — nothing lives inside a value, so
+ * letting one go changes none of this.
+ */
+export function pointingAt(state: GaiaState, valueId: string): PointedAt {
+  const goals = state.goals.filter((g) => g.valueId === valueId);
+  const throughGoal = new Set(goals.map((g) => g.id));
+  const habits = state.habits.filter(
+    (h) => h.status !== 'archived' && (h.valueId === valueId || (h.goalId && throughGoal.has(h.goalId))),
+  );
+  return { goals, habits };
+}
+
+export function pointingCount(state: GaiaState, valueId: string): number {
+  const { goals, habits } = pointingAt(state, valueId);
+  return goals.length + habits.length;
+}
+
+/* ---------- Why Gaia works this way ---------- */
+
+/** The shelf, newest first, or one kind of it. */
+export function evidenceOf(state: GaiaState, kind?: EvidenceKind): Evidence[] {
+  return state.evidence.filter((e) => !kind || e.kind === kind).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 /* ---------- Rest ---------- */

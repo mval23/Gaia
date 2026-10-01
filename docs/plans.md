@@ -4,7 +4,7 @@ The roadmap for Gaia's next features, written for a build session. The same plan
 illustrated for people, is [`docs/plans.html`](plans.html). Keep the two in step:
 when a decision here changes, change the page too.
 
-**Status (23 Sep 2026):** Seasons 1 and 2 are built. Seasons 3 and 4 are still a
+**Status (30 Sep 2026):** Seasons 1, 2 and 3 are built. Season 4 is still a
 proposal. The open decisions at the end are Mariana's to make, so ask before
 assuming an answer.
 
@@ -204,16 +204,36 @@ on an iPhone, so they arrive only once Gaia is on the home screen.
   (`selectors`, `dates`, `rhythm`, `time`, `copy`) spell imports with `.js`.
   Keep new imports in those files that way.
 
-### Season 3: Compass (direction)
-- **Compass** section: a few values in the user's own words, roles, and one
-  provisional heading sentence. Goals can point at a value (`valueId`), as an
-  optional lens and never a folder, the same way tasks point at goals.
-- **Patterns in your data** in Look back: descriptive correlations, drawn dashed and
-  phrased as a question ("Does that match how it feels?"). A pattern becomes an
-  observation only when the user confirms it.
-- **Why Gaia works this way** in Help, with three visually distinct kinds of
-  entry: a source (verified or not yet verified), your observation, and a pattern
-  in your data. Seed it from the design brief artifact.
+### Season 3: Compass (direction) · built
+
+Built as described below, with these details settled while building:
+
+- The section kept the name **Compass**. It is the first thing on Goals &
+  habits, and left empty it folds to one line and stops asking. The sample
+  planner ships with an empty compass: sample values would be nobody's.
+- A **habit** can point at a value too (`Habit.valueId`), not only a goal — the
+  looser lens from the design canvas, for a habit that belongs to no goal. A
+  habit reached through its goal counts as pointing at the value, so its row
+  only shows the lens when it has no goal at all.
+- `value/remove` clears `valueId` on every goal and habit and changes nothing
+  else. A test holds that rule: a lens can be dropped without dropping what it
+  looked at.
+- **Patterns are never stored.** They are computed in `src/lib/patterns.ts` from
+  the last 30 days, need at least 6 cases and 70% agreement, and are offered one
+  at a time. Only the *answer* is stored (`patternAnswers`). "Not really" is
+  never asked again; "not sure" can come back after 30 days. Three rules exist:
+  bright mornings that follow a habit, where a category's hours land, and the
+  weeks that kept time for rest.
+- A confirmed pattern is kept as `kind: 'pattern'`, not `'observation'`, so Help
+  can go on saying it is in Gaia's words until the person edits it. Only
+  check-ins, lights, blocks and rests are counted — no reflection or journal
+  text is read, which is the same rule as everywhere else.
+- The evidence shelf is seeded once, from the design brief, into any save with
+  no `evidence` list. Every source is marked **not yet read**, because that is
+  true: the brief cited them and nobody here has opened the papers. Each source
+  has an "I've read the source" mark for when someone does. A shelf someone
+  cleared on purpose stays cleared.
+- Help gained a **Why it works** link beside the existing Why.
 - *Ready for the next season when* a pattern has come up and felt fair.
 
 ### Season 4: Companion (local AI)
@@ -273,9 +293,11 @@ interface Reminders { blocks: boolean; blockLeadMin: number; morning: boolean; m
 // Season 3
 interface Value { id: ID; word: string; note?: string }
 interface Compass { values: Value[]; roles: string[]; heading?: string; updatedAt: string }
-interface Goal  { …; valueId?: ID }
+interface Goal  { …; valueId?: ID }                          // and Habit, the looser lens
 interface Evidence { id: ID; kind: 'source' | 'observation' | 'pattern'; title: string;
-                     url?: string; verified?: boolean; note?: string }
+                     url?: string; verified?: boolean; note?: string; shapes?: string; createdAt: string }
+interface PatternAnswer { id: string; verdict: 'true' | 'not-really' | 'unsure'; date: string }
+interface GaiaState { …; compass: Compass; evidence: Evidence[]; patternAnswers: PatternAnswer[] }
 
 // Season 4
 interface Proposal { id: ID; reason: string; action: Action; status: 'open' | 'added' | 'set-aside'; createdAt: string }

@@ -254,6 +254,23 @@ function Sheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
         </Select>
       </SheetRow>
 
+      {state.compass.values.length > 0 && (
+        <SheetRow label="Part of" hint="A value is a lens, never a folder. Most things point at nothing in particular.">
+          <Select
+            aria-label="Value"
+            value={goal.valueId ?? ''}
+            onChange={(e) => patch({ valueId: e.target.value || undefined })}
+          >
+            <option value="">Nothing in particular</option>
+            {state.compass.values.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.word}
+              </option>
+            ))}
+          </Select>
+        </SheetRow>
+      )}
+
       {closed && (
         <SheetRow label="Closing note" htmlFor="goal-note" hint={goal.status === 'completed' ? 'What helped? Anything you’d like to remember from it.' : 'Anything you’d like to remember from it?'}>
           <textarea

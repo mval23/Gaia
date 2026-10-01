@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { CheckInKind, Habit } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
-import { categoryById, checkInKey, goalById, isQuiet, isReturning, weekCount } from '../../store/selectors';
+import { categoryById, checkInKey, goalById, isQuiet, isReturning, valueById, weekCount } from '../../store/selectors';
 import { rhythmLabel, weeklyTarget } from '../../lib/rhythm';
 import { formatClock } from '../../lib/time';
 import { Menu } from '../ui/Menu';
@@ -62,6 +62,9 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
     rhythmLabel(habit.rhythm),
     habit.preferredStartMin !== undefined ? `around ${formatClock(habit.preferredStartMin, settings.timeFormat)}` : null,
     goal?.title,
+    // Through its goal a habit already reaches a value, so the lens only shows
+    // on a habit that belongs to no goal at all.
+    goal ? null : valueById(state, habit.valueId)?.word,
   ]
     .filter(Boolean)
     .join(' · ');

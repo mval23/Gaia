@@ -108,6 +108,26 @@ export interface IfThen {
   then: string;
 }
 
+/** One word someone wants to keep hold of, and what it means to them. */
+export interface Value {
+  id: ID;
+  word: string;
+  note?: string;
+}
+
+/**
+ * Where someone is heading, in their own words. Every part is optional, and
+ * nothing is ever counted against it: a value is a lens, never a folder.
+ */
+export interface Compass {
+  values: Value[];
+  /** Who you are to people, right now. Dated, not carved. */
+  roles: string[];
+  /** One provisional sentence. Changed whenever it stops being true. */
+  heading?: string;
+  updatedAt: string;
+}
+
 export type GoalKind = 'finish' | 'ongoing';
 
 /** All four are equal choices, and every one of them keeps its history. */
@@ -133,6 +153,8 @@ export interface Goal {
   status: GoalStatus;
   closingNote?: string;
   milestone?: Milestone;
+  /** An optional lens, the way a task points at a goal. Never a folder. */
+  valueId?: ID;
   createdAt: string;
   closedAt?: string;
 }
@@ -162,6 +184,8 @@ export interface Habit {
   ifThen?: IfThen[];
   /** What helps to pick it up again. Shown after a few quiet days, instead of anything about the gap. */
   comingBack?: string;
+  /** The looser lens: a habit can point at a value without belonging to any goal. */
+  valueId?: ID;
   status: HabitStatus;
   createdAt: string;
 }
@@ -238,6 +262,38 @@ export interface GoalCheckIn {
   note?: string;
 }
 
+/**
+ * The three kinds of knowing on "Why Gaia works this way", drawn so they can't
+ * be mistaken for one another. A study never overrules what someone noticed
+ * about themselves.
+ */
+export type EvidenceKind = 'source' | 'observation' | 'pattern';
+
+export interface Evidence {
+  id: ID;
+  kind: EvidenceKind;
+  /** The claim, or the thing noticed, in one sentence. */
+  title: string;
+  url?: string;
+  /** Only for a source: whether anyone has actually read it. */
+  verified?: boolean;
+  /** Where it came from: a citation, or how it was noticed. */
+  note?: string;
+  /** What in Gaia it shaped, for a source that shaped something. */
+  shapes?: string;
+  createdAt: string;
+}
+
+/** What someone said about a pattern Gaia asked about. "unsure" is not a no. */
+export type PatternVerdict = 'true' | 'not-really' | 'unsure';
+
+export interface PatternAnswer {
+  /** The pattern's own id, derived from what it looks at. */
+  id: string;
+  verdict: PatternVerdict;
+  date: string;
+}
+
 export type Theme = 'light' | 'dark' | 'system';
 
 /** Each palette is drawn from one of the paintings in monet/. */
@@ -298,5 +354,8 @@ export interface GaiaState {
   lights: Light[];
   goalCheckIns: GoalCheckIn[];
   rests: Rest[];
+  compass: Compass;
+  evidence: Evidence[];
+  patternAnswers: PatternAnswer[];
   settings: Settings;
 }

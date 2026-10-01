@@ -32,6 +32,35 @@ export const COPY = {
   journalPrompt: 'Anything else, in your own words. Only you read this.',
   momentumQuestion: 'How is it moving?',
   snagQuestion: 'Snagged on what?',
+  // The compass: where you're heading, in your own words.
+  compassInvite:
+    'A few words about where you’re heading, so a goal can point at something. One sentence and two or three words is plenty.',
+  compassFolded: 'Compass is here whenever you want it.',
+  compassHeading: 'Where you’re heading, in a sentence',
+  compassHeadingNote: 'Provisional on purpose. Change it whenever it stops being true.',
+  compassValues: 'What you want to keep hold of',
+  compassRoles: 'Who you are to people, right now',
+  compassRolesNote: 'Roles change. Yours are dated, not carved.',
+  valuePlaceholder: 'A word, and what it means to you',
+  valueSuggest: 'Stuck? Some words people use:',
+  lensNote:
+    'A value is a lens, never a folder: nothing lives inside it, and letting one go leaves everything where it is.',
+  lensEmpty: 'Nothing points at it yet. A goal or a habit can, from its editor.',
+  // Patterns: what Gaia can see in your own rows, and asks about.
+  patternTitle: 'Something you might notice',
+  patternNote: 'One at a time, from your own entries. Counts only: nothing you wrote is ever read.',
+  patternKept: 'Confirmed from a pattern in Look back.',
+  patternYes: 'Kept as your observation, in Help ▸ Why Gaia works this way.',
+  patternNo: 'Put away. Gaia won’t ask this one again.',
+  patternUnsure: 'Left as it is. It may come back when there is more to look at.',
+  // Why Gaia works this way: three kinds of knowing, and which one wins.
+  evidenceIntro:
+    'Three kinds of knowing, drawn so they can’t be mistaken for one another: what someone studied, what you noticed, and what Gaia spotted in your own rows and asked about.',
+  evidenceRank:
+    'A study never overrules what you noticed about yourself. If the research says mornings and your own weeks say evenings, your weeks win — and both stay here, side by side.',
+  evidenceUnread: 'Nobody has read the source yet.',
+  evidenceStops:
+    'None of this is medical or psychological advice, and Gaia is a planner, not a health service. When things feel heavy, Support lists people to talk to.',
 } as const;
 
 /**

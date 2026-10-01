@@ -1,0 +1,234 @@
+/* The compass: a sentence, a few words, and who you are to people right now. */
+
+.card {
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.folded {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 2px 4px;
+  font-size: 13.5px;
+  color: var(--text-tertiary);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.head h2,
+.head h3 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.lensIcon {
+  color: var(--swatch-lavender);
+  flex-shrink: 0;
+}
+
+.meta {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+.note {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.invite {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 62ch;
+}
+
+.inviteActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.field {
+  display: grid;
+  gap: 5px;
+}
+
+/* The sentence is the one piece of display type here: it is the point of the card. */
+.heading {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+.values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--panel-inset);
+  max-width: 100%;
+}
+
+.chip[data-open] {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.chipButton {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  padding: 7px 4px 7px 13px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.chipButton b {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.chipButton .meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drop {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-right: 4px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.drop:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* Drawn in the lens lavender, because it is a reading and not a container. */
+.lens {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--lens);
+  border: 1px solid var(--lens-edge);
+}
+
+.lensNote {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.point {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.point:hover {
+  background: var(--surface-strong);
+}
+
+.add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.addField {
+  flex: 1;
+  min-width: 0;
+}
+
+.addField input {
+  width: 100%;
+}
+
+.suggests {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 0;
+}
+
+.suggest {
+  padding: 5px 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.suggest:hover {
+  color: var(--text);
+  border-color: var(--text-tertiary);
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 16px;
+  }
+
+  .add {
+    flex-wrap: wrap;
+  }
+
+  .addField {
+    flex-basis: 100%;
+  }
+}
