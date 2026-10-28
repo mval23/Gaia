@@ -9,6 +9,7 @@ import type {
   GoalCheckIn,
   Group,
   Habit,
+  HabitTime,
   Light,
   Period,
   Reflection,
@@ -236,6 +237,61 @@ export function habitsForDate(state: GaiaState, date: string, groupFilter = GROU
       isOnRhythm(h.rhythm, date) &&
       (groupFilter === GROUP_ALL || categoryById(state, h.categoryId)?.groupId === groupFilter),
   );
+}
+
+/* ---------- Habits on the timeline ---------- */
+
+/** How long a habit takes when nobody has said otherwise. */
+export const HABIT_DEFAULT_MIN = 30;
+
+/** The time this one day gives a habit, when it was moved or resized by hand. */
+export function habitTimeFor(state: GaiaState, habitId: string, date: string): HabitTime | undefined {
+  return state.habitTimes.find((t) => t.habitId === habitId && t.date === date);
+}
+
+export interface Suggestion {
+  habit: Habit;
+  startMin: number;
+  durationMin: number;
+  /** This day has a time of its own for it, rather than the habit's usual one. */
+  placed: boolean;
+}
+
+/**
+ * Where a day's habits sit on the timeline: the habit's usual time, or the one
+ * this day was given by hand. A habit placed here by hand shows even if its
+ * rhythm has moved on since, because someone put it there on purpose.
+ */
+export function suggestionsOn(state: GaiaState, date: string, groupFilter = GROUP_ALL): Suggestion[] {
+  const onRhythm = habitsForDate(state, date, groupFilter);
+  const seen = new Set(onRhythm.map((h) => h.id));
+  const placedToday = state.habitTimes.filter((t) => t.date === date);
+  const alsoPlaced = placedToday
+    .filter((t) => !seen.has(t.habitId))
+    .map((t) => state.habits.find((h) => h.id === t.habitId))
+    .filter(
+      (h): h is Habit =>
+        // A resting habit keeps the hour it was given and stops being drawn,
+        // the same as it stops appearing in the day's rhythms.
+        !!h &&
+        !isHabitResting(state, h) &&
+        (groupFilter === GROUP_ALL || categoryById(state, h.categoryId)?.groupId === groupFilter),
+    );
+
+  return [...onRhythm, ...alsoPlaced]
+    .map((habit) => {
+      const time = placedToday.find((t) => t.habitId === habit.id);
+      if (time) return { habit, startMin: time.startMin, durationMin: time.durationMin, placed: true };
+      if (habit.preferredStartMin === undefined) return null;
+      return {
+        habit,
+        startMin: habit.preferredStartMin,
+        durationMin: habit.preferredDurationMin ?? HABIT_DEFAULT_MIN,
+        placed: false,
+      };
+    })
+    .filter((s): s is Suggestion => s !== null)
+    .sort((a, b) => a.startMin - b.startMin);
 }
 
 export const checkInKey = (habitId: string, date: string) => `${habitId}|${date}`;

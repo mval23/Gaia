@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import type { Schedule, Task, TimeBlock } from '../types';
+import type { Habit, Schedule, Task, TimeBlock } from '../types';
 import { uid, useFeedback, useGaia } from '../store/GaiaProvider';
 import { categoryById } from '../store/selectors';
 import { DAY_MIN, MIN_DURATION, SNAP_MIN, clamp, formatDuration, formatRange, snap } from '../lib/time';
@@ -34,7 +34,10 @@ export type DragKind = 'task' | 'move' | 'resize-top' | 'resize-bottom';
 
 export interface DragSession {
   kind: DragKind;
-  taskId: string;
+  /** A task's session is being dragged. */
+  taskId?: string;
+  /** Or a habit's time on one day. Exactly one of the two is set. */
+  habitId?: string;
   /** Set when an existing time block is being moved or resized. */
   blockId?: string;
   preview: Schedule | null;
@@ -69,6 +72,19 @@ interface DragActions {
     onTap?: () => void,
     hold?: HoldHandlers,
   ) => void;
+  /**
+   * A habit's time on one day. `time` is where it sits now — the day's own time
+   * if it has one, otherwise the habit's usual one. Moving it writes that day
+   * alone, and the habit's preferred time is left as it was.
+   */
+  startHabitDrag: (
+    e: ReactPointerEvent,
+    habit: Habit,
+    time: Schedule,
+    kind: Exclude<DragKind, 'task'>,
+    onTap?: () => void,
+    hold?: HoldHandlers,
+  ) => void;
   registerColumn: (id: string, column: Column) => () => void;
   registerShiftTarget: (id: string, target: ShiftTarget) => () => void;
   registerUnscheduleZone: (id: string, el: HTMLElement) => () => void;
@@ -79,7 +95,9 @@ const SessionContext = createContext<DragSession | null>(null);
 
 interface Pending {
   kind: DragKind;
-  task: Task;
+  /** A task's session, or a habit's time on one day: exactly one is set. */
+  task?: Task;
+  habit?: Habit;
   startX: number;
   startY: number;
   pointerId: number;
@@ -87,6 +105,8 @@ interface Pending {
   grabOffsetMin: number;
   /** The session being moved or resized; absent when a task is dragged in from the list. */
   block?: TimeBlock;
+  /** Where the drag started: a block's schedule, or the habit's time on that day. */
+  origin?: Schedule;
   onTap?: () => void;
   /** Touch presses wait for a hold before they can drag. */
   touch?: { el: HTMLElement; lifted: boolean; hold?: HoldHandlers };
@@ -167,14 +187,16 @@ export function DragProvider({ children }: { children: ReactNode }) {
   const minutesAt = (col: Column, y: number) => ((y - col.el.getBoundingClientRect().top) / HOUR_PX) * 60;
 
   const computeSession = (p: Pending): DragSession => {
-    const base = { kind: p.kind, taskId: p.task.id, blockId: p.block?.id };
+    const base = { kind: p.kind, taskId: p.task?.id, habitId: p.habit?.id, blockId: p.block?.id };
     if (p.kind === 'move' || p.kind === 'task') {
+      // Only a task's session can be dropped out of the day; a habit has its rhythm.
       const overUnschedule =
-        p.kind === 'move' && [...unscheduleZones.current.values()].some((el) => within(el, p.x, p.y));
+        p.kind === 'move' && !!p.task && [...unscheduleZones.current.values()].some((el) => within(el, p.x, p.y));
       if (overUnschedule) return { ...base, preview: null, overUnschedule: true };
-      const col = columnAt(p.x, p.y);
+      // A habit's time belongs to its own day: it moves within that day, never to another.
+      const col = p.habit && p.origin ? columnForDate(p.origin.date) : columnAt(p.x, p.y);
       if (!col) return { ...base, preview: null, overUnschedule: false };
-      const duration = p.block?.durationMin ?? DEFAULT_DURATION;
+      const duration = p.origin?.durationMin ?? DEFAULT_DURATION;
       const raw = minutesAt(col, p.y) - p.grabOffsetMin;
       const startMin = clamp(
         p.kind === 'task' ? Math.floor(raw / SNAP_MIN) * SNAP_MIN : snap(raw),
@@ -183,9 +205,9 @@ export function DragProvider({ children }: { children: ReactNode }) {
       );
       return { ...base, preview: { date: col.date, startMin, durationMin: duration }, overUnschedule: false };
     }
-    // Resizing stays on the block's own day.
-    const b = p.block!;
-    const origin: Schedule = { date: b.date, startMin: b.startMin, durationMin: b.durationMin };
+    // Resizing stays on its own day.
+    const o = p.origin!;
+    const origin: Schedule = { date: o.date, startMin: o.startMin, durationMin: o.durationMin };
     const col = columnForDate(origin.date);
     if (!col) return { ...base, preview: origin, overUnschedule: false };
     const pointerMin = snap(minutesAt(col, p.y));
@@ -204,8 +226,9 @@ export function DragProvider({ children }: { children: ReactNode }) {
     if (!p || !p.active) return;
     const now = performance.now();
 
-    // Hovering a day-shift target moves the dragged item to another day.
-    if (p.kind === 'move' || p.kind === 'task') {
+    // Hovering a day-shift target moves the dragged item to another day. A habit
+    // stays on its own day, so it never follows the arrows.
+    if ((p.kind === 'move' || p.kind === 'task') && p.task) {
       let hovered: string | null = null;
       for (const [id, t] of shiftTargets.current) if (within(t.el, p.x, p.y)) hovered = id;
       for (const [id, t] of shiftTargets.current) t.el.dataset.dropHover = String(id === hovered);
@@ -229,7 +252,8 @@ export function DragProvider({ children }: { children: ReactNode }) {
     const p = pending.current;
     if (!p || !p.active) return;
 
-    const col = p.kind.startsWith('resize') ? columnForDate(p.block!.date) : columnAt(p.x, p.y);
+    // Resizing stays in its own column, whether that is a task's session or a habit's hour.
+    const col = p.kind.startsWith('resize') ? columnForDate(p.origin!.date) : columnAt(p.x, p.y);
     const scroller = col ? scrollParent(col.el) : null;
     if (scroller && scroller.scrollHeight > scroller.clientHeight) {
       const r = scroller.getBoundingClientRect();
@@ -290,20 +314,30 @@ export function DragProvider({ children }: { children: ReactNode }) {
       announce('Drag cancelled');
       return;
     }
-    const title = p.task.title;
+    const fmtNow = stateRef.current.settings.timeFormat;
+    // A habit's drag writes that one day, and leaves its usual time alone.
+    if (p.habit) {
+      if (!final.preview) return;
+      dispatch({ type: 'habitTime/set', habitId: p.habit.id, schedule: final.preview });
+      announce(
+        `${p.habit.title}: ${formatRange(final.preview.startMin, final.preview.durationMin, fmtNow)} on this day`,
+      );
+      return;
+    }
+    const task = p.task!;
+    const title = task.title;
     if (final.overUnschedule && p.block) {
-      dispatch({ type: 'block/remove', taskId: p.task.id, blockId: p.block.id });
+      dispatch({ type: 'block/remove', taskId: task.id, blockId: p.block.id });
       announce(`${title}: time block removed`);
     } else if (final.preview) {
       // Dragging a task from the list always adds another session; dragging a block moves that block.
       if (p.block) {
-        dispatch({ type: 'block/update', taskId: p.task.id, blockId: p.block.id, schedule: final.preview });
+        dispatch({ type: 'block/update', taskId: task.id, blockId: p.block.id, schedule: final.preview });
       } else {
-        dispatch({ type: 'block/add', taskId: p.task.id, block: { id: uid('b'), ...final.preview } });
+        dispatch({ type: 'block/add', taskId: task.id, block: { id: uid('b'), ...final.preview } });
       }
-      const fmt = stateRef.current.settings.timeFormat;
       announce(
-        `${title} scheduled ${formatShortDate(final.preview.date)}, ${formatRange(final.preview.startMin, final.preview.durationMin, fmt)}`,
+        `${title} scheduled ${formatShortDate(final.preview.date)}, ${formatRange(final.preview.startMin, final.preview.durationMin, fmtNow)}`,
       );
     }
   };
@@ -374,16 +408,25 @@ export function DragProvider({ children }: { children: ReactNode }) {
   const onTouchMove = useRef((e: TouchEvent) => handlers.current.touchMove(e)).current;
 
   const begin = useCallback(
-    (e: ReactPointerEvent, task: Task, kind: DragKind, block?: TimeBlock, onTap?: () => void, hold?: HoldHandlers) => {
+    (
+      e: ReactPointerEvent,
+      subject: { task?: Task; habit?: Habit },
+      kind: DragKind,
+      origin?: Schedule,
+      block?: TimeBlock,
+      onTap?: () => void,
+      hold?: HoldHandlers,
+    ) => {
       if (e.button !== 0 || pending.current) return;
       let grabOffsetMin = 0;
-      if (kind === 'move' && block) {
-        const col = columnForDate(block.date);
-        if (col) grabOffsetMin = minutesAt(col, e.clientY) - block.startMin;
+      if (kind === 'move' && origin) {
+        const col = columnForDate(origin.date);
+        if (col) grabOffsetMin = minutesAt(col, e.clientY) - origin.startMin;
       }
       pending.current = {
         kind,
-        task,
+        task: subject.task,
+        habit: subject.habit,
         startX: e.clientX,
         startY: e.clientY,
         x: e.clientX,
@@ -392,6 +435,7 @@ export function DragProvider({ children }: { children: ReactNode }) {
         active: false,
         grabOffsetMin,
         block,
+        origin,
         onTap,
       };
       // Resize handles stay instant on touch: they're small, deliberate targets that never scroll.
@@ -416,8 +460,9 @@ export function DragProvider({ children }: { children: ReactNode }) {
   const actions = useMemo<DragActions>(
     () => ({
       // On touch, a quick swipe still scrolls the list or the day; a drag starts only after a hold.
-      startTaskDrag: (e, task, hold) => begin(e, task, 'task', undefined, undefined, hold),
-      startBlockDrag: (e, task, block, kind, onTap, hold) => begin(e, task, kind, block, onTap, hold),
+      startTaskDrag: (e, task, hold) => begin(e, { task }, 'task', undefined, undefined, undefined, hold),
+      startBlockDrag: (e, task, block, kind, onTap, hold) => begin(e, { task }, kind, block, block, onTap, hold),
+      startHabitDrag: (e, habit, time, kind, onTap, hold) => begin(e, { habit }, kind, time, undefined, onTap, hold),
       registerColumn: (id, column) => {
         columns.current.set(id, column);
         return () => columns.current.delete(id);
@@ -434,8 +479,10 @@ export function DragProvider({ children }: { children: ReactNode }) {
     [begin],
   );
 
-  const draggedTask = session ? state.tasks.find((t) => t.id === session.taskId) : undefined;
-  const color = draggedTask ? paintSwatch(categoryById(state, draggedTask.categoryId)?.color) : undefined;
+  const draggedTask = session?.taskId ? state.tasks.find((t) => t.id === session.taskId) : undefined;
+  const draggedHabit = session?.habitId ? state.habits.find((h) => h.id === session.habitId) : undefined;
+  const dragged = draggedTask ?? draggedHabit;
+  const color = dragged ? paintSwatch(categoryById(state, dragged.categoryId)?.color) : undefined;
   const fmt = state.settings.timeFormat;
   const showGhost = session && (session.kind === 'task' || session.kind === 'move') && !session.preview;
 
@@ -446,10 +493,10 @@ export function DragProvider({ children }: { children: ReactNode }) {
         {session &&
           createPortal(
             <>
-              {showGhost && draggedTask && (
+              {showGhost && dragged && (
                 <div ref={ghostRef} className={styles.ghost} style={{ ['--cat' as string]: color }}>
                   <span className={styles.ghostDot} />
-                  {draggedTask.title}
+                  {dragged.title}
                   {session.overUnschedule && <span className={styles.ghostHint}>Unschedule</span>}
                 </div>
               )}

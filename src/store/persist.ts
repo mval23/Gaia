@@ -13,6 +13,7 @@ import type {
   GoalStatus,
   Habit,
   HabitStatus,
+  HabitTime,
   Light,
   Mind,
   Momentum,
@@ -31,7 +32,7 @@ import { createSeed } from '../data/seed';
 import { isValidISODate } from '../lib/dates';
 import { normalizeRhythm } from '../lib/rhythm';
 import { normalizeRepeat } from '../lib/repeat';
-import { DAY_MIN, clamp } from '../lib/time';
+import { DAY_MIN, MIN_DURATION, clamp } from '../lib/time';
 import { normalizeMilestone, normalizeSchedule } from './reducer';
 
 const KEY = 'gaia:v1';
@@ -92,6 +93,10 @@ function migrateHabit(raw: Habit, valueIds: Set<string>): Habit {
     preferredStartMin:
       typeof raw.preferredStartMin === 'number' && Number.isFinite(raw.preferredStartMin)
         ? clamp(Math.round(raw.preferredStartMin), 0, DAY_MIN - 1)
+        : undefined,
+    preferredDurationMin:
+      typeof raw.preferredDurationMin === 'number' && Number.isFinite(raw.preferredDurationMin)
+        ? clamp(Math.round(raw.preferredDurationMin), MIN_DURATION, DAY_MIN)
         : undefined,
     // A plan with neither half written is just an empty row someone added.
     ifThen: Array.isArray(raw.ifThen)
@@ -181,6 +186,12 @@ function isGoalCheckIn(raw: unknown, goalIds: Set<string>): raw is GoalCheckIn {
   );
 }
 
+/** A habit's day of its own. One per habit per day, and only for a habit that still exists. */
+function migrateHabitTime(raw: HabitTime, habitIds: Set<string>): HabitTime | null {
+  if (!raw || typeof raw.habitId !== 'string' || !habitIds.has(raw.habitId) || !isValidISODate(raw.date)) return null;
+  return { habitId: raw.habitId, ...normalizeSchedule(raw) };
+}
+
 function migrateRest(raw: Rest): Rest | null {
   if (!raw || typeof raw.id !== 'string' || !isValidISODate(raw.date)) return null;
   return { id: raw.id, label: raw.label, ...normalizeSchedule(raw) };
@@ -256,6 +267,13 @@ export function migrateState(parsed: GaiaState, seed: GaiaState = createSeed()):
         }))
       : [],
     rests: Array.isArray(parsed.rests) ? parsed.rests.map(migrateRest).filter((r): r is Rest => r !== null) : [],
+    habitTimes: Array.isArray(parsed.habitTimes)
+      ? parsed.habitTimes
+          .map((t) => migrateHabitTime(t, habitIds))
+          .filter((t): t is HabitTime => t !== null)
+          // One entry per habit per day, whatever an older save holds.
+          .filter((t, i, all) => all.findIndex((o) => o.habitId === t.habitId && o.date === t.date) === i)
+      : [],
     compass,
     // A save written before the evidence page existed gets the shelf it ships
     // with, once. Afterwards the list is the person's, empty or not.

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Task } from '../types';
 import { uid, useFeedback, useGaia } from '../store/GaiaProvider';
 import { useMoveBlockDay } from '../hooks/useMoveBlockDay';
-import { blocksOn, habitsForDate, isGentleDay, partitionDay, resolveGroupParam, restsOn } from '../store/selectors';
+import { blocksOn, isGentleDay, partitionDay, resolveGroupParam, restsOn, suggestionsOn } from '../store/selectors';
 import { useDateParam, useParam } from '../hooks/useDateParam';
 import { useTaskEditor } from '../hooks/useTaskEditor';
 import { useHabitEditor } from '../hooks/useSheetParam';
@@ -25,7 +25,7 @@ import { WithSomeoneSection } from '../components/plan/WithSomeoneSection';
 import { useCapture } from '../components/capture/CaptureProvider';
 import { CalendarLinks } from '../components/plan/CalendarLinks';
 import { ReflectionInvite } from '../components/plan/ReflectionInvite';
-import { TimeGrid, type Suggestion } from '../components/timeline/TimeGrid';
+import { TimeGrid } from '../components/timeline/TimeGrid';
 import { useOutlookEvents } from '../integrations/outlook/OutlookProvider';
 import { SplitHandle } from '../components/ui/SplitHandle';
 import { useStoredNumber } from '../hooks/useStoredNumber';
@@ -98,13 +98,12 @@ export function TodayPage() {
     [state, date, groupFilter],
   );
 
-  // Habits with a preferred time appear as dashed suggestions, never as commitments.
-  const suggestionsByDate = useMemo(() => {
-    const list: Suggestion[] = habitsForDate(state, date, groupFilter)
-      .filter((habit) => habit.preferredStartMin !== undefined)
-      .map((habit) => ({ habit, startMin: habit.preferredStartMin as number, durationMin: 30 }));
-    return new Map([[date, list]]);
-  }, [state, date, groupFilter]);
+  // A habit's usual time, or the one this day was given by hand. Either way it
+  // is drawn unfilled and never counted as planned time.
+  const suggestionsByDate = useMemo(
+    () => new Map([[date, suggestionsOn(state, date, groupFilter)]]),
+    [state, date, groupFilter],
+  );
 
   // Day-shift drop targets: hovering prev/next while dragging moves to that day.
   useEffect(() => {

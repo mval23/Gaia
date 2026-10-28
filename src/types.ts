@@ -55,6 +55,14 @@ export interface Rest extends Schedule {
 }
 
 /**
+ * A habit's time on one day: moved or resized by hand, on that day only. The
+ * habit's own preferred time is untouched, so every other day keeps it.
+ */
+export interface HabitTime extends Schedule {
+  habitId: ID;
+}
+
+/**
  * A task only references its category. Its group is always derived from the
  * category, so the hierarchy is strictly Group → Category → Task.
  *
@@ -178,6 +186,8 @@ export interface Habit {
   tinyVersion?: string;
   /** Renders as a dashed suggestion on the timeline. A suggestion, not a commitment. */
   preferredStartMin?: number;
+  /** About how long it usually takes. Only the length of the suggestion, never a target. */
+  preferredDurationMin?: number;
   /** Private. Shown under the habit on gentle days. */
   why?: string;
   /** Plans for what usually gets in the way. */
@@ -354,6 +364,7 @@ export interface GaiaState {
   lights: Light[];
   goalCheckIns: GoalCheckIn[];
   rests: Rest[];
+  habitTimes: HabitTime[];
   compass: Compass;
   evidence: Evidence[];
   patternAnswers: PatternAnswer[];

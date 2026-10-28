@@ -1,9 +1,23 @@
 import { useState } from 'react';
 import type { CheckInKind, Habit } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
-import { categoryById, checkInKey, goalById, isQuiet, isReturning, valueById, weekCount } from '../../store/selectors';
+import {
+  HABIT_DEFAULT_MIN,
+  blocksOn,
+  categoryById,
+  checkInKey,
+  goalById,
+  habitTimeFor,
+  isQuiet,
+  isReturning,
+  restsOn,
+  valueById,
+  weekCount,
+} from '../../store/selectors';
 import { rhythmLabel, weeklyTarget } from '../../lib/rhythm';
-import { formatClock } from '../../lib/time';
+import { formatClock, formatRange, nowMinutes } from '../../lib/time';
+import { findFreeSlot } from '../../lib/layout';
+import { todayISO } from '../../lib/dates';
 import { Menu } from '../ui/Menu';
 import { paint } from '../../lib/swatch';
 import { HabitToggle } from './HabitToggle';
@@ -57,10 +71,50 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
     announce(`${habit.title}: cleared for this day`);
   };
 
+  const placed = habitTimeFor(state, habit.id, date);
+
+  /**
+   * Gives the habit an hour on this day: its usual time if it has one, else the
+   * first open slot. Only this day is written — its rhythm is untouched.
+   */
+  const placeToday = () => {
+    const previous = state;
+    const durationMin = habit.preferredDurationMin ?? HABIT_DEFAULT_MIN;
+    const busy = [
+      ...blocksOn(state, date).map(({ block }) => block),
+      ...restsOn(state, date).map((r) => ({ startMin: r.startMin, durationMin: r.durationMin })),
+    ];
+    const earliest =
+      habit.preferredStartMin ??
+      Math.max(settings.dayStartHour * 60, date === todayISO() ? nowMinutes() : 0);
+    const startMin = findFreeSlot(busy, durationMin, earliest, settings.dayEndHour * 60) ?? earliest;
+    dispatch({ type: 'habitTime/set', habitId: habit.id, schedule: { date, startMin, durationMin } });
+    notify(
+      `${habit.title} is on this day at ${formatClock(startMin, settings.timeFormat)}. Drag it wherever it fits.`,
+      previous,
+    );
+  };
+
+  const backToUsual = () => {
+    const previous = state;
+    dispatch({ type: 'habitTime/clear', habitId: habit.id, date });
+    notify(
+      habit.preferredStartMin !== undefined
+        ? `${habit.title} is back to its usual time.`
+        : `${habit.title} taken off this day.`,
+      previous,
+    );
+  };
+
   const detail = [
     returning ? comingBack : gentle && habit.tinyVersion ? habit.tinyVersion : habit.cue,
     rhythmLabel(habit.rhythm),
-    habit.preferredStartMin !== undefined ? `around ${formatClock(habit.preferredStartMin, settings.timeFormat)}` : null,
+    // The day's own time wins over the usual one, because that is where it is today.
+    placed
+      ? formatRange(placed.startMin, placed.durationMin, settings.timeFormat)
+      : habit.preferredStartMin !== undefined
+        ? `around ${formatClock(habit.preferredStartMin, settings.timeFormat)}`
+        : null,
     goal?.title,
     // Through its goal a habit already reaches a value, so the lens only shows
     // on a habit that belongs to no goal at all.
@@ -106,6 +160,9 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
         triggerClassName={styles.cardMenu}
         items={[
           { label: 'Edit habit', icon: 'pencil', onSelect: () => onEdit(habit.id) },
+          placed
+            ? { label: 'Back to its usual time', icon: 'repeat' as const, onSelect: backToUsual }
+            : { label: 'Give it a time on this day', icon: 'clock' as const, onSelect: placeToday },
           {
             label: 'Let it rest for now',
             icon: 'clock',

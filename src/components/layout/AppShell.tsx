@@ -7,7 +7,7 @@ import { DragProvider } from '../../dnd/DragProvider';
 import { CaptureProvider } from '../capture/CaptureProvider';
 import { WalkProvider } from '../walk/WalkProvider';
 import { WalkGuide } from '../walk/WalkGuide';
-import { BlockHelp } from '../timeline/TimeBlock';
+import { BlockHelp, HabitBlockHelp } from '../timeline/TimeBlock';
 import styles from './AppShell.module.css';
 
 export function AppShell() {
@@ -28,6 +28,7 @@ export function AppShell() {
           <GoalEditorSheet />
           <HabitEditorSheet />
           <BlockHelp />
+          <HabitBlockHelp />
           <WalkGuide />
         </WalkProvider>
       </CaptureProvider>

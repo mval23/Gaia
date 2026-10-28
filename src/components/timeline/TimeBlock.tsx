@@ -197,6 +197,26 @@ export function PreviewBlock({ task, schedule }: { task: Task; schedule: Schedul
   );
 }
 
+export function HabitPreviewBlock({ habit, schedule }: { habit: Habit; schedule: Schedule }) {
+  const { state } = useGaia();
+  const category = categoryById(state, habit.categoryId);
+  return (
+    <div
+      className={`${styles.block} ${styles.blockSuggested} ${styles.blockPreview} ${schedule.durationMin < 45 ? styles.blockCompact : ''}`}
+      style={blockStyle(schedule, { lane: 0, lanes: 1 }, category?.color)}
+      aria-hidden="true"
+    >
+      <div className={styles.blockText}>
+        <span className={styles.blockTitle}>{habit.title}</span>
+        <span className={styles.blockMeta}>
+          {formatRange(schedule.startMin, schedule.durationMin, state.settings.timeFormat)} ·{' '}
+          {formatDuration(schedule.durationMin)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function BlockHelp() {
   return (
     <p id="block-help" className="visually-hidden">
@@ -208,60 +228,158 @@ export function BlockHelp() {
 }
 
 /**
- * A habit's preferred time, drawn dashed and unfilled. It is a suggestion, so
- * it is never counted as planned time and cannot be dragged: moving a habit's
- * hour belongs in its editor, not in a moment of rearranging the day.
+ * A habit's hour on the timeline, drawn unfilled: its usual time while it is
+ * only a suggestion, and firmer once this day has been given a time of its own.
+ * Dragging or resizing it writes that one day, so the habit's own time — and
+ * every other day — stays exactly as it was. It is never counted as planned
+ * time: a day is not full because a habit is in it.
  */
 export function SuggestedBlock({
   habit,
+  date,
   startMin,
   durationMin,
+  placed,
   placement,
   logged,
   onOpen,
   onLog,
 }: {
   habit: Habit;
+  date: string;
   startMin: number;
   durationMin: number;
+  /** This day has a time of its own for it, rather than the habit's usual one. */
+  placed: boolean;
   placement: Placement;
   logged: boolean;
   onOpen: () => void;
   onLog: () => void;
 }) {
-  const { state } = useGaia();
+  const { state, dispatch } = useGaia();
+  const { announce, notify } = useFeedback();
+  const { startHabitDrag } = useDragActions();
+  const contextMenu = useContextMenu();
   const category = categoryById(state, habit.categoryId);
   const fmt = state.settings.timeFormat;
-  const label = `${habit.title}, suggested around ${formatClock(startMin, fmt)}, ${
+  const schedule: Schedule = { date, startMin, durationMin };
+  const range = formatRange(startMin, durationMin, fmt);
+  const usual = habit.preferredStartMin !== undefined;
+  const label = `${habit.title}, ${placed ? `${range}, on this day only` : `suggested around ${formatClock(startMin, fmt)}`}, ${
     logged ? 'logged today' : 'not logged yet'
   }`;
+
+  const place = (next: Schedule, message: string) => {
+    dispatch({ type: 'habitTime/set', habitId: habit.id, schedule: next });
+    announce(message);
+  };
+
+  /** Back to the habit's usual time, or off this day when it has no usual time. */
+  const backToUsual = () => {
+    const previous = state;
+    dispatch({ type: 'habitTime/clear', habitId: habit.id, date });
+    notify(
+      usual
+        ? `${habit.title} is back to its usual time. Only this day changed.`
+        : `${habit.title} taken off this day. Its rhythm is untouched.`,
+      previous,
+    );
+  };
+
+  /** What today turned out to be, kept as how it usually goes from now on. */
+  const makeUsual = () => {
+    const previous = state;
+    dispatch({ type: 'habit/update', id: habit.id, patch: { preferredStartMin: startMin, preferredDurationMin: durationMin } });
+    dispatch({ type: 'habitTime/clear', habitId: habit.id, date });
+    notify(`${habit.title} usually happens ${formatClock(startMin, fmt)} now.`, previous);
+  };
+
+  const menuItems = [
+    { label: logged ? 'Mark as not logged' : 'Log it as done', icon: 'check' as const, onSelect: onLog },
+    { label: 'Edit habit', icon: 'pencil' as const, onSelect: onOpen },
+    ...(placed
+      ? [
+          { kind: 'separator' as const },
+          { label: usual ? 'Back to its usual time' : 'Take it off this day', icon: 'repeat' as const, onSelect: backToUsual },
+          { label: 'Make this its usual time', icon: 'clock' as const, onSelect: makeUsual },
+        ]
+      : []),
+  ];
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onOpen();
+    } else if (e.key === ' ') {
+      e.preventDefault();
+      onLog();
+    } else if ((e.key === 'Delete' || e.key === 'Backspace') && placed) {
+      e.preventDefault();
+      backToUsual();
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const dir = e.key === 'ArrowUp' ? -1 : 1;
+      if (e.shiftKey) {
+        const d = Math.min(DAY_MIN - startMin, Math.max(MIN_DURATION, durationMin + dir * SNAP_MIN));
+        place({ ...schedule, durationMin: d }, `${habit.title}: ${formatDuration(d)} on this day`);
+      } else {
+        const s = Math.min(DAY_MIN - durationMin, Math.max(0, startMin + dir * SNAP_MIN));
+        place({ ...schedule, startMin: s }, `${habit.title}: ${formatRange(s, durationMin, fmt)} on this day`);
+      }
+    }
+  };
 
   return (
     <div
       className={`${styles.block} ${styles.blockSuggested} ${durationMin < 45 ? styles.blockCompact : ''}`}
-      style={blockStyle({ date: '', startMin, durationMin }, placement, category?.color)}
+      style={blockStyle(schedule, placement, category?.color)}
       data-suggested="true"
+      data-placed={placed || undefined}
       data-logged={logged || undefined}
       role="button"
       tabIndex={0}
       aria-label={label}
+      aria-describedby="habit-block-help"
       title={label}
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          onOpen();
-        } else if (e.key === ' ') {
-          e.preventDefault();
-          onLog();
-        }
-      }}
+      onPointerDown={(e) =>
+        startHabitDrag(e, habit, schedule, 'move', onOpen, { open: contextMenu.openAt, close: contextMenu.close })
+      }
+      onKeyDown={onKeyDown}
+      onContextMenu={contextMenu.onContextMenu}
     >
+      <div
+        className={`${styles.handle} ${styles.handleTop}`}
+        onPointerDown={(e) => startHabitDrag(e, habit, schedule, 'resize-top')}
+        aria-hidden="true"
+      />
       <div className={styles.blockText}>
         <span className={styles.blockTitle}>{habit.title}</span>
-        <span className={styles.blockMeta}>{logged ? 'logged' : formatClock(startMin, fmt)}</span>
+        <span className={styles.blockMeta}>
+          {logged ? 'logged' : placed ? `${range} · ${formatDuration(durationMin)}` : formatClock(startMin, fmt)}
+        </span>
       </div>
+      <div
+        className={`${styles.handle} ${styles.handleBottom}`}
+        onPointerDown={(e) => startHabitDrag(e, habit, schedule, 'resize-bottom')}
+        aria-hidden="true"
+      />
+      <ContextMenu
+        label={`Options for ${habit.title}`}
+        items={menuItems}
+        point={contextMenu.point}
+        onClose={contextMenu.close}
+      />
     </div>
+  );
+}
+
+export function HabitBlockHelp() {
+  return (
+    <p id="habit-block-help" className="visually-hidden">
+      Drag to move this habit on this day only, or drag its top or bottom edge to change how long it takes. With the
+      keyboard: Enter to edit the habit, Space to log it, arrow keys to move by 15 minutes, Shift plus arrow keys to
+      change the length, Delete to put it back at its usual time. Its usual time, and every other day, stay as they are.
+    </p>
   );
 }
 

@@ -68,6 +68,8 @@ perfectly good ending.
 
 Today's rhythms, the few things you picked for today, and a folded *Later* list
 for everything else. The timeline beside it is where you give tasks a place.
+A habit with a time sits there too: drag it, or its edges, to move it or stretch
+it **on that day alone** — its usual time, and every other day, stay as they are.
 
 <p align="center"><img src="docs/screenshots/plan.png" alt="The Plan page: rhythms, today's tasks and a day timeline" /></p>
 
@@ -229,6 +231,9 @@ docs/
 - **No form submits.** Every control in an editor writes as it changes.
 - **Undo works by snapshotting the whole state** before a destructive action and
   passing it to `notify(message, previous)`.
+- **One day's change belongs to that day.** Moving or stretching a habit on the
+  timeline writes that day only (`habitTimes`). Nothing in Gaia quietly rewrites
+  the thing you set up when you meant to change today.
 - **A lens is never a folder.** A goal, and now a value, is something a task or
   a habit can point at. Dropping one clears the link and nothing else: no
   cascade, and no history lost.
