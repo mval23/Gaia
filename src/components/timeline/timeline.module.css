@@ -334,6 +334,16 @@
   color: var(--text-tertiary);
 }
 
+/* Given a time on this day: a firm edge, so it reads as placed rather than suggested. */
+.blockSuggested[data-placed] {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--cat) 85%, var(--border-strong));
+}
+
+.blockSuggested[data-placed] .blockTitle {
+  color: var(--text);
+}
+
 .blockSuggested[data-logged] {
   border-style: solid;
   background: color-mix(in srgb, var(--cat) 12%, transparent);

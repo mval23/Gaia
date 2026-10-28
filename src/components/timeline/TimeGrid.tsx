@@ -1,23 +1,18 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { Habit } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import { checkInFor, restsOn } from '../../store/selectors';
-import type { ScheduledBlock } from '../../store/selectors';
+import type { ScheduledBlock, Suggestion } from '../../store/selectors';
 import { HOUR_PX, useDragActions, useDragSession } from '../../dnd/DragProvider';
 import { layoutLanes } from '../../lib/layout';
 import { formatClock, nowMinutes } from '../../lib/time';
 import { todayISO } from '../../lib/dates';
 import type { OutlookEvent } from '../../integrations/outlook/events';
-import { TimeBlock, PreviewBlock, SuggestedBlock, OutlookBlock } from './TimeBlock';
+import { TimeBlock, PreviewBlock, SuggestedBlock, HabitPreviewBlock, OutlookBlock } from './TimeBlock';
 import { RestBlock } from './RestBlock';
 import styles from './timeline.module.css';
 
-/** A habit's preferred time, drawn as a suggestion rather than a commitment. */
-export interface Suggestion {
-  habit: Habit;
-  startMin: number;
-  durationMin: number;
-}
+// Where a day's habits sit: built by `suggestionsOn`, so Plan and Calendar agree.
+export type { Suggestion };
 
 interface TimeGridProps {
   dates: string[];
@@ -184,7 +179,8 @@ function DayColumn({ date, items, suggestions, events, onOpenTask, onOpenHabit, 
   );
 
   const preview = session?.preview?.date === date ? session.preview : null;
-  const previewTask = preview ? state.tasks.find((t) => t.id === session!.taskId) : undefined;
+  const previewTask = preview && session?.taskId ? state.tasks.find((t) => t.id === session.taskId) : undefined;
+  const previewHabit = preview && session?.habitId ? state.habits.find((h) => h.id === session.habitId) : undefined;
 
   return (
     <div
@@ -210,20 +206,27 @@ function DayColumn({ date, items, suggestions, events, onOpenTask, onOpenHabit, 
           placement={placements.get(`ev-${event.key}`) ?? { lane: 0, lanes: 1 }}
         />
       ))}
-      {suggestions.map(({ habit, startMin, durationMin }) => {
+      {suggestions.map(({ habit, startMin, durationMin, placed }) => {
         const logged = checkInFor(state, habit.id, date) !== undefined;
         return (
           <SuggestedBlock
             key={habit.id}
             habit={habit}
+            date={date}
             startMin={startMin}
             durationMin={durationMin}
+            placed={placed}
             placement={placements.get(`sug-${habit.id}`) ?? { lane: 0, lanes: 1 }}
             logged={logged}
             onOpen={() => onOpenHabit?.(habit.id)}
             onLog={() => {
-              dispatch({ type: 'checkin/set', habitId: habit.id, date, kind: 'done' });
-              announce(`${habit.title}: logged`);
+              if (logged) {
+                dispatch({ type: 'checkin/clear', habitId: habit.id, date });
+                announce(`${habit.title}: cleared for this day`);
+              } else {
+                dispatch({ type: 'checkin/set', habitId: habit.id, date, kind: 'done' });
+                announce(`${habit.title}: logged`);
+              }
             }}
           />
         );
@@ -242,6 +245,7 @@ function DayColumn({ date, items, suggestions, events, onOpenTask, onOpenHabit, 
         </div>
       )}
       {preview && previewTask && <PreviewBlock task={previewTask} schedule={preview} />}
+      {preview && previewHabit && <HabitPreviewBlock habit={previewHabit} schedule={preview} />}
       {nowMin !== null && (
         <div className={styles.nowLine} style={{ top: (nowMin / 60) * HOUR_PX }} aria-hidden="true">
           <span className={styles.nowDot} />

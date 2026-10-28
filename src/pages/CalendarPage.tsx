@@ -1,9 +1,10 @@
 import { useEffect, useId, useMemo, useRef } from 'react';
 import { useGaia } from '../store/GaiaProvider';
-import { blocksByDate, categoryById, groupById, type ScheduledBlock } from '../store/selectors';
+import { blocksByDate, categoryById, groupById, suggestionsOn, type ScheduledBlock } from '../store/selectors';
 import { useMoveBlockDay } from '../hooks/useMoveBlockDay';
 import { useDateParam, useParam, useSetParams } from '../hooks/useDateParam';
 import { useTaskEditor } from '../hooks/useTaskEditor';
+import { useHabitEditor } from '../hooks/useSheetParam';
 import { useDragActions } from '../dnd/DragProvider';
 import { MOBILE_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
 import {
@@ -32,6 +33,7 @@ type View = 'day' | 'week' | 'month';
 export function CalendarPage() {
   const { state } = useGaia();
   const { openTask } = useTaskEditor();
+  const { openHabit } = useHabitEditor();
   const { registerShiftTarget } = useDragActions();
   const { date, setDate, isToday, today } = useDateParam();
   const [viewRaw, setViewRaw] = useParam('view');
@@ -64,6 +66,12 @@ export function CalendarPage() {
   const visibleDates = view === 'month' ? monthGrid(date, state.settings.weekStart).map((c) => c.date) : dates;
   const eventsByDate = useOutlookEvents(visibleDates);
   const moveDay = useMoveBlockDay();
+  // Habits show here too, so a day's hour can be moved wherever you are looking at it.
+  const suggestionsByDate = useMemo(
+    () => new Map(dates.map((d) => [d, suggestionsOn(state, d)])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state, dates.join()],
+  );
 
   const openDay = (d: string) => setParams({ date: d === today ? null : d, view: 'day' });
 
@@ -120,8 +128,10 @@ export function CalendarPage() {
             label={view === 'week' ? `Week of ${formatLongDate(dates[0])}` : `Timeline for ${formatLongDate(date)}`}
             dates={dates}
             blocksByDate={byDate}
+            suggestionsByDate={suggestionsByDate}
             eventsByDate={eventsByDate}
             onOpenTask={openTask}
+            onOpenHabit={openHabit}
             onMoveDay={moveDay}
             header={
               view === 'week'

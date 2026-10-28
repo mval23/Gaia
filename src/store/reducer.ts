@@ -10,6 +10,7 @@ import type {
   GoalStatus,
   Group,
   Habit,
+  HabitTime,
   Light,
   Milestone,
   Momentum,
@@ -64,6 +65,13 @@ export type Action =
   | { type: 'habit/add'; id: string; categoryId: string; title: string; goalId?: string; rhythm?: Rhythm }
   | { type: 'habit/update'; id: string; patch: Partial<Omit<Habit, 'id' | 'createdAt'>> }
   | { type: 'habit/delete'; id: string }
+  /**
+   * Where a habit sits on one day. Upserts the single entry for (habitId, date);
+   * the habit's own preferred time is never touched by it.
+   */
+  | { type: 'habitTime/set'; habitId: string; schedule: Schedule }
+  /** Back to its usual time: the day's own entry goes, the habit stays. */
+  | { type: 'habitTime/clear'; habitId: string; date: string }
   /** Upserts the single entry for (habitId, date). */
   | { type: 'checkin/set'; habitId: string; date: string; kind: CheckInKind }
   | { type: 'checkin/clear'; habitId: string; date: string }
@@ -450,6 +458,9 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         if (action.patch.preferredStartMin !== undefined) {
           next.preferredStartMin = clamp(Math.round(action.patch.preferredStartMin), 0, DAY_MIN - 1);
         }
+        if (action.patch.preferredDurationMin !== undefined) {
+          next.preferredDurationMin = clamp(Math.round(action.patch.preferredDurationMin), MIN_DURATION, DAY_MIN);
+        }
         return next;
       });
     case 'habit/delete': {
@@ -458,8 +469,22 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         ...state,
         habits: state.habits.filter((h) => h.id !== action.id),
         checkIns: state.checkIns.filter((c) => c.habitId !== action.id),
+        habitTimes: state.habitTimes.filter((t) => t.habitId !== action.id),
       };
     }
+
+    case 'habitTime/set': {
+      const { date } = action.schedule;
+      if (!isValidISODate(date) || !state.habits.some((h) => h.id === action.habitId)) return state;
+      const others = state.habitTimes.filter((t) => !(t.habitId === action.habitId && t.date === date));
+      const entry: HabitTime = { habitId: action.habitId, ...normalizeSchedule(action.schedule) };
+      return { ...state, habitTimes: [...others, entry] };
+    }
+    case 'habitTime/clear':
+      return {
+        ...state,
+        habitTimes: state.habitTimes.filter((t) => !(t.habitId === action.habitId && t.date === action.date)),
+      };
 
     case 'checkin/set': {
       if (!isValidISODate(action.date) || !state.habits.some((h) => h.id === action.habitId)) return state;

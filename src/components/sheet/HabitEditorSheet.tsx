@@ -7,9 +7,10 @@ import {
   groupById,
   sortedGroups,
   totalCount,
+  HABIT_DEFAULT_MIN,
 } from '../../store/selectors';
 import { rhythmLabel } from '../../lib/rhythm';
-import { formatClock } from '../../lib/time';
+import { formatClock, formatDuration } from '../../lib/time';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { Select } from '../ui/Select';
 import { Icon } from '../ui/Icon';
@@ -19,6 +20,8 @@ import styles from './sheet.module.css';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TIMES = Array.from({ length: 96 }, (_, i) => i * 15);
+// How long it usually takes. Any one day can still be longer or shorter.
+const LENGTHS = [15, 30, 45, 60, 90, 120, 180];
 
 export function HabitEditorSheet() {
   const { state } = useGaia();
@@ -173,7 +176,10 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
         />
       </SheetRow>
 
-      <SheetRow label="Time of day" hint="Appears on the timeline as a suggestion, not a commitment.">
+      <SheetRow
+        label="Time of day"
+        hint="Where it sits on the timeline. Any one day can be moved or stretched from there, and only that day changes."
+      >
         <Select
           aria-label="Preferred time"
           value={habit.preferredStartMin === undefined ? '' : String(habit.preferredStartMin)}
@@ -187,6 +193,22 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
           ))}
         </Select>
       </SheetRow>
+
+      {habit.preferredStartMin !== undefined && (
+        <SheetRow label="Usually takes" hint="Only how long it is drawn for. Nothing counts the minutes.">
+          <Select
+            aria-label="How long it usually takes"
+            value={String(habit.preferredDurationMin ?? HABIT_DEFAULT_MIN)}
+            onChange={(e) => patch({ preferredDurationMin: Number(e.target.value) })}
+          >
+            {LENGTHS.map((min) => (
+              <option key={min} value={min}>
+                {formatDuration(min)}
+              </option>
+            ))}
+          </Select>
+        </SheetRow>
+      )}
 
       <div className={styles.groupHead}>
         <h3 className={styles.groupTitle}>Why it matters, and what helps</h3>

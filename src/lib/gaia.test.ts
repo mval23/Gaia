@@ -48,8 +48,11 @@ import {
   weekCount,
   filterTasks,
   isUncategorized,
+  HABIT_DEFAULT_MIN,
   compassWritten,
   evidenceOf,
+  habitTimeFor,
+  suggestionsOn,
   pointingAt,
   pointingCount,
   valueById,
@@ -1296,5 +1299,136 @@ describe('older saves meet the compass', () => {
     expect(state.goals[0].valueId).toBeUndefined();
     expect(state.habits[0].valueId).toBe('v-keep');
     expect(state.patternAnswers.map((a) => a.id)).toEqual(['rest-weeks']);
+  });
+});
+
+describe('a habit can have an hour of its own, on one day', () => {
+  // 28 Oct 2026 is a Wednesday; the 29th is a Thursday.
+  const wed = '2026-10-28';
+  const thu = '2026-10-29';
+  const exercise: Habit = {
+    id: 'h-ex',
+    title: 'Exercise',
+    categoryId: 'c-everyday',
+    rhythm: { type: 'daysOfWeek', days: [3] },
+    preferredStartMin: 18 * 60 + 30,
+    status: 'active',
+    createdAt: '2026-09-01T08:00:00',
+  };
+  const base = (): GaiaState => ({ ...createEmpty(), habits: [exercise] });
+
+  it('draws the habit at its usual time until a day is given one', () => {
+    const state = base();
+    expect(suggestionsOn(state, wed)).toEqual([
+      { habit: exercise, startMin: 18 * 60 + 30, durationMin: HABIT_DEFAULT_MIN, placed: false },
+    ]);
+    // Thursday is not on its rhythm, so nothing is drawn there.
+    expect(suggestionsOn(state, thu)).toEqual([]);
+  });
+
+  it('uses how long it usually takes, when that is known', () => {
+    const state: GaiaState = { ...base(), habits: [{ ...exercise, preferredDurationMin: 80 }] };
+    expect(suggestionsOn(state, wed)[0].durationMin).toBe(80);
+  });
+
+  it('moves on one day without touching the habit or any other day', () => {
+    const moved = reducer(base(), {
+      type: 'habitTime/set',
+      habitId: 'h-ex',
+      schedule: { date: wed, startMin: 7 * 60, durationMin: 90 },
+    });
+    expect(moved.habitTimes).toEqual([{ habitId: 'h-ex', date: wed, startMin: 7 * 60, durationMin: 90 }]);
+    // The habit itself is exactly as it was.
+    expect(moved.habits[0]).toEqual(exercise);
+    expect(suggestionsOn(moved, wed)).toEqual([
+      { habit: exercise, startMin: 7 * 60, durationMin: 90, placed: true },
+    ]);
+    // Next Wednesday still has the usual time.
+    expect(suggestionsOn(moved, addDays(wed, 7))[0]).toMatchObject({ startMin: 18 * 60 + 30, placed: false });
+    expect(habitTimeFor(moved, 'h-ex', wed)?.startMin).toBe(7 * 60);
+    expect(habitTimeFor(moved, 'h-ex', addDays(wed, 7))).toBeUndefined();
+  });
+
+  it('keeps one time per habit per day, inside the day', () => {
+    let state = reducer(base(), {
+      type: 'habitTime/set',
+      habitId: 'h-ex',
+      schedule: { date: wed, startMin: 7 * 60, durationMin: 60 },
+    });
+    state = reducer(state, {
+      type: 'habitTime/set',
+      habitId: 'h-ex',
+      schedule: { date: wed, startMin: 9 * 60, durationMin: 45 },
+    });
+    expect(state.habitTimes).toHaveLength(1);
+    expect(state.habitTimes[0].startMin).toBe(9 * 60);
+
+    // Dragged past midnight, it stops at the end of the day rather than wrapping.
+    const late = reducer(state, {
+      type: 'habitTime/set',
+      habitId: 'h-ex',
+      schedule: { date: wed, startMin: 23 * 60 + 50, durationMin: 60 },
+    });
+    expect(late.habitTimes[0].startMin + late.habitTimes[0].durationMin).toBeLessThanOrEqual(24 * 60);
+
+    // A habit that isn't there, or a day that isn't a day, writes nothing.
+    expect(reducer(state, { type: 'habitTime/set', habitId: 'nope', schedule: { date: wed, startMin: 60, durationMin: 30 } })).toBe(state);
+    expect(reducer(state, { type: 'habitTime/set', habitId: 'h-ex', schedule: { date: 'someday', startMin: 60, durationMin: 30 } })).toBe(state);
+  });
+
+  it('shows a habit on a day it was placed on, even off its rhythm, and takes it back', () => {
+    const placed = reducer(base(), {
+      type: 'habitTime/set',
+      habitId: 'h-ex',
+      schedule: { date: thu, startMin: 10 * 60, durationMin: 60 },
+    });
+    expect(suggestionsOn(placed, thu)).toEqual([
+      { habit: exercise, startMin: 10 * 60, durationMin: 60, placed: true },
+    ]);
+
+    const back = reducer(placed, { type: 'habitTime/clear', habitId: 'h-ex', date: thu });
+    expect(back.habitTimes).toEqual([]);
+    expect(suggestionsOn(back, thu)).toEqual([]);
+    // And Wednesday still draws it at its usual time.
+    expect(suggestionsOn(back, wed)[0].placed).toBe(false);
+  });
+
+  it('never draws a habit that is resting, placed or not', () => {
+    const resting: GaiaState = { ...base(), habits: [{ ...exercise, status: 'paused' }] };
+    expect(suggestionsOn(resting, wed)).toEqual([]);
+    const placed = reducer(resting, {
+      type: 'habitTime/set',
+      habitId: 'h-ex',
+      schedule: { date: wed, startMin: 9 * 60, durationMin: 30 },
+    });
+    // A paused habit keeps the hour it was given, and shows it again when it comes back.
+    expect(placed.habitTimes).toHaveLength(1);
+    expect(suggestionsOn(placed, wed)).toEqual([]);
+  });
+
+  it('lets a deleted habit take its hours with it', () => {
+    const placed = reducer(base(), {
+      type: 'habitTime/set',
+      habitId: 'h-ex',
+      schedule: { date: wed, startMin: 9 * 60, durationMin: 30 },
+    });
+    expect(reducer(placed, { type: 'habit/delete', id: 'h-ex' }).habitTimes).toEqual([]);
+  });
+
+  it('carries the hours through an older save, and drops the orphans', () => {
+    const { habitTimes, ...old } = base();
+    const state = migrateState({
+      ...(old as GaiaState),
+      habitTimes: [
+        { habitId: 'h-ex', date: wed, startMin: 9 * 60, durationMin: 45 },
+        // The same day twice, a day that isn't one, and a habit that is gone.
+        { habitId: 'h-ex', date: wed, startMin: 11 * 60, durationMin: 45 },
+        { habitId: 'h-ex', date: 'whenever', startMin: 60, durationMin: 30 },
+        { habitId: 'h-gone', date: wed, startMin: 60, durationMin: 30 },
+      ],
+    } as GaiaState);
+    expect(state.habitTimes).toEqual([{ habitId: 'h-ex', date: wed, startMin: 9 * 60, durationMin: 45 }]);
+    // A save written before any of this still loads.
+    expect(migrateState(old as GaiaState).habitTimes).toEqual([]);
   });
 });
