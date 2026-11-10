@@ -1,4 +1,5 @@
 import type { KeyboardEvent, CSSProperties } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Habit, Schedule, Task, TimeBlock as Block } from '../../types';
 import type { Placement } from '../../lib/layout';
 import type { OutlookEvent } from '../../integrations/outlook/events';
@@ -260,6 +261,7 @@ export function SuggestedBlock({
   const { announce, notify } = useFeedback();
   const { startHabitDrag } = useDragActions();
   const contextMenu = useContextMenu();
+  const navigate = useNavigate();
   const category = categoryById(state, habit.categoryId);
   const fmt = state.settings.timeFormat;
   const schedule: Schedule = { date, startMin, durationMin };
@@ -297,6 +299,7 @@ export function SuggestedBlock({
   const menuItems = [
     { label: logged ? 'Mark as not logged' : 'Log it as done', icon: 'check' as const, onSelect: onLog },
     { label: 'Edit habit', icon: 'pencil' as const, onSelect: onOpen },
+    { label: 'Open its page', icon: 'arrowRight' as const, onSelect: () => navigate(`/habits/${habit.id}`) },
     ...(placed
       ? [
           { kind: 'separator' as const },

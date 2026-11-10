@@ -13,6 +13,7 @@ import type { CheckIn, GaiaState, Habit, Light, Rhythm } from '../types';
 import { createSeed } from '../data/seed';
 import { nextRepeatDate, normalizeRepeat, repeatLabel } from './repeat';
 import { PATTERN_DAYS, findPatterns, nextPattern } from './patterns';
+import { canFill, monthsBetween, startedOn, weeksEnding } from './habitDays';
 import { seedEvidence } from '../data/evidence';
 import { STARTER_HABITS, hasHabitNamed, starterCategoryId } from '../data/starterHabits';
 import { reducer } from '../store/reducer';
@@ -50,6 +51,8 @@ import {
   isUncategorized,
   HABIT_DEFAULT_MIN,
   compassWritten,
+  habitStart,
+  habitTally,
   evidenceOf,
   habitTimeFor,
   suggestionsOn,
@@ -1430,5 +1433,89 @@ describe('a habit can have an hour of its own, on one day', () => {
     expect(state.habitTimes).toEqual([{ habitId: 'h-ex', date: wed, startMin: 9 * 60, durationMin: 45 }]);
     // A save written before any of this still loads.
     expect(migrateState(old as GaiaState).habitTimes).toEqual([]);
+  });
+});
+
+describe('a habit’s own page', () => {
+  // 9 November 2026 is a Monday; 8 November is the Sunday before it.
+  const today = '2026-11-09';
+  const habit: Habit = {
+    id: 'h-ex',
+    title: 'Exercise',
+    categoryId: 'c-everyday',
+    rhythm: { type: 'timesPerWeek', times: 4 },
+    status: 'active',
+    createdAt: '2026-06-08T07:30:00',
+  };
+  const state = (checkIns: CheckIn[] = []): GaiaState => ({ ...createEmpty(), habits: [habit], checkIns });
+
+  it('shows nine weeks, ending with the one today is in', () => {
+    const weeks = weeksEnding(today, 9, 0);
+    expect(weeks).toHaveLength(9);
+    expect(weeks.every((w) => w.length === 7)).toBe(true);
+    // Sunday first, and today is in the last row.
+    expect(weeks[8][0]).toBe('2026-11-08');
+    expect(weeks[8]).toContain(today);
+    expect(weeks[0][0]).toBe('2026-09-13');
+    // A week that starts on Monday moves the whole grid with it.
+    expect(weeksEnding(today, 9, 1)[8][0]).toBe('2026-11-09');
+  });
+
+  it('opens every day from the habit’s first to today, and no others', () => {
+    const start = startedOn(habit.createdAt);
+    expect(start).toBe('2026-06-08');
+    expect(canFill('2026-06-08', start, today)).toBe(true);
+    expect(canFill(today, start, today)).toBe(true);
+    // Tomorrow is never offered, and neither is the day before it existed.
+    expect(canFill('2026-11-10', start, today)).toBe(false);
+    expect(canFill('2026-06-07', start, today)).toBe(false);
+  });
+
+  it('starts at the first day logged when a save has one from before', () => {
+    const early = state([{ habitId: 'h-ex', date: '2026-05-30', kind: 'done' }]);
+    expect(habitStart(early, habit)).toBe('2026-05-30');
+    // Otherwise the day it was made is the first.
+    expect(habitStart(state(), habit)).toBe('2026-06-08');
+  });
+
+  it('counts a stretch of days without a denominator', () => {
+    const days: CheckIn[] = [
+      { habitId: 'h-ex', date: '2026-11-02', kind: 'done' },
+      { habitId: 'h-ex', date: '2026-11-04', kind: 'tiny' },
+      { habitId: 'h-ex', date: '2026-11-05', kind: 'rest' },
+      { habitId: 'h-ex', date: '2026-11-06', kind: 'done' },
+      // Another habit's day never counts here.
+      { habitId: 'h-other', date: '2026-11-06', kind: 'done' },
+    ];
+    const tally = habitTally(state(days), 'h-ex', weeksEnding(today, 9, 0).flat());
+    expect(tally).toEqual({ done: 2, tiny: 1, rest: 1, tended: 3 });
+    // Rest is neither progress nor a gap: it is counted, and never as tended.
+    expect(tally.tended).toBe(tally.done + tally.tiny);
+  });
+
+  it('lists every month from the first to this one', () => {
+    expect(monthsBetween('2026-06-08', today)).toEqual([
+      '2026-06-01',
+      '2026-07-01',
+      '2026-08-01',
+      '2026-09-01',
+      '2026-10-01',
+      '2026-11-01',
+    ]);
+    // A habit made this month has one row, not none.
+    expect(monthsBetween('2026-11-02', today)).toEqual(['2026-11-01']);
+    // And one that crosses a year keeps going.
+    expect(monthsBetween('2025-12-20', '2026-01-04')).toEqual(['2025-12-01', '2026-01-01']);
+  });
+
+  it('fills in a day that has gone exactly like one tapped at the time', () => {
+    const before = state([{ habitId: 'h-ex', date: today, kind: 'done' }]);
+    const after = reducer(before, { type: 'checkin/set', habitId: 'h-ex', date: '2026-10-31', kind: 'tiny' });
+    expect(after.checkIns).toHaveLength(2);
+    // Nothing on the entry says when it was written.
+    expect(after.checkIns[1]).toEqual({ habitId: 'h-ex', date: '2026-10-31', kind: 'tiny' });
+    // Leaving it blank clears the day rather than storing anything.
+    const blank = reducer(after, { type: 'checkin/clear', habitId: 'h-ex', date: '2026-10-31' });
+    expect(blank.checkIns).toEqual([{ habitId: 'h-ex', date: today, kind: 'done' }]);
   });
 });

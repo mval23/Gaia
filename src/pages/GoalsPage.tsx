@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import type { Goal } from '../types';
 import { uid, useFeedback, useGaia } from '../store/GaiaProvider';
-import { useGoalEditor, useHabitEditor } from '../hooks/useSheetParam';
+import { useGoalEditor } from '../hooks/useSheetParam';
 import { useTaskEditor } from '../hooks/useTaskEditor';
 import { Link } from 'react-router-dom';
 import {
@@ -287,7 +287,6 @@ function MilestoneCount({ goal, closed }: { goal: Goal; closed: boolean }) {
 function GoalCard({ goal, today }: { goal: Goal; today: string }) {
   const { state } = useGaia();
   const { openGoal } = useGoalEditor();
-  const { openHabit } = useHabitEditor();
   const { openTask } = useTaskEditor();
   const category = categoryById(state, goal.categoryId);
   const habits = habitsForGoal(state, goal.id);
@@ -370,9 +369,9 @@ function GoalCard({ goal, today }: { goal: Goal; today: string }) {
                 {habits.map((habit) => (
                   <li key={habit.id}>
                     <Icon name="rhythm" size={15} />
-                    <button type="button" className={ui.textButton} onClick={() => openHabit(habit.id)}>
+                    <Link className={ui.textButton} to={`/habits/${habit.id}`}>
                       {habit.title}
-                    </button>
+                    </Link>
                     <span className={styles.linkedMeta}>
                       {rhythmLabel(habit.rhythm)}
                       {isHabitResting(state, habit) ? ' · resting' : ''}
