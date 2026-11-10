@@ -1,5 +1,6 @@
 import type { Habit, IfThen, Rhythm } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
+import { Link } from 'react-router-dom';
 import { useHabitEditor } from '../../hooks/useSheetParam';
 import {
   categoriesInGroup,
@@ -330,6 +331,13 @@ function Sheet({ habit, onClose }: { habit: Habit; onClose: () => void }) {
           </Select>
         </SheetRow>
       )}
+
+      <p className={styles.note}>
+        <Link to={`/habits/${habit.id}`} onClick={onClose}>
+          Open its page
+        </Link>
+        {' — every day it has had, and the ones you can still fill in.'}
+      </p>
 
       <p className={styles.note}>
         {rhythmLabel(habit.rhythm)}

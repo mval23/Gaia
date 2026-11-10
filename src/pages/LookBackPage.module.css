@@ -258,6 +258,8 @@
 .tendedName {
   min-width: 0;
   font-size: 14.5px;
+  color: inherit;
+  text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -371,4 +373,11 @@
     width: 100%;
     flex-wrap: wrap;
   }
+}
+
+/* The habit's name leads to its page, where its days can be filled in. */
+.tendedName:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

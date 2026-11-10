@@ -22,6 +22,7 @@ import {
 import { formatDuration } from '../lib/time';
 import { COPY } from '../lib/copy';
 import { paint } from '../lib/swatch';
+import { Link } from 'react-router-dom';
 import { Icon } from '../components/ui/Icon';
 import { MonetAccent } from '../components/art/MonetAccent';
 import { ReflectionCard } from '../components/lookback/ReflectionCard';
@@ -148,7 +149,9 @@ export function LookBackPage() {
                 <ul className={styles.tendedList}>
                   {tended.map(({ habit, days, count }) => (
                     <li key={habit.id} className={styles.tendedRow}>
-                      <span className={styles.tendedName}>{habit.title}</span>
+                      <Link className={styles.tendedName} to={`/habits/${habit.id}`}>
+                        {habit.title}
+                      </Link>
                       <span className={styles.dots} aria-hidden="true">
                         {days.map((kind, i) => (
                           <span key={i} data-kind={kind} title={kind ? KIND_WORD[kind] : undefined} />

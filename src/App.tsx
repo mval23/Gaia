@@ -4,6 +4,7 @@ import { TodayPage } from './pages/TodayPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { ManageLayout } from './pages/manage/ManageLayout';
 import { GoalsPage } from './pages/GoalsPage';
+import { HabitPage } from './pages/HabitPage';
 import { LookBackPage } from './pages/LookBackPage';
 import { SupportPage } from './pages/SupportPage';
 import { HelpPage } from './pages/HelpPage';
@@ -19,6 +20,7 @@ export function App() {
         <Route index element={<TodayPage />} />
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="goals" element={<GoalsPage />} />
+        <Route path="habits/:habitId" element={<HabitPage />} />
         <Route path="look-back" element={<LookBackPage />} />
         <Route path="support" element={<SupportPage />} />
         <Route path="help" element={<HelpPage />} />

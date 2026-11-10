@@ -21,6 +21,7 @@ import type {
 // Also run by the reminder server (api/) in Node, which needs the extensions spelled out.
 import { addDays, monthDates, startOfMonth, startOfWeek, weekDates } from '../lib/dates.js';
 import { isOnRhythm, weeklyTarget } from '../lib/rhythm.js';
+import { startedOn } from '../lib/habitDays.js';
 
 export const GROUP_ALL = 'all';
 
@@ -237,6 +238,41 @@ export function habitsForDate(state: GaiaState, date: string, groupFilter = GROU
       isOnRhythm(h.rhythm, date) &&
       (groupFilter === GROUP_ALL || categoryById(state, h.categoryId)?.groupId === groupFilter),
   );
+}
+
+/** What a stretch of days held for one habit. Rest is counted, never against you. */
+export interface Tally {
+  done: number;
+  tiny: number;
+  rest: number;
+  /** Days tended: done and the tiny version, which count the same. */
+  tended: number;
+}
+
+export function habitTally(state: GaiaState, habitId: string, dates: string[]): Tally {
+  const log = checkInIndex(state);
+  const tally: Tally = { done: 0, tiny: 0, rest: 0, tended: 0 };
+  for (const date of dates) {
+    const kind = log.get(checkInKey(habitId, date));
+    if (kind === 'done') tally.done += 1;
+    else if (kind === 'tiny') tally.tiny += 1;
+    else if (kind === 'rest') tally.rest += 1;
+  }
+  tally.tended = tally.done + tally.tiny;
+  return tally;
+}
+
+/**
+ * The first day a habit can be filled in: whichever came first, making it or
+ * logging it. A save from before the habit existed can hold the earlier one.
+ */
+export function habitStart(state: GaiaState, habit: Habit): string {
+  return startedOn(habit.createdAt, firstLoggedDate(state, habit.id));
+}
+
+/** Every day this habit was given an hour of its own, newest first. */
+export function habitTimes(state: GaiaState, habitId: string): HabitTime[] {
+  return state.habitTimes.filter((t) => t.habitId === habitId).sort((a, b) => b.date.localeCompare(a.date));
 }
 
 /* ---------- Habits on the timeline ---------- */

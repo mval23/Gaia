@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { CheckInKind, Habit } from '../../types';
 import { useFeedback, useGaia } from '../../store/GaiaProvider';
 import {
@@ -138,7 +139,11 @@ export function HabitRow({ habit, date, log, gentle, onEdit }: Props) {
       />
 
       <div className={styles.body}>
-        <p className={styles.title}>{habit.title}</p>
+        <p className={styles.title}>
+          <Link className={styles.titleLink} to={`/habits/${habit.id}`}>
+            {habit.title}
+          </Link>
+        </p>
         {value ? (
           <p className={styles.detail}>{LOGGED_WORD[value]}</p>
         ) : (

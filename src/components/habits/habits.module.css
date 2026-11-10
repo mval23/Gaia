@@ -270,3 +270,14 @@
     opacity: 1;
   }
 }
+
+/* A habit's name leads to its own page; the row around it still logs the day. */
+.titleLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.titleLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

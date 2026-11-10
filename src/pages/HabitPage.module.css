@@ -1,0 +1,430 @@
+/* A habit's own page: what it is, every day it has had, and today. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: var(--gutter);
+  padding-top: 24px;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--text);
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.titleBlock {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1.05;
+}
+
+.accent {
+  width: 210px;
+  height: 62px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--panel-inset);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+a.chip:hover {
+  color: var(--text);
+}
+
+.chipLens {
+  background: var(--lens);
+  color: var(--lens-ink);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.main,
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardHead h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+
+.meta {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-tertiary);
+}
+
+.answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.primaryAnswer {
+  background: var(--inverse-surface);
+  border-color: transparent;
+  color: var(--text-inverse);
+}
+
+.primaryAnswer:hover {
+  background: var(--navy);
+  color: var(--text-inverse);
+}
+
+/* ---------- The weeks, and filling one in ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: 74px repeat(7, minmax(0, 1fr));
+  gap: 7px;
+  align-items: center;
+  justify-items: center;
+}
+
+.dayName,
+.weekLabel {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+.weekLabel {
+  justify-self: start;
+  white-space: nowrap;
+}
+
+/* The same circle as the one you press to log a day, in the habit's own colour. */
+.day {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface-strong);
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  color: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), background-color 0.2s var(--ease);
+}
+
+.day:hover:not([data-shut]) {
+  border-color: var(--text-tertiary);
+}
+
+.day[data-kind='done'] {
+  background: var(--cat);
+  border-color: color-mix(in srgb, var(--cat) 70%, var(--text));
+  color: color-mix(in srgb, var(--cat) 25%, var(--text));
+}
+
+.day[data-kind='tiny'] {
+  border-color: color-mix(in srgb, var(--cat) 70%, var(--text));
+}
+
+.day[data-kind='rest'] {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--swatch-lavender) 70%, var(--text));
+}
+
+.glyphTiny {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--cat) 70%, var(--text));
+}
+
+.glyphRest {
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--swatch-lavender) 70%, var(--text));
+}
+
+/* Before the habit began, or still to come: drawn, and left alone. */
+.day[data-shut] {
+  border-style: dotted;
+  border-color: var(--tint);
+  background: transparent;
+  cursor: default;
+}
+
+.day[data-today] {
+  box-shadow: 0 0 0 2.5px var(--surface), 0 0 0 4px var(--text-tertiary);
+}
+
+.day[data-chosen] {
+  box-shadow: 0 0 0 2.5px var(--surface), 0 0 0 4px var(--text);
+}
+
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  align-items: center;
+}
+
+.keyItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.keyItem .day {
+  width: 20px;
+  height: 20px;
+  cursor: default;
+}
+
+.keyItem .glyphTiny {
+  width: 8px;
+  height: 8px;
+}
+
+.keyItem .glyphRest {
+  width: 9px;
+}
+
+.chosen {
+  display: grid;
+  gap: 11px;
+  padding-top: 13px;
+  border-top: 1px solid var(--border);
+}
+
+.chosenTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 21px;
+}
+
+.adds {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 23px;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+/* ---------- Month by month ---------- */
+
+.monthRow {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.monthRow:first-of-type {
+  border-top: 0;
+}
+
+.marks {
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mark {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.25px solid var(--border-strong);
+  background: var(--surface-strong);
+  box-sizing: border-box;
+  flex-shrink: 1;
+}
+
+.mark[data-kind='done'] {
+  background: var(--cat);
+  border-color: color-mix(in srgb, var(--cat) 70%, var(--text));
+}
+
+.mark[data-kind='tiny'] {
+  background: linear-gradient(90deg, var(--cat) 50%, var(--surface-strong) 50%);
+  border-color: color-mix(in srgb, var(--cat) 70%, var(--text));
+}
+
+.mark[data-kind='rest'] {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--swatch-lavender) 70%, var(--text));
+}
+
+.mark[data-shut] {
+  border-style: dotted;
+  border-color: var(--tint);
+  background: transparent;
+}
+
+/* ---------- The side ---------- */
+
+.sideLine {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--text-secondary);
+}
+
+.sideLine b {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.why {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.line {
+  display: grid;
+  gap: 3px;
+  font-size: 14px;
+}
+
+.quiet {
+  background: var(--panel-inset);
+  border-color: transparent;
+}
+
+@media (max-width: 1023px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .accent {
+    width: 100%;
+    height: 48px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  /* On a phone the week's date would crowd the row out; the columns carry it,
+     so the labels and the corner above them step out of the grid entirely. */
+  .weekLabel,
+  .corner {
+    display: none;
+  }
+
+  .day {
+    width: 38px;
+    height: 38px;
+  }
+
+  .monthRow {
+    grid-template-columns: 40px minmax(0, 1fr);
+    row-gap: 4px;
+  }
+
+  .monthRow .meta:last-child {
+    grid-column: 2;
+  }
+
+  .mark {
+    width: 9px;
+    height: 9px;
+  }
+}
