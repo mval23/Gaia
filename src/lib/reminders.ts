@@ -19,7 +19,8 @@ export interface Nudge {
 /** What turning notifications on starts with. Every one can be turned off again. */
 export const DEFAULT_REMINDERS: Reminders = {
   blocks: true,
-  blockLeadMin: 5,
+  blockLeadMin: 10,
+  blockAtStart: true,
   morning: true,
   morningMin: 7 * 60 + 30,
   lookBack: true,
@@ -38,19 +39,33 @@ export function nudgesOn(state: GaiaState, date: string): Nudge[] {
   const clock = (min: number) => formatClock(min, state.settings.timeFormat);
   const nudges: Nudge[] = [];
 
-  if (r.blocks) {
+  if (r.blocks || r.blockAtStart) {
     for (const task of state.tasks) {
       if (task.status === 'done' || task.status === 'let-go') continue;
       for (const b of blocksOnDate(task, date)) {
+        // Nothing is sent before the day begins, so a block early on gets less warning.
         const lead = Math.min(r.blockLeadMin, b.startMin);
-        nudges.push({
-          // The start time is part of the key, so moving a block sends it again at its new time.
-          key: `block:${b.id}:${date}:${b.startMin}`,
-          atMin: b.startMin - lead,
-          title: task.title,
-          body: `${lead > 0 ? `${NUDGE.blockSoon} ${clock(b.startMin)}` : NUDGE.blockNow} · ${formatDuration(b.durationMin)}`,
-          url: `/?date=${date}`,
-        });
+        const when = `${date}:${b.startMin}`;
+        if (r.blocks && lead > 0) {
+          nudges.push({
+            // The start time is part of the key, so moving a block sends it again at its new time.
+            key: `block:${b.id}:${when}`,
+            atMin: b.startMin - lead,
+            title: task.title,
+            body: `${NUDGE.blockSoon} ${clock(b.startMin)} · ${formatDuration(b.durationMin)}`,
+            url: `/?date=${date}`,
+          });
+        }
+        // With no room for an early one, the start is the only moment left to say it.
+        if (r.blockAtStart || (r.blocks && lead === 0)) {
+          nudges.push({
+            key: `block:${b.id}:${when}:start`,
+            atMin: b.startMin,
+            title: task.title,
+            body: `${NUDGE.blockNow} · ${formatDuration(b.durationMin)}`,
+            url: `/?date=${date}`,
+          });
+        }
       }
     }
   }

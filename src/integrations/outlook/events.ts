@@ -1,6 +1,8 @@
 import type { Schedule, Task } from '../../types';
-import { addDays, fromISODate, toISODate } from '../../lib/dates';
-import { DAY_MIN } from '../../lib/time';
+import { addDays, fromISODate } from '../../lib/dates';
+import { splitIntoDays, type DayEvent } from '../../lib/calendar';
+// Shared with the Google link, which decides the same way when to send a change.
+export { blockSignature } from '../../lib/calendar';
 
 /** The fields Gaia reads from a Graph event. Times are UTC (see the Prefer header). */
 export interface GraphEvent {
@@ -22,26 +24,11 @@ export interface GraphEventInput {
 }
 
 /** One day's slice of an Outlook event, positioned like a time block. */
-export interface OutlookEvent {
-  /** Unique per day, since a long event is split at midnight. */
-  key: string;
-  eventId: string;
-  calendarId: string;
-  groupId: string;
-  subject: string;
-  date: string;
-  startMin: number;
-  durationMin: number;
-  webLink?: string;
-}
+export type OutlookEvent = DayEvent;
 
 /** Graph's "2026-09-16T14:00:00.0000000" (UTC, no zone marker) as a Date. */
 export function parseGraphUTC(value: string): Date {
   return new Date(`${value.replace(/\.\d+$/, '').replace(/Z$/, '')}Z`);
-}
-
-function minutesOf(d: Date): number {
-  return d.getHours() * 60 + d.getMinutes();
 }
 
 /**
@@ -54,32 +41,14 @@ export function eventSegments(
   groupId: string,
 ): OutlookEvent[] {
   if (event.isAllDay || event.isCancelled) return [];
-  const start = parseGraphUTC(event.start.dateTime);
-  const end = parseGraphUTC(event.end.dateTime);
-  if (!(end > start)) return [];
-  const out: OutlookEvent[] = [];
-  let date = toISODate(start);
-  const lastDate = toISODate(end);
-  while (date <= lastDate) {
-    const dayStart = fromISODate(date);
-    const from = start > dayStart ? minutesOf(start) : 0;
-    const to = date === lastDate ? minutesOf(end) : DAY_MIN;
-    if (to > from) {
-      out.push({
-        key: `${event.id}|${date}`,
-        eventId: event.id,
-        calendarId,
-        groupId,
-        subject: event.subject?.trim() || '(No title)',
-        date,
-        startMin: from,
-        durationMin: to - from,
-        webLink: event.webLink,
-      });
-    }
-    date = addDays(date, 1);
-  }
-  return out;
+  return splitIntoDays(parseGraphUTC(event.start.dateTime), parseGraphUTC(event.end.dateTime), {
+    eventId: event.id,
+    calendarId,
+    groupId,
+    subject: event.subject?.trim() || '(No title)',
+    source: 'Outlook',
+    webLink: event.webLink,
+  });
 }
 
 function utcStamp(date: string, minutes: number): string {
@@ -96,11 +65,6 @@ export function toGraphEvent(task: Task, schedule: Schedule): GraphEventInput {
     body: { contentType: 'text', content: 'Planned in Gaia.' },
     isReminderOn: false,
   };
-}
-
-/** Changes whenever the Outlook copy of a block would need updating. */
-export function blockSignature(task: Task, schedule: Schedule): string {
-  return [task.title, task.status, schedule.date, schedule.startMin, schedule.durationMin].join('|');
 }
 
 /** [start, end) of the local days in `dates`, for a calendarView request. */

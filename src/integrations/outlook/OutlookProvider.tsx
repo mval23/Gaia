@@ -16,6 +16,7 @@ import { fromISODate, todayISO } from '../../lib/dates';
 import {
   ConsentNeededError,
   currentAccount,
+  describeAuthError,
   getToken,
   microsoftConfigured,
   signIn as msSignIn,
@@ -57,6 +58,8 @@ interface OutlookValue {
   account: AccountInfo | null;
   calendars: OutlookCalendar[] | null;
   syncError: string | null;
+  /** Why Microsoft said no, in words, when it did. */
+  authError: string | null;
   signIn: () => Promise<AccountInfo>;
   signOut: () => Promise<void>;
   /** Asks Microsoft for calendar access. Call only from a click. */
@@ -96,7 +99,12 @@ function writeLedger(account: AccountInfo, ledger: Ledger) {
 const isMissing = (err: unknown) => err instanceof GraphError && (err.status === 404 || err.status === 410);
 
 function describe(err: unknown): string {
-  if (err instanceof GraphError && err.status === 403) return "Outlook refused the change. The calendar may be read-only.";
+  if (err instanceof GraphError && err.status === 403)
+    return 'Outlook refused the change. The calendar may be read-only, or calendar permission may not have been granted yet.';
+  if (err instanceof GraphError && err.status === 404)
+    return 'That calendar is no longer in Outlook. Link the group to another one in Manage ▸ Groups & categories.';
+  if (err instanceof GraphError && err.status === 429)
+    return 'Outlook asked Gaia to slow down. It will pick up again shortly.';
   if (err instanceof TypeError) return "Couldn't reach Outlook. Check your connection.";
   return 'Outlook sync hit a problem. It will try again with your next change.';
 }
@@ -108,6 +116,7 @@ export function OutlookProvider({ children }: { children: ReactNode }) {
   const [calendars, setCalendars] = useState<OutlookCalendar[] | null>(null);
   const [cache, setCache] = useState<Map<string, CachedView>>(() => new Map());
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [epoch, setEpoch] = useState(0);
   const [ledgerVersion, setLedgerVersion] = useState(0);
 
@@ -132,6 +141,7 @@ export function OutlookProvider({ children }: { children: ReactNode }) {
     setCache(new Map());
     if (!next) {
       ledgerRef.current = {};
+      setAuthError(null);
       setAccess(microsoftConfigured ? 'signed-out' : 'unconfigured');
       return;
     }
@@ -140,8 +150,12 @@ export function OutlookProvider({ children }: { children: ReactNode }) {
     try {
       await getToken();
       setAccess('ready');
+      setAuthError(null);
     } catch (err) {
-      setAccess(err instanceof ConsentNeededError ? 'needs-consent' : 'ready');
+      // Whatever went wrong, nothing will load. Saying so beats a calendar that
+      // looks connected and then stays empty.
+      setAccess('needs-consent');
+      setAuthError(err instanceof ConsentNeededError ? null : describeAuthError(err));
     }
   }, []);
 
@@ -176,6 +190,7 @@ export function OutlookProvider({ children }: { children: ReactNode }) {
   const allowAccess = useCallback(async () => {
     await getToken(true);
     setSyncError(null);
+    setAuthError(null);
     setAccess('ready');
   }, []);
 
@@ -301,6 +316,7 @@ export function OutlookProvider({ children }: { children: ReactNode }) {
       account,
       calendars,
       syncError,
+      authError,
       signIn,
       signOut,
       allowAccess,
@@ -310,7 +326,7 @@ export function OutlookProvider({ children }: { children: ReactNode }) {
       ownEventIds,
       epoch,
     }),
-    [access, account, calendars, syncError, signIn, signOut, allowAccess, loadCalendars, cache, ensureView, ownEventIds, epoch],
+    [access, account, calendars, syncError, authError, signIn, signOut, allowAccess, loadCalendars, cache, ensureView, ownEventIds, epoch],
   );
 
   return <OutlookContext.Provider value={value}>{children}</OutlookContext.Provider>;

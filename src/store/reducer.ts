@@ -1,4 +1,5 @@
 import type {
+  CalendarFeed,
   Category,
   CheckInKind,
   Evidence,
@@ -53,6 +54,9 @@ export type Action =
   | { type: 'category/update'; id: string; patch: Partial<Pick<Category, 'name' | 'color'>> }
   | { type: 'category/move'; id: string; groupId: string; index: number }
   | { type: 'category/delete'; id: string }
+  | { type: 'feed/add'; id: string; name: string; url: string; groupId?: string }
+  | { type: 'feed/update'; id: string; patch: Partial<Pick<CalendarFeed, 'name' | 'url' | 'groupId'>> }
+  | { type: 'feed/remove'; id: string }
   | { type: 'group/add'; id: string; name: string; color: string }
   | { type: 'group/update'; id: string; patch: Partial<Pick<Group, 'name' | 'color' | 'calendar'>> }
   | { type: 'group/move'; id: string; index: number }
@@ -333,6 +337,26 @@ export function reducer(state: GaiaState, action: Action): GaiaState {
         goals: state.goals.map((g) => (g.categoryId === action.id ? { ...g, categoryId: undefined } : g)),
       };
     }
+
+    case 'feed/add': {
+      const name = action.name.trim();
+      const url = action.url.trim();
+      if (!name || !url) return state;
+      return {
+        ...state,
+        calendarFeeds: [
+          ...state.calendarFeeds,
+          { id: action.id, name, url, groupId: action.groupId, addedAt: new Date().toISOString() },
+        ],
+      };
+    }
+    case 'feed/update':
+      return {
+        ...state,
+        calendarFeeds: state.calendarFeeds.map((f) => (f.id === action.id ? { ...f, ...action.patch } : f)),
+      };
+    case 'feed/remove':
+      return { ...state, calendarFeeds: state.calendarFeeds.filter((f) => f.id !== action.id) };
 
     case 'group/add': {
       const name = action.name.trim();

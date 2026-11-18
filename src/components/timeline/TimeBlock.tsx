@@ -390,7 +390,7 @@ export function HabitBlockHelp() {
  * A meeting from a linked Outlook calendar. It belongs to Outlook, so it can't
  * be dragged or edited here; opening it goes to the event in Outlook.
  */
-export function OutlookBlock({ event, placement }: { event: OutlookEvent; placement: Placement }) {
+export function EventBlock({ event, placement }: { event: OutlookEvent; placement: Placement }) {
   const { state } = useGaia();
   const group = groupById(state, event.groupId);
   const fmt = state.settings.timeFormat;
@@ -405,8 +405,8 @@ export function OutlookBlock({ event, placement }: { event: OutlookEvent; placem
       style={blockStyle(event, placement, group?.color)}
       role="button"
       tabIndex={0}
-      aria-label={`${event.subject}, ${range}, Outlook event in ${group?.name ?? 'a linked calendar'}`}
-      title={`${event.subject} · ${range} · Outlook`}
+      aria-label={`${event.subject}, ${range}, from ${event.source}${group ? ` in ${group.name}` : ''}`}
+      title={`${event.subject} · ${range} · ${event.source}`}
       onClick={open}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -417,7 +417,9 @@ export function OutlookBlock({ event, placement }: { event: OutlookEvent; placem
     >
       <div className={styles.blockText}>
         <span className={styles.blockTitle}>{event.subject}</span>
-        <span className={styles.blockMeta}>{range} · Outlook</span>
+        <span className={styles.blockMeta}>
+          {range} · {event.source}
+        </span>
       </div>
     </div>
   );

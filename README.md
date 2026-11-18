@@ -160,7 +160,8 @@ offline are sent once the connection is back.
 
 Either way, **Settings ▸ Your data** can export everything as JSON, import such
 a file, restore the sample data, or delete the lot (with one undo). A group you
-link to an Outlook calendar sends its scheduled tasks there.
+link to an Outlook calendar sends its scheduled tasks there, and a calendar you
+subscribe to by its iCal address is only ever read.
 
 ---
 
@@ -202,14 +203,17 @@ src/
     persist.ts        localStorage, plus migrateState for saves from older versions
     cloud.ts          saving each account's planner to Supabase
     GaiaProvider.tsx  state, toasts, undo, and the theme stamped on <html>
-  auth/               Gaia accounts (AuthGate, Supabase) and Microsoft sign-in
-  integrations/       the Outlook calendar link
+  auth/               Gaia accounts (AuthGate, Supabase), Microsoft and Google sign-in
+  integrations/       outlook/ the Outlook calendar link; feeds/ calendars read by
+                      iCal address; google/ writing time blocks to a Google calendar
   lib/                pure helpers: dates, time, layout, rhythm, copy, sensitive,
-                      reminders (what a phone is sent, and when); push.ts signs a phone up
+                      reminders (what a phone is sent, and when); push.ts signs a phone up;
+                      ics.ts reads an iCalendar feed; calendar.ts the shared event shape
   components/         ui kit, tasks, habits, plan sections, timeline, sheets, layout
   pages/              Plan (TodayPage), Calendar, Goals, Settings, Support, Manage/*
   styles/             tokens.css (all colour) and global.css
-api/                  Vercel functions: remind (every five minutes) and push-test
+api/                  Vercel functions: remind (every five minutes), push-test, and ics
+                      (fetches a calendar feed; vite.config.ts answers it while developing)
 supabase/             schema.sql (tables and privacy), reminders.sql (the five-minute job)
 docs/
   index.html          the illustrated docs page
@@ -275,9 +279,11 @@ Environment variable changes only take effect after a new deploy.
 ### Phone notifications
 
 Once accounts are on, Gaia can send a few quiet notifications, each optional:
-when a task's time block starts, *the one that matters* in the morning, Look
-back on its day, and in the evening an invitation to note your habits, sent only
-on a day with nothing logged yet. On an iPhone they need iOS 16.4 or newer and
+around a task's time block, *the one that matters* in the morning, Look back on
+its day, and in the evening an invitation to note your habits, sent only on a
+day with nothing logged yet. A time block can bring two: a heads-up some minutes
+before it, and a word as it begins. Settings ▸ Notifications sets each
+separately, so you can have one, both, or neither. On an iPhone they need iOS 16.4 or newer and
 Gaia added to the home screen from Safari. Set it up once:
 
 1. **Keys:** run `npx web-push generate-vapid-keys` in this folder.
@@ -295,11 +301,82 @@ Gaia added to the home screen from Safari. Set it up once:
 Notifications run on the phone's own clock, and signing out turns them off on
 that device.
 
+### Subscribing to a calendar
+
+**Settings ▸ Calendars** takes the secret iCal address of a calendar kept
+somewhere else, and its events appear on the Plan timeline and in Calendar,
+read-only, beside your own time blocks. Give one a group and it borrows that
+group's colour. It needs no account, no app registration and nobody's approval.
+
+Where the address lives:
+
+| Calendar | Where to find it |
+|---|---|
+| Google | Settings ▸ *the calendar* ▸ Integrate calendar ▸ **Secret address in iCal format** |
+| Outlook / Microsoft 365 | Settings ▸ Calendar ▸ Shared calendars ▸ **Publish a calendar** ▸ the ICS link |
+| Apple iCloud | Calendar ▸ share the calendar ▸ **Public Calendar** ▸ copy the link |
+| Notion | Calendar ▸ ⋯ ▸ Copy link ▸ **iCal** |
+
+That address is a password in disguise: anyone holding it can read the
+calendar. Gaia keeps it with the rest of the planner, and it is in the export.
+
+A browser cannot fetch someone else's calendar address directly, so the server
+does it: `api/ics.ts` on Vercel, and the same code through a small plugin in
+`vite.config.ts` while developing. It fetches public web addresses only, never
+anything on a private network, so it can't be aimed at machines it shouldn't
+reach; put online, only a signed-in person may ask it for anything. All-day
+entries are left out, as they are for Outlook. Repeats are expanded by
+`src/lib/ics.ts`, which reads the parts of the format a calendar really uses.
+
+### Google Calendar
+
+**Settings ▸ Google Calendar** writes this planner's time blocks into a
+calendar of yours. Give a task a time here and it appears there, and is kept in
+step when you move it, rename it, finish it or let it go. Gaia only ever touches
+the events it made itself, tracked in `localStorage` under `gaia:google:events`.
+
+It writes; it doesn't read. To see that calendar's own events on your timeline,
+also add it under **Settings ▸ Calendars** with its secret address — the two
+sit side by side on purpose, so the direction is never in doubt.
+
+Choosing *Nowhere* takes every event Gaia put there back out again. Blocks
+dated before today are left where they are: linking a calendar doesn't copy
+your past into it.
+
+To turn it on, make a client id once in the
+[Google Cloud Console](https://console.cloud.google.com). It is free, needs no
+administrator, and needs no review while it is only for your own account:
+
+1. **New Project**, any name.
+2. *APIs & Services ▸ Library*: enable the **Google Calendar API**.
+3. *APIs & Services ▸ OAuth consent screen*: **External**, fill in the app name
+   and your email, and under *Audience* add your own Google address as a **test
+   user**. (Test users is what lets you use it without Google reviewing it.)
+4. *APIs & Services ▸ Credentials ▸ Create credentials ▸ OAuth client ID*,
+   type **Web application**. Under *Authorised JavaScript origins* add
+   `http://localhost:5173`, and your Vercel address too if you use one.
+5. Copy the client id into `.env.local` in this folder, then restart Gaia.
+   That file is a list of settings, not commands: open it in an editor and add
+   a line, rather than typing it at a terminal.
+
+   <sub>`.env.local`</sub>
+   ```ini
+   VITE_GOOGLE_CLIENT_ID=123456789-abcdefg.apps.googleusercontent.com
+   ```
+
+Gaia asks Google for two permissions and no more: reading the list of your
+calendars, so you can pick one, and adding events to it. Nothing is kept but an
+hour-long token held in memory, so closing the tab ends it; *Disconnect* tells
+Google the permission is no longer wanted and forgets what Gaia wrote where.
+
 ### Microsoft sign-in
 
-Settings ▸ Microsoft account signs in with a work or school account
-(`User.Read`, `Calendars.ReadWrite`). Then, in Manage ▸ Groups & categories, the calendar
-button on a group links it to one of your Outlook calendars:
+Settings ▸ Microsoft account signs in with a Microsoft account (`User.Read`,
+`Calendars.ReadWrite`). Which accounts are accepted is set by the app
+registration and by `VITE_MS_TENANT_ID`: a directory id allows only accounts
+from that one directory, and `common` (the default when it isn't set) allows
+work, school and personal accounts alike. Then, in Manage ▸ Groups & categories,
+the calendar button on a group links it to one of your Outlook calendars:
 
 - that calendar's meetings appear on the Plan timeline and in Calendar, in the
   group's colour, read-only (all-day events are not shown);
@@ -313,19 +390,50 @@ To turn it on, register an app once in the
 [Microsoft Entra admin center](https://entra.microsoft.com) (App registrations
 ▸ New registration):
 
-1. **Supported account types:** accounts in this organizational directory only.
+1. **Supported account types:** accounts in this organizational directory only,
+   if you will sign in with a work or school account. To use a personal
+   Microsoft account (outlook.com, hotmail), choose *Accounts in any
+   organizational directory and personal Microsoft accounts* instead.
 2. **Redirect URI:** platform *Single-page application*,
    `http://localhost:5173/auth-redirect.html`.
 3. Copy the *Application (client) ID* and *Directory (tenant) ID* into
-   `.env.local` in this folder, then restart Gaia:
+   `.env.local` in this folder, then restart Gaia. That file holds settings,
+   one per line, and is edited rather than run.
 
-```
-VITE_MS_CLIENT_ID=<application id>
-VITE_MS_TENANT_ID=<directory id>
-```
+   <sub>`.env.local`</sub>
+   ```ini
+   VITE_MS_CLIENT_ID=<application id>
+   VITE_MS_TENANT_ID=<directory id>
+   ```
+
+Leave `VITE_MS_TENANT_ID` out (or set it to `common`) to let personal accounts
+in as well; a directory id there turns every other account away, which is the
+usual reason sign-in is refused.
 
 `.env.local` is git-ignored. If your organization blocks users from registering
 apps or consenting to them, an IT admin has to do step 1 or grant consent.
+
+**Admin approval.** Many organisations keep app permissions for administrators
+to grant, even ordinary ones like these. Microsoft then shows *Need admin
+approval* instead of signing you in, and nothing can be done from Gaia's side.
+An administrator grants it once, in Entra ▸ App registrations ▸ Gaia ▸ API
+permissions ▸ *Grant admin consent*, or by opening
+
+```
+https://login.microsoftonline.com/<directory id>/adminconsent?client_id=<application id>
+```
+
+`User.Read` and `Calendars.ReadWrite` are delegated permissions: they reach only
+the signed-in person's own calendar, never anyone else's.
+
+**When it doesn't work,** Settings ▸ Microsoft account shows Microsoft's own
+reason and what to do about it, rather than a general apology: an account the
+directory doesn't hold, a permission still waiting on an administrator, a client
+id that isn't there, a redirect address that wasn't registered, or a blocked
+pop-up. Gaia's sign-in opens in a pop-up window, so a browser that blocks those
+blocks the sign-in; allow pop-ups for Gaia's address. The calendar menu in
+Manage ▸ Groups & categories says when an account has no calendar Gaia may add
+to.
 
 ### The paintings
 

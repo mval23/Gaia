@@ -1434,6 +1434,37 @@ describe('a habit can have an hour of its own, on one day', () => {
     // A save written before any of this still loads.
     expect(migrateState(old as GaiaState).habitTimes).toEqual([]);
   });
+
+  it('keeps the time-block notification a save already chose, and adds nothing new', () => {
+    const withReminders = (reminders: Record<string, unknown>) =>
+      migrateState({
+        ...createEmpty(),
+        settings: { ...createEmpty().settings, reminders },
+      } as unknown as GaiaState).settings.reminders;
+
+    // "10 min before" stays exactly that, with no second notification turned on.
+    expect(withReminders({ blocks: true, blockLeadMin: 10 })).toMatchObject({
+      blocks: true,
+      blockLeadMin: 10,
+      blockAtStart: false,
+    });
+
+    // "At the start" was stored as a nudge with no minutes in front of it.
+    expect(withReminders({ blocks: true, blockLeadMin: 0 })).toMatchObject({ blocks: false, blockAtStart: true });
+
+    // Off stays off.
+    expect(withReminders({ blocks: false, blockLeadMin: 5 })).toMatchObject({ blocks: false, blockAtStart: false });
+
+    // A save that already knows about both is left alone.
+    expect(withReminders({ blocks: true, blockLeadMin: 15, blockAtStart: true })).toMatchObject({
+      blocks: true,
+      blockLeadMin: 15,
+      blockAtStart: true,
+    });
+
+    // Notifications never turned on stay absent.
+    expect(migrateState(createEmpty()).settings.reminders).toBeUndefined();
+  });
 });
 
 describe('a habit’s own page', () => {
