@@ -8,9 +8,12 @@ import { CaptureProvider } from '../capture/CaptureProvider';
 import { WalkProvider } from '../walk/WalkProvider';
 import { WalkGuide } from '../walk/WalkGuide';
 import { BlockHelp, HabitBlockHelp } from '../timeline/TimeBlock';
+import { useDeviceNudges } from '../../hooks/useDeviceNudges';
 import styles from './AppShell.module.css';
 
 export function AppShell() {
+  useDeviceNudges();
+
   return (
     <DragProvider>
       <CaptureProvider>

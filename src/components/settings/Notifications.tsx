@@ -7,6 +7,7 @@ import { formatClock } from '../../lib/time';
 import { Select } from '../ui/Select';
 import ui from '../ui/ui.module.css';
 import settings from '../../pages/SettingsPage.module.css';
+import { DeviceNotifications } from './DeviceNotifications';
 
 const LEADS = [5, 10, 15, 30];
 
@@ -49,10 +50,16 @@ export function Notifications() {
         Notifications
       </h2>
 
+      <DeviceNotifications />
+
+      <div className={settings.row}>
+        <span className={settings.label}>On your phone</span>
+      </div>
+
       {!pushConfigured ? (
         <p className={settings.hint}>
-          Notifications aren't set up yet. The README's Phone notifications section says how, then they can be turned
-          on here.
+          Phone notifications aren't set up here yet. They need an account and a server, so they only work on Gaia
+          online; the README's Phone notifications section says how to switch them on.
         </p>
       ) : status === null ? null : status === 'install-first' ? (
         <p className={settings.hint}>
@@ -128,7 +135,7 @@ export function Notifications() {
         </>
       )}
 
-      {pushConfigured && reminders && (
+      {reminders && (
         <>
           <div className={settings.row}>
             <label className={settings.label} htmlFor="remind-blocks">
