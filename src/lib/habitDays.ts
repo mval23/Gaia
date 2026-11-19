@@ -1,4 +1,5 @@
-import { addDays, startOfWeek, toISODate, fromISODate } from './dates';
+// api/ runs this in plain Node, which needs the extension spelled out.
+import { addDays, startOfWeek, toISODate, fromISODate } from './dates.js';
 
 /** How many weeks the habit page shows above its month-by-month history. */
 export const WEEKS_SHOWN = 9;
