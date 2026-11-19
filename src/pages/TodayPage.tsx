@@ -27,6 +27,8 @@ import { CalendarLinks } from '../components/plan/CalendarLinks';
 import { ReflectionInvite } from '../components/plan/ReflectionInvite';
 import { TimeGrid } from '../components/timeline/TimeGrid';
 import { useOutlookEvents } from '../integrations/outlook/OutlookProvider';
+import { useFeedEvents } from '../integrations/feeds/FeedsProvider';
+import { mergeEventDays } from '../lib/calendar';
 import { SplitHandle } from '../components/ui/SplitHandle';
 import { useStoredNumber } from '../hooks/useStoredNumber';
 import ui from '../components/ui/ui.module.css';
@@ -84,7 +86,9 @@ export function TodayPage() {
   };
   const full = windowMin > 0 && summary.plannedMin > windowMin * FULL_DAY_RATIO;
   const blocksByDate = useMemo(() => new Map([[date, blocks]]), [date, blocks]);
-  const eventsByDate = useOutlookEvents([date], groupFilter);
+  const outlookEvents = useOutlookEvents([date], groupFilter);
+  const feedEvents = useFeedEvents([date], groupFilter);
+  const eventsByDate = useMemo(() => mergeEventDays(outlookEvents, feedEvents), [outlookEvents, feedEvents]);
   const moveDay = useMoveBlockDay();
 
   const { openCapture } = useCapture();

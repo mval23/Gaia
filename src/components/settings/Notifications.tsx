@@ -8,7 +8,7 @@ import { Select } from '../ui/Select';
 import ui from '../ui/ui.module.css';
 import settings from '../../pages/SettingsPage.module.css';
 
-const LEADS = [0, 5, 10, 15];
+const LEADS = [5, 10, 15, 30];
 
 /** Every half hour from `fromHour` up to (not including) `toHour`. */
 const halfHours = (fromHour: number, toHour: number) =>
@@ -132,7 +132,7 @@ export function Notifications() {
         <>
           <div className={settings.row}>
             <label className={settings.label} htmlFor="remind-blocks">
-              When a time block starts
+              Before a time block
             </label>
             <Select
               id="remind-blocks"
@@ -146,11 +146,29 @@ export function Notifications() {
               <option value="off">Off</option>
               {LEADS.map((lead) => (
                 <option key={lead} value={lead}>
-                  {lead === 0 ? 'At the start' : `${lead} min before`}
+                  {`${lead} min before`}
                 </option>
               ))}
             </Select>
           </div>
+
+          <div className={settings.row}>
+            <label className={settings.label} htmlFor="remind-block-start">
+              As it starts
+            </label>
+            <Select
+              id="remind-block-start"
+              value={reminders.blockAtStart ? 'on' : 'off'}
+              onChange={(e) => setReminders({ blockAtStart: e.target.value === 'on' })}
+            >
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </Select>
+          </div>
+          <p className={settings.hint}>
+            Both, either, or neither: a heads-up before a task's time, and a word as it begins. A block early in the
+            morning gets whatever warning the day allows.
+          </p>
 
           <TimeRow
             id="remind-morning"

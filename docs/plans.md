@@ -184,10 +184,11 @@ on an iPhone, so they arrive only once Gaia is on the home screen.
 
 - **Four kinds, each optional**, chosen in Settings ▸ Notifications and stored
   in `Settings.reminders` (so every device shares them): a task's time block
-  starting (at the start or up to 15 min early), *the one that matters* in the
-  morning (only on a day that has one), Look back on the reflection weekday and
-  the month's last day (until that reflection is written, and one notification
-  when both fall on the same day), and an evening invitation to note habits.
+  (a heads-up 5 to 30 min before it, a word as it begins, both, or neither),
+  *the one that matters* in the morning (only on a day that has one), Look back
+  on the reflection weekday and the month's last day (until that reflection is
+  written, and one notification when both fall on the same day), and an evening
+  invitation to note habits.
 - **The evening one is Mariana's decision**, and it sits close to the rule
   against an end-of-day card. It's allowed because it comes only when *nothing*
   is logged that day, never on a Gentle day or a day with no habits on it, and
@@ -203,6 +204,49 @@ on an iPhone, so they arrive only once Gaia is on the home screen.
 - `api/` runs in plain Node, so `reminders.ts` and everything it imports
   (`selectors`, `dates`, `rhythm`, `time`, `copy`) spell imports with `.js`.
   Keep new imports in those files that way.
+
+### Between seasons: calendars by iCal address · built
+
+Asked for by Mariana on 10 Nov 2026, after her organisation's Outlook link ran
+into an administrator approval it couldn't get past. She only wanted to read her
+work events, which is all a feed does.
+
+- **Settings ▸ Calendars** holds any number of them (`GaiaState.calendarFeeds`,
+  `CalendarFeed`), each with a name, the secret `.ics` address, and an optional
+  group whose colour it borrows. Removing one is undoable like everything else.
+- **Read-only, and that is the point.** Nothing is written back and no account
+  is involved, so no admin can stand in the way. It works the same for Google,
+  Apple, Outlook and Notion.
+- The server fetches the feed, since a browser may not: `api/ics.ts`, with the
+  same code served by a plugin in `vite.config.ts` while developing, so it works
+  with `npm run dev` too. It refuses private addresses and anything that isn't a
+  calendar, and caps what it will read.
+- `src/lib/ics.ts` is a plain parser: folded lines, TZID and UTC times, DURATION,
+  RRULE (daily, weekly with BYDAY, monthly, yearly, INTERVAL, COUNT, UNTIL),
+  EXDATE, and an occurrence moved by RECURRENCE-ID. All-day and cancelled
+  entries are left out, as they are for Outlook.
+- Events from feeds and from Outlook share one shape, `DayEvent` in
+  `src/lib/calendar.ts`, and one block on the timeline, which names the calendar
+  it came from.
+
+### Between seasons: writing to Google Calendar · built
+
+Asked for by Mariana on 10 Nov 2026, straight after the feeds: she wanted the
+tasks she plans here to show up in her own Google calendar too.
+
+- **One direction, on purpose.** Gaia writes its time blocks into one chosen
+  calendar (`Settings.googleCalendar`) and keeps them in step; reading that
+  calendar back is the feed's job, added the same day. Settings puts the two
+  next to each other so the direction is never in doubt.
+- Blocks from today on only, and choosing *Nowhere* removes every event Gaia
+  made. What it put where lives in `localStorage` under `gaia:google:events`,
+  the same shape as the Outlook ledger.
+- `src/auth/google.ts` uses Google's browser token client: an hour-long access
+  token in memory, no refresh token in the page, and a quiet re-request while
+  there's a Google session. `VITE_GOOGLE_CLIENT_ID` turns it on.
+- Only two permissions are asked for: the list of calendars, and adding events.
+- `blockSignature` (now in `src/lib/calendar.ts`) decides when a change is worth
+  sending, shared with the Outlook link so both behave the same way.
 
 ### Season 3: Compass (direction) · built
 
@@ -287,7 +331,8 @@ interface Settings { …; workEndsMin?: number }              // the soft line o
 
 // Between seasons
 interface Settings { …; reminders?: Reminders }   // absent until notifications are first turned on
-interface Reminders { blocks: boolean; blockLeadMin: number; morning: boolean; morningMin: number;
+interface Reminders { blocks: boolean; blockLeadMin: number; blockAtStart: boolean;  // before, as it starts, or both
+                      morning: boolean; morningMin: number;
                       lookBack: boolean; lookBackMin: number; evening: boolean; eveningMin: number }
 
 // Season 3
@@ -298,6 +343,11 @@ interface Evidence { id: ID; kind: 'source' | 'observation' | 'pattern'; title: 
                      url?: string; verified?: boolean; note?: string; shapes?: string; createdAt: string }
 interface PatternAnswer { id: string; verdict: 'true' | 'not-really' | 'unsure'; date: string }
 interface GaiaState { …; compass: Compass; evidence: Evidence[]; patternAnswers: PatternAnswer[] }
+
+// Between seasons
+interface CalendarFeed { id: ID; name: string; url: string; groupId?: ID; addedAt: string }
+interface GaiaState { …; calendarFeeds: CalendarFeed[] }
+interface Settings { …; googleCalendar?: CalendarLink }   // where time blocks are written
 
 // Season 4
 interface Proposal { id: ID; reason: string; action: Action; status: 'open' | 'added' | 'set-aside'; createdAt: string }

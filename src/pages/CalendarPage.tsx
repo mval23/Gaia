@@ -24,6 +24,8 @@ import { MonetAccent } from '../components/art/MonetAccent';
 import { TimeGrid } from '../components/timeline/TimeGrid';
 import { paint } from '../lib/swatch';
 import { useOutlookEvents } from '../integrations/outlook/OutlookProvider';
+import { useFeedEvents } from '../integrations/feeds/FeedsProvider';
+import { mergeEventDays } from '../lib/calendar';
 import type { OutlookEvent } from '../integrations/outlook/events';
 import ui from '../components/ui/ui.module.css';
 import styles from './CalendarPage.module.css';
@@ -64,7 +66,9 @@ export function CalendarPage() {
   const dates = view === 'week' ? weekDates(date, state.settings.weekStart) : [date];
   const byDate = useMemo(() => blocksByDate(state), [state]);
   const visibleDates = view === 'month' ? monthGrid(date, state.settings.weekStart).map((c) => c.date) : dates;
-  const eventsByDate = useOutlookEvents(visibleDates);
+  const outlookEvents = useOutlookEvents(visibleDates);
+  const feedEvents = useFeedEvents(visibleDates);
+  const eventsByDate = useMemo(() => mergeEventDays(outlookEvents, feedEvents), [outlookEvents, feedEvents]);
   const moveDay = useMoveBlockDay();
   // Habits show here too, so a day's hour can be moved wherever you are looking at it.
   const suggestionsByDate = useMemo(

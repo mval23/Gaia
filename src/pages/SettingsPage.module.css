@@ -182,6 +182,17 @@
   border-color: color-mix(in srgb, var(--danger) 40%, var(--border-strong));
 }
 
+/* A reason worth reading: why Microsoft said no, or what a sync ran into. */
+.trouble {
+  margin: 0;
+  max-width: 58ch;
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--danger) 45%, var(--border-strong));
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
 .footNote {
   margin: 0;
   font-size: 13.5px;
@@ -260,5 +271,77 @@
 @media (max-width: 400px) {
   .paletteGrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Calendars you subscribe to ---------- */
+
+.feedList {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feedRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.feedMain {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.feedMain .label,
+.feedMain .hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.feedForm {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px 12px;
+  margin-top: 4px;
+}
+
+.feedInput {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+}
+
+.feedInput:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+@media (max-width: 560px) {
+  .feedRow {
+    flex-wrap: wrap;
+  }
+
+  .feedForm {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }

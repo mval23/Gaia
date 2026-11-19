@@ -10,6 +10,7 @@ import { Icon } from '../../components/ui/Icon';
 import { Menu, type MenuEntry } from '../../components/ui/Menu';
 import { CATEGORY_PALETTE, GROUP_PALETTE, paint } from '../../lib/swatch';
 import { useOutlook } from '../../integrations/outlook/OutlookProvider';
+import { describeAuthError } from '../../auth/microsoft';
 import ui from '../../components/ui/ui.module.css';
 import styles from './manage.module.css';
 
@@ -537,12 +538,21 @@ function CalendarMenu({ group }: { group: Group }) {
       { kind: 'heading', label: 'Outlook calendar' },
       ...(calendars === null
         ? [{ label: 'Loading calendars…', disabled: true, onSelect: () => {} }]
-        : editable.map<MenuEntry>((c) => ({
-            label: c.name,
-            icon: 'calendar',
-            checked: group.calendar?.id === c.id,
-            onSelect: () => group.calendar?.id !== c.id && link({ id: c.id, name: c.name }),
-          }))),
+        : editable.length === 0
+          ? // Signed in, but nothing Gaia may write to: say so instead of an empty list.
+            [
+              {
+                label: calendars.length ? 'No calendar here can be added to' : 'This account has no calendars',
+                disabled: true,
+                onSelect: () => {},
+              },
+            ]
+          : editable.map<MenuEntry>((c) => ({
+              label: c.name,
+              icon: 'calendar',
+              checked: group.calendar?.id === c.id,
+              onSelect: () => group.calendar?.id !== c.id && link({ id: c.id, name: c.name }),
+            }))),
       { kind: 'separator' },
       { label: 'Not linked', checked: !group.calendar, onSelect: () => group.calendar && link(undefined) },
     ];
@@ -553,7 +563,8 @@ function CalendarMenu({ group }: { group: Group }) {
         label: 'Allow calendar access',
         icon: 'calendar',
         onSelect: () => {
-          allowAccess().catch(() => notify('Calendar access was not granted.'));
+          // Microsoft's own reason, so it's clear whether to try again or ask an admin.
+          allowAccess().catch((err) => notify(describeAuthError(err) ?? 'Calendar access was not granted.'));
         },
       },
     ];

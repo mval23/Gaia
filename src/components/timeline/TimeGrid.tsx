@@ -7,7 +7,7 @@ import { layoutLanes } from '../../lib/layout';
 import { formatClock, nowMinutes } from '../../lib/time';
 import { todayISO } from '../../lib/dates';
 import type { OutlookEvent } from '../../integrations/outlook/events';
-import { TimeBlock, PreviewBlock, SuggestedBlock, HabitPreviewBlock, OutlookBlock } from './TimeBlock';
+import { TimeBlock, PreviewBlock, SuggestedBlock, HabitPreviewBlock, EventBlock } from './TimeBlock';
 import { RestBlock } from './RestBlock';
 import styles from './timeline.module.css';
 
@@ -200,7 +200,7 @@ function DayColumn({ date, items, suggestions, events, onOpenTask, onOpenHabit, 
         />
       ))}
       {events.map((event) => (
-        <OutlookBlock
+        <EventBlock
           key={event.key}
           event={event}
           placement={placements.get(`ev-${event.key}`) ?? { lane: 0, lanes: 1 }}

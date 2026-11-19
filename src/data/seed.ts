@@ -246,6 +246,7 @@ export function createSeed(today = todayISO()): GaiaState {
     goalCheckIns,
     rests,
     habitTimes: [],
+    calendarFeeds: [],
     compass: emptyCompass(today),
     evidence: seedEvidence(`${today}T00:00:00`),
     patternAnswers: [],
@@ -271,6 +272,7 @@ export function createEmpty(): GaiaState {
     goalCheckIns: [],
     rests: [],
     habitTimes: [],
+    calendarFeeds: [],
     compass: emptyCompass(todayISO()),
     // Not personal data: the reading behind how Gaia works stays on the shelf.
     evidence: seedEvidence(),

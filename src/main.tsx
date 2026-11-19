@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthGate } from './auth/AuthGate';
 import { OutlookProvider } from './integrations/outlook/OutlookProvider';
+import { FeedsProvider } from './integrations/feeds/FeedsProvider';
+import { GoogleProvider } from './integrations/google/GoogleProvider';
 import { App } from './App';
 import { startPush } from './lib/push';
 import './styles/tokens.css';
@@ -15,7 +17,11 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthGate>
         <OutlookProvider>
-          <App />
+          <FeedsProvider>
+            <GoogleProvider>
+              <App />
+            </GoogleProvider>
+          </FeedsProvider>
         </OutlookProvider>
       </AuthGate>
     </BrowserRouter>

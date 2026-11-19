@@ -11,9 +11,12 @@ import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { Select } from '../components/ui/Select';
 import { MonetAccent } from '../components/art/MonetAccent';
 import { useOutlook } from '../integrations/outlook/OutlookProvider';
+import { describeAuthError, singleTenant } from '../auth/microsoft';
 import { StarterHabits } from '../components/settings/StarterHabits';
 import { InstallGaia } from '../components/settings/InstallGaia';
 import { Notifications } from '../components/settings/Notifications';
+import { Calendars } from '../components/settings/Calendars';
+import { GoogleCalendar } from '../components/settings/GoogleCalendar';
 import ui from '../components/ui/ui.module.css';
 import styles from './SettingsPage.module.css';
 
@@ -228,6 +231,10 @@ export function SettingsPage() {
 
           {account && <Notifications />}
 
+          <Calendars />
+
+          <GoogleCalendar />
+
           <MicrosoftAccount />
 
           <InstallGaia />
@@ -358,22 +365,27 @@ function GaiaAccount({ email, signOut }: { email: string; signOut: () => Promise
 
 function MicrosoftAccount() {
   const { notify } = useFeedback();
-  const { access, account, syncError, signIn, signOut, allowAccess } = useOutlook();
+  const { access, account, syncError, authError, signIn, signOut, allowAccess } = useOutlook();
   const [busy, setBusy] = useState(false);
+  const [trouble, setTrouble] = useState<string | null>(null);
 
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
+    setTrouble(null);
     try {
       await action();
     } catch (err) {
-      // Closing the popup is a choice, not something to report.
-      if ((err as { errorCode?: string }).errorCode !== 'user_cancelled') {
-        notify('Microsoft sign-in did not finish. Please try again.');
-      }
+      // Closing the window is a choice, not something to report. Anything else
+      // stays on the page, in Microsoft's own terms, rather than as a toast
+      // that is gone before it can be acted on.
+      setTrouble(describeAuthError(err));
     } finally {
       setBusy(false);
     }
   };
+
+  // Whatever Microsoft last refused, from this attempt or from the token behind it.
+  const reason = trouble ?? authError;
 
   return (
     <section className={styles.group} aria-labelledby="microsoft-account">
@@ -395,6 +407,7 @@ function MicrosoftAccount() {
               ? 'Gaia needs your permission to read and add calendar events.'
               : syncError ?? 'Link a group to one of your calendars from Manage ▸ Groups & categories.'}
           </p>
+          {reason && <p className={styles.trouble}>{reason}</p>}
           <div className={styles.actions}>
             {access === 'needs-consent' && (
               <button
@@ -428,7 +441,12 @@ function MicrosoftAccount() {
         </>
       ) : (
         <>
-          <p className={styles.hint}>Sign in with your work or school account to use your Outlook calendar.</p>
+          <p className={styles.hint}>
+            {singleTenant
+              ? 'Sign in with an account from the directory Gaia is registered to, to use its Outlook calendar.'
+              : 'Sign in with a Microsoft account — work, school or personal — to use its Outlook calendar.'}
+          </p>
+          {reason && <p className={styles.trouble}>{reason}</p>}
           <div className={styles.actions}>
             <button
               type="button"

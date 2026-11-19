@@ -43,16 +43,46 @@ describe('reminders', () => {
     expect(nudgesOn(state, WEDNESDAY)).toEqual([]);
   });
 
-  it('nudges a few minutes before a time block, and re-arms when the block moves', () => {
+  it('nudges before a time block and again as it starts, and re-arms when the block moves', () => {
     const block = { id: 'b1', date: WEDNESDAY, startMin: 14 * 60, durationMin: 45 };
     const state = planner({ tasks: [task({ blocks: [block] })] });
-    const [nudge] = nudgesOn(state, WEDNESDAY);
-    expect(nudge.atMin).toBe(14 * 60 - 5);
-    expect(nudge.title).toBe('Draft the intro');
-    expect(nudge.body).toBe(`${NUDGE.blockSoon} 14:00 · 45m`);
+    const [before, atStart] = nudgesOn(state, WEDNESDAY);
+    expect(before.atMin).toBe(14 * 60 - DEFAULT_REMINDERS.blockLeadMin);
+    expect(before.title).toBe('Draft the intro');
+    expect(before.body).toBe(`${NUDGE.blockSoon} 14:00 · 45m`);
+    expect(atStart.atMin).toBe(14 * 60);
+    expect(atStart.title).toBe('Draft the intro');
+    expect(atStart.body).toBe(`${NUDGE.blockNow} · 45m`);
+    // Two notifications, never one standing in for the other.
+    expect(before.key).not.toBe(atStart.key);
 
     const moved = planner({ tasks: [task({ blocks: [{ ...block, startMin: 15 * 60 }] })] });
-    expect(nudgesOn(moved, WEDNESDAY)[0].key).not.toBe(nudge.key);
+    expect(nudgesOn(moved, WEDNESDAY).map((n) => n.key)).not.toContain(before.key);
+  });
+
+  it('sends only the one that is turned on', () => {
+    const blocks = [{ id: 'b1', date: WEDNESDAY, startMin: 14 * 60, durationMin: 45 }];
+    const onlyBefore = planner({ tasks: [task({ blocks })] });
+    onlyBefore.settings.reminders = { ...DEFAULT_REMINDERS, blockAtStart: false };
+    expect(nudgesOn(onlyBefore, WEDNESDAY).map((n) => n.atMin)).toEqual([14 * 60 - DEFAULT_REMINDERS.blockLeadMin]);
+
+    const onlyStart = planner({ tasks: [task({ blocks })] });
+    onlyStart.settings.reminders = { ...DEFAULT_REMINDERS, blocks: false };
+    expect(nudgesOn(onlyStart, WEDNESDAY).map((n) => n.atMin)).toEqual([14 * 60]);
+
+    const neither = planner({ tasks: [task({ blocks })] });
+    neither.settings.reminders = { ...DEFAULT_REMINDERS, blocks: false, blockAtStart: false };
+    expect(keys(neither, WEDNESDAY)).toEqual([]);
+  });
+
+  it('says it once for a block with no room in front of it', () => {
+    const blocks = [{ id: 'b1', date: WEDNESDAY, startMin: 0, durationMin: 30 }];
+    const state = planner({ tasks: [task({ blocks })] });
+    state.settings.reminders = { ...DEFAULT_REMINDERS, blockAtStart: false };
+    // Nothing can be sent the day before, so the start is the only moment left.
+    const nudges = nudgesOn(state, WEDNESDAY);
+    expect(nudges).toHaveLength(1);
+    expect(nudges[0]).toMatchObject({ atMin: 0, body: `${NUDGE.blockNow} · 30m` });
   });
 
   it('skips blocks of tasks that are done or let go', () => {

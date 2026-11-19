@@ -6,6 +6,21 @@ export interface CalendarLink {
   name: string;
 }
 
+/**
+ * A calendar kept somewhere else, read through its own secret address. Nothing
+ * is ever written back: these events are someone else's, and only shown.
+ */
+export interface CalendarFeed {
+  id: ID;
+  /** What to call it here. */
+  name: string;
+  /** The secret iCal (.ics) address. */
+  url: string;
+  /** Borrows a group's colour, so it sits in the day like everything else. */
+  groupId?: ID;
+  addedAt: string;
+}
+
 export interface Group {
   id: ID;
   name: string;
@@ -332,6 +347,11 @@ export interface Settings {
   weekStart: number;
   /** What Gaia may say on a phone. Absent until notifications are first turned on. */
   reminders?: Reminders;
+  /**
+   * The Google calendar this planner's time blocks are written into. Absent
+   * until one is chosen, and choosing none takes them all back out again.
+   */
+  googleCalendar?: CalendarLink;
 }
 
 /**
@@ -339,9 +359,11 @@ export interface Settings {
  * phone's own clock. None of them ever mentions what didn't happen.
  */
 export interface Reminders {
-  /** When a task's time block starts, `blockLeadMin` early. */
+  /** A nudge `blockLeadMin` before a task's time block starts. */
   blocks: boolean;
   blockLeadMin: number;
+  /** A second nudge the moment it starts. Either one can be off. */
+  blockAtStart: boolean;
   /** The one that matters, in the morning. Only on a day that has one. */
   morning: boolean;
   morningMin: number;
@@ -365,6 +387,7 @@ export interface GaiaState {
   goalCheckIns: GoalCheckIn[];
   rests: Rest[];
   habitTimes: HabitTime[];
+  calendarFeeds: CalendarFeed[];
   compass: Compass;
   evidence: Evidence[];
   patternAnswers: PatternAnswer[];

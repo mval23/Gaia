@@ -1,4 +1,5 @@
 import type {
+  CalendarFeed,
   CheckIn,
   CheckInKind,
   Compass,
@@ -19,6 +20,7 @@ import type {
   Momentum,
   PatternAnswer,
   PatternVerdict,
+  Reminders,
   Rest,
   Schedule,
   Sleep,
@@ -30,6 +32,7 @@ import type {
 } from '../types';
 import { createSeed } from '../data/seed';
 import { isValidISODate } from '../lib/dates';
+import { DEFAULT_REMINDERS } from '../lib/reminders';
 import { normalizeRhythm } from '../lib/rhythm';
 import { normalizeRepeat } from '../lib/repeat';
 import { DAY_MIN, MIN_DURATION, clamp } from '../lib/time';
@@ -219,6 +222,35 @@ export function isState(value: unknown): value is GaiaState {
   );
 }
 
+function isCalendarFeed(value: unknown): value is CalendarFeed {
+  const f = value as CalendarFeed;
+  return (
+    !!f &&
+    typeof f.id === 'string' &&
+    typeof f.name === 'string' &&
+    typeof f.url === 'string' &&
+    /^(https?|webcal):\/\//i.test(f.url)
+  );
+}
+
+/**
+ * A time block's notification used to be a single nudge: either a few minutes
+ * early or exactly as the block began. Now it is two separate ones, so a save
+ * written before keeps exactly what it had, and nothing new starts arriving
+ * unasked.
+ */
+function migrateReminders(reminders: Reminders): Reminders {
+  if (typeof reminders.blockAtStart === 'boolean') return reminders;
+  // "At the start" was stored as a nudge with no minutes in front of it.
+  const atStart = reminders.blocks && reminders.blockLeadMin === 0;
+  return {
+    ...reminders,
+    blocks: reminders.blocks && !atStart,
+    blockLeadMin: atStart ? DEFAULT_REMINDERS.blockLeadMin : reminders.blockLeadMin,
+    blockAtStart: atStart,
+  };
+}
+
 /**
  * Fills in collections added after a save was written, so an older save loads
  * without losing anything. The saved data always wins; only missing pieces are
@@ -275,11 +307,13 @@ export function migrateState(parsed: GaiaState, seed: GaiaState = createSeed()):
           .filter((t, i, all) => all.findIndex((o) => o.habitId === t.habitId && o.date === t.date) === i)
       : [],
     compass,
+    // Calendars someone subscribed to; a save from before has none.
+    calendarFeeds: Array.isArray(parsed.calendarFeeds) ? parsed.calendarFeeds.filter(isCalendarFeed) : [],
     // A save written before the evidence page existed gets the shelf it ships
     // with, once. Afterwards the list is the person's, empty or not.
     evidence: Array.isArray(parsed.evidence) ? parsed.evidence.filter(isEvidence) : seed.evidence,
     patternAnswers: Array.isArray(parsed.patternAnswers) ? parsed.patternAnswers.filter(isPatternAnswer) : [],
-    settings: { ...seed.settings, ...settings },
+    settings: { ...seed.settings, ...settings, ...(settings.reminders && { reminders: migrateReminders(settings.reminders) }) },
   };
 }
 
