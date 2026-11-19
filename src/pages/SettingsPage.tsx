@@ -229,7 +229,7 @@ export function SettingsPage() {
 
           {account && <GaiaAccount email={account.email} signOut={account.signOut} />}
 
-          {account && <Notifications />}
+          <Notifications />
 
           <Calendars />
 
